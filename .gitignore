@@ -1,0 +1,32 @@
+# Data files - do not commit raw/processed data
+data/raw/**/*.csv
+data/raw/**/*.xlsx
+data/raw/**/*.json
+data/processed/**/*.csv
+data/processed/**/*.parquet
+data/final/**/*.csv
+data/final/**/*.parquet
+
+# Keep folder structure
+!data/**/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
