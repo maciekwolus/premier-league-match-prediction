@@ -57,8 +57,15 @@ ruff check . && ruff format .
 
 ## Project status
 
-Phase 0 complete — project skeleton, configuration and tooling.
+Phases 0–1 complete — skeleton, configuration, and match-results ingestion
+(2,660 matches across 7 seasons, fully validated).
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
+
+Rebuild the match data from scratch:
+
+```bash
+python -m src.data.fetch_matches && python -m src.data.clean_matches
+```
 
 ## Layout
 
