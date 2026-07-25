@@ -1,20 +1,72 @@
 # Premier League Match Prediction
 
-A machine learning application that predicts the outcomes of Premier League matches based on historical match results and player statistics.
+Predicts the **scoreline** of upcoming Premier League fixtures, with probabilities:
 
-## How It Works
+```
+Arsenal vs Chelsea    2-1 (11%) · 1-1 (10%) · 2-0 (9%)
+                      Home 48% | Draw 26% | Away 26%
+```
 
-1. **Historical match data** — past Premier League match results are used as the foundation for training the prediction model.
-2. **Player lineups** — each historical match includes information about which players participated.
-3. **FIFA player statistics** — player lineup data is enriched with attributes from FIFA Manager (ratings, pace, shooting, passing, etc.), giving the model a quality signal for each squad.
-4. **Prediction** — given a future match and its expected lineups, the model predicts the outcome (win / draw / loss).
+Exact scorelines in football top out around 12% probability even for a perfect model,
+so the output is the *most likely* scorelines with honest probabilities rather than a
+single confident guess. Every prediction is shown next to the bookmaker's line, which
+makes it obvious whether the model is actually adding anything.
 
-## Data Sources
+## How it works
 
-- Premier League historical match results
-- Per-match player lineup records
-- FIFA Manager player statistics table
+| Input | Source |
+|---|---|
+| Match results, shots, cards, odds | [football-data.co.uk](https://www.football-data.co.uk/englandm.php) |
+| Lineups and expected goals (xG) | [Understat](https://understat.com) |
+| Player ratings | FIFA 20-23 / EA Sports FC 24-26 |
 
-## Goal
+Player ratings are matched to the players who actually started each match, giving a
+squad-quality signal per team per fixture. Those, plus rolling form, xG, Elo and rest
+days, feed two models — a classical Dixon-Coles goals model and a gradient-boosting
+model — which produce a scoreline probability matrix.
 
-Given the two starting lineups for an upcoming Premier League fixture, output a predicted match result.
+Seasons covered: **2019/20 through 2025/26** (7 seasons, ~2,660 matches).
+
+## Setup
+
+```bash
+python -m venv .venv
+```
+
+```bash
+.venv\Scripts\activate
+```
+
+```bash
+pip install -r requirements.txt
+```
+
+## Development
+
+Run the tests:
+
+```bash
+pytest
+```
+
+Lint and format:
+
+```bash
+ruff check . && ruff format .
+```
+
+## Project status
+
+Phase 0 complete — project skeleton, configuration and tooling.
+See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
+
+## Layout
+
+```
+src/config.py    seasons, paths, data source URLs - the single place seasons are defined
+tests/           unit tests
+data/raw/        downloaded source data (gitignored)
+data/processed/  cleaned and joined data (gitignored)
+data/final/      model-ready feature table (gitignored)
+data/manual/     hand-written name-override files (committed)
+```

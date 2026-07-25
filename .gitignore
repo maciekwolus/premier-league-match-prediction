@@ -1,13 +1,6 @@
-# Data files - do not commit raw/processed data
-data/raw/**/*.csv
-data/raw/**/*.xlsx
-data/raw/**/*.json
-data/processed/**/*.csv
-data/processed/**/*.parquet
-data/final/**/*.csv
-data/final/**/*.parquet
-
-# Keep folder structure
+# Data files - never commit datasets, only the folder structure
+data/**
+!data/**/
 !data/**/.gitkeep
 
 # Python
@@ -20,8 +13,20 @@ env/
 dist/
 build/
 
-# Jupyter
+# Tooling caches
+.ruff_cache/
+.pytest_cache/
 .ipynb_checkpoints/
+
+# Model artefacts
+AutogluonModels/
+models/*.pkl
+
+# Secrets
+.env
+
+# Claude Code - local permissions are per-machine
+.claude/settings.local.json
 
 # OS
 .DS_Store
