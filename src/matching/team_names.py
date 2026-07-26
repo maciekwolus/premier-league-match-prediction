@@ -21,6 +21,72 @@ UNDERSTAT_TO_FOOTBALL_DATA = {
 }
 
 
+# FIFA / EA FC club name -> football-data name.
+#
+# Unlike Understat, the ratings files cover every club in the world, so a name that is
+# absent from this table is simply not a Premier League club and is dropped. That makes
+# a *missing* mapping silent, so the loader instead asserts that each edition yields
+# exactly 20 Premier League clubs - a club we failed to map shows up as 19.
+#
+# Several clubs appear under more than one name across editions, usually for licensing
+# reasons, so this mapping is deliberately many-to-one.
+FIFA_TO_FOOTBALL_DATA = {
+    "Arsenal": "Arsenal",
+    "Aston Villa": "Aston Villa",
+    "AFC Bournemouth": "Bournemouth",
+    "Bournemouth": "Bournemouth",
+    "Brentford": "Brentford",
+    "Brighton & Hove Albion": "Brighton",
+    "Brighton and Hove Albion": "Brighton",
+    "Burnley": "Burnley",
+    "Chelsea": "Chelsea",
+    "Crystal Palace": "Crystal Palace",
+    "Everton": "Everton",
+    "Fulham": "Fulham",
+    "Fulham FC": "Fulham",
+    "Ipswich Town": "Ipswich",
+    "Leeds United": "Leeds",
+    "Leicester City": "Leicester",
+    "Liverpool": "Liverpool",
+    "Luton Town": "Luton",
+    "Manchester City": "Man City",
+    "Manchester United": "Man United",
+    "Newcastle United": "Newcastle",
+    "Norwich City": "Norwich",
+    "Nottingham Forest": "Nott'm Forest",
+    "Sheffield United": "Sheffield United",
+    "Southampton": "Southampton",
+    "Sunderland": "Sunderland",
+    "Tottenham Hotspur": "Tottenham",
+    "Spurs": "Tottenham",
+    "Watford": "Watford",
+    "West Bromwich Albion": "West Brom",
+    "West Ham United": "West Ham",
+    "Wolverhampton Wanderers": "Wolves",
+    # EA FC 26 abbreviates where earlier editions spelled clubs out. Listing the short
+    # forms explicitly beats normalising, because the abbreviations are not derivable
+    # ("Spurs", "Man Utd") and near-misses exist that must NOT match - "Newcastle Jets"
+    # and "Notts County" both live in the same file.
+    "Brighton": "Brighton",
+    "Man Utd": "Man United",
+    "Man City": "Man City",
+    "Newcastle Utd": "Newcastle",
+    "Nott'm Forest": "Nott'm Forest",
+    "West Ham": "West Ham",
+    "West Brom": "West Brom",
+    "Wolves": "Wolves",
+    "Tottenham": "Tottenham",
+    "Leeds": "Leeds",
+    "Leicester": "Leicester",
+    "Norwich": "Norwich",
+    "Ipswich": "Ipswich",
+    "Luton": "Luton",
+    "Sheffield Utd": "Sheffield United",
+}
+
+PREMIER_LEAGUE_CLUBS_PER_SEASON = 20
+
+
 class UnknownTeamError(KeyError):
     """Raised when a source produces a team name we have no mapping for."""
 
@@ -41,3 +107,14 @@ def understat_to_football_data(name: str, known_teams: set[str] | None = None) -
         )
 
     return mapped
+
+
+def fifa_to_football_data(name: str) -> str | None:
+    """Translate a FIFA club name, or ``None`` if it is not a Premier League club.
+
+    Returning ``None`` rather than raising is deliberate: the ratings files list every
+    club in the world, and dropping the other ~700 is the intended behaviour. The
+    safety net against a *mis-mapped* Premier League club is the caller's check that
+    each edition yields exactly 20 clubs.
+    """
+    return FIFA_TO_FOOTBALL_DATA.get(name.strip() if isinstance(name, str) else name)

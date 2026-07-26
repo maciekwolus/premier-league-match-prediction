@@ -9,7 +9,8 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. Phases 0–2 are complete.
+read it before starting work. Phases 0–3 are complete, though Phase 3 stays inert until
+the FIFA CSVs are placed by hand.
 
 ## Commands
 
@@ -31,7 +32,15 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.clean_matches
 .venv/Scripts/python.exe -m src.data.fetch_lineups   # ~2,660 requests, run in background
 .venv/Scripts/python.exe -m src.data.clean_lineups
+.venv/Scripts/python.exe -m src.data.load_fifa       # needs hand-placed CSVs, see below
 ```
+
+**FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
+are the user's to handle. Files are placed by hand in `data/raw/fifa/`, either one per
+edition named `fifa20…fifa23`, `fc24…fc26` (`Season.fifa_slug`), or a multi-edition
+`male_players.csv` carrying a `fifa_version` column — the FC 24 dataset bundles FIFA 15
+through FC 24 that way. A per-edition file wins over the bundle, so the two can be mixed.
+`load_fifa` run without them prints which editions are missing and exits 1.
 
 Tests never hit the network and never read `data/` — they build synthetic seasons — so
 they stay meaningful when upstream sources change, and a green run verifies a fresh
@@ -116,6 +125,37 @@ to trace later.
   raises `UnknownTeamError` rather than dropping the fixture.
 - **Understat starters are `position != "Sub"`** and come to exactly 11 per side on all
   2,660 matches. Its `time` field caps at 90, so stoppage time is not counted.
+- **Ratings CSVs come from different Kaggle authors per edition**, so column names vary.
+  `load_fifa.COLUMN_ALIASES` lists every known spelling and matches case-insensitively;
+  a missing *required* column raises, a missing *optional* one is reported and left null.
+- **An unmapped FIFA club would vanish silently**, because the ratings files list every
+  club in the world and non-Premier-League ones are dropped on purpose. The guard is
+  asserting exactly 20 clubs per edition — a club we failed to map shows up as 19.
+- **Filter ratings to the clubs that played *that season***, taken from
+  `matches.parquet`, not to "clubs ever in the Premier League". Leeds and Sunderland
+  appear in every edition regardless of division, so the looser filter yields 28 clubs.
+- **EA FC 26 abbreviates club names** (`Man Utd`, `Newcastle Utd`, `Spurs`, bare
+  `Brighton`) where earlier editions spell them out, and the same file contains
+  `Newcastle Jets` and `Notts County` — so the mapping is exact-match, never fuzzy.
+- **Goalkeepers have null pace/shooting/etc.** by design; FIFA rates them on separate
+  `gk_` attributes. About 11% of rows. Aggregations in Phase 5 must not treat this as
+  missing data.
+- **Attribute coverage is uneven across editions and features must tolerate it.**
+  `overall`, `potential`, `age` and `club` exist everywhere. The six face stats are
+  absent for 2024/25, and `potential`/`value_eur` are absent for 2025/26. Squad-quality
+  features should lean on `overall`, which is complete, and treat the rest as optional.
+- **The face stats are taken as a complete set or not at all.** Some SoFIFA exports
+  carry *detailed* skills instead — a column named `dribbling` meaning ball control,
+  alongside `acceleration`/`sprint_speed` rather than `pace`. Accepting that single
+  column would put a different quantity in the same field for one season.
+- **2024/25 ratings are an end-of-season snapshot (June 2025), not a release-time one.**
+  Every other season uses ratings published at kickoff. A June snapshot partly reflects
+  how players performed *during* 2024/25, so it is mildly leaky for that season alone.
+  Watch for 2024/25 scoring anomalously well in the Phase 6 walk-forward backtest; if it
+  does, that is the cause.
+- **SoFIFA returns 403 and Kaggle needs auth**, so there is no unattended path to this
+  data. FIFA Index (fifaindex.com) is reachable and covers all seven editions, but its
+  list pages carry only overall/potential — attributes need one request per player.
 
 ## Workflow
 

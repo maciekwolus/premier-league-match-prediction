@@ -123,7 +123,76 @@ towards a small free site. Every response is cached, so **interrupting it is saf
 re-running resumes where it stopped rather than starting over. Pass `--delay` to change
 the spacing, or `--season "2025/26"` to rebuild one season.
 
-All four stages cache their downloads; `--force` re-fetches.
+Every download stage caches; `--force` re-fetches.
+
+### 6. Add the player ratings (manual)
+
+Kaggle requires an account, so these files cannot be fetched automatically.
+
+**Three downloads cover it.** Some datasets bundle every edition into one file with a
+version column, and the loader reads that shape directly:
+
+1. [EA Sports FC 24 complete player dataset](https://www.kaggle.com/datasets/stefanoleone992/ea-sports-fc-24-complete-player-dataset)
+   — `male_players.csv` spans FIFA 15 to FC 24, covering **five** of the seven editions.
+   Save it unchanged as `data/raw/fifa/male_players.csv`.
+2. FC 25 — [aniss7/fifa-player-data-from-sofifa-2025-06-03](https://www.kaggle.com/datasets/aniss7/fifa-player-data-from-sofifa-2025-06-03).
+   Save `player-data-full-2025-june.csv` as `data/raw/fifa/fc25.csv`.
+3. FC 26 — [flynn28/eafc26-player-database](https://www.kaggle.com/datasets/flynn28/eafc26-player-database).
+   Save the **men's** file (`EAFC26-Men.csv`) as `data/raw/fifa/fc26.csv`.
+
+> **Not every Kaggle dataset is usable.** Some are raw web scrapes whose columns are CSS
+> class names (`odd href`, `swapHeader`) and which identify clubs only by numeric id.
+> A dataset is usable only if it has a column of club **names** —
+> `mexwell/ea-fc25-player-database` does not, so avoid it.
+
+Otherwise download each edition separately — FIFA
+[20](https://www.kaggle.com/datasets/stefanoleone992/fifa-20-complete-player-dataset) ·
+[21](https://www.kaggle.com/datasets/stefanoleone992/fifa-21-complete-player-dataset) ·
+[22](https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset) ·
+[23](https://www.kaggle.com/datasets/stefanoleone992/fifa-23-complete-player-dataset)
+— and save them in `data/raw/fifa/` under **exactly** these names:
+
+| Season | Edition | Save as |
+|---|---|---|
+| 2019/20 | FIFA 20 | `data/raw/fifa/fifa20.csv` |
+| 2020/21 | FIFA 21 | `data/raw/fifa/fifa21.csv` |
+| 2021/22 | FIFA 22 | `data/raw/fifa/fifa22.csv` |
+| 2022/23 | FIFA 23 | `data/raw/fifa/fifa23.csv` |
+| 2023/24 | EA FC 24 | `data/raw/fifa/fc24.csv` |
+| 2024/25 | EA FC 25 | `data/raw/fifa/fc25.csv` |
+| 2025/26 | EA FC 26 | `data/raw/fifa/fc26.csv` |
+
+A per-edition file takes precedence over the combined one, so you can mix the two — use
+the bundle for the older editions and dedicated files for anything it misses.
+
+Each file needs at least a player name, a club and an overall rating. Age, potential,
+value, positions and the six attribute scores (pace, shooting, passing, dribbling,
+defending, physical) are used when present. Column *names* do not matter — the loader
+recognises the common spellings and reports anything it cannot place.
+
+Then:
+
+```bash
+python -m src.data.load_fifa
+```
+
+Running it before the files exist prints exactly which ones are missing and where they
+belong, so it is safe to use as a checklist. It writes
+`data/processed/fifa_players.parquet` — player ratings per season, already filtered to
+the 20 clubs that actually played that season.
+
+Pass `--allow-missing` to build from the editions you have while still tracking down a
+source for another. Seasons it skips will have no squad-quality features, so it is not
+the default.
+
+Goalkeepers carry null pace/shooting/passing/dribbling/defending/physical — FIFA rates
+them on separate diving and handling attributes instead. That accounts for roughly 11%
+of rows and is expected, not missing data.
+
+Coverage differs by edition. Player name, club, overall, potential and age are present
+throughout; the six face stats are missing for 2024/25, and potential and value for
+2025/26. Overall rating — the strongest squad-quality signal — is complete for all seven
+seasons.
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
@@ -148,7 +217,8 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–2 complete — skeleton, match-results ingestion, and lineups with expected goals.
+Phases 0–3 complete — skeleton, match results, lineups with expected goals, and player
+ratings (4,421 player-seasons across all seven editions).
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
