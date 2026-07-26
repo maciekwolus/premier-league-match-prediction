@@ -182,6 +182,35 @@ Feature groups:
 - **Elo:** a rating updated match by match from results alone
 - **Odds (variant only):** closing odds → de-overrounded probabilities
 
+### Using the season in progress
+
+Predicting matchday 10 should use matchdays 1–9 of the same season. That is what the
+form features are for, and it carries most of the short-term signal — squad ratings say
+a team is good, form says whether they are playing well right now.
+
+**Shift before rolling.** The naive version silently includes the match being predicted
+inside its own feature, which produces a spectacular backtest and a useless predictor:
+
+```python
+df["form"] = df.groupby("team")["goals"].rolling(5).mean()          # WRONG
+df["form"] = df.groupby("team")["goals"].shift(1).rolling(5).mean() # RIGHT
+```
+
+Phase 5 needs a test asserting that a match's own result never reaches its own features.
+This is the single most common way football models get quietly broken.
+
+**Let the window cross season boundaries.** A team's "last 5" means their last 5 matches
+full stop, so August matchday 1 uses the previous May. Summer transfers make this
+imperfect, but it beats starting every season blind — and roughly 26% of all matches
+fall in the first five matchdays, so the cold-start case is not an edge case.
+
+**Add `season_matches_played`** so the model learns for itself how much to discount form
+early in a season, instead of us hard-coding a rule.
+
+**Promoted teams have no history at all** — their previous matches were in the
+Championship, which we do not collect. This is precisely where the FIFA ratings earn
+their place: in August they are the only signal available for a promoted side.
+
 → `data/final/features.parquet`
 
 ---
@@ -204,9 +233,26 @@ regions gives home-win / draw / away-win for free — one model, both outputs.
 **Validation — walk-forward, never a random split.** Train on seasons 1..n, test on
 n+1, roll forward. A random split lets the model see the future and inflates every score.
 
+**Training window.** Season-level walk-forward is the headline benchmark: simple, cheap,
+and the number to quote against the bookmakers. It is mildly pessimistic, because the
+model never sees any of the season it is predicting. Two refinements:
+
+- **In production, refit on everything completed to date.** When predicting matchday 10
+  of the live season, there is no reason to discard matchdays 1–9. Phase 7 should do this.
+- **Expanding-window backtest as a variant** — refit each matchday (38 fits per season)
+  and see whether it actually beats the season-level number. Expect a small gain,
+  concentrated late in the season. Dixon–Coles is cheap to refit and is conventionally
+  run this way, so for that model it is the default rather than an upgrade.
+
+Either way the *features* always use the current season; only the training rows differ.
+
 **Metrics:** Ranked Probability Score (the football standard — rewards being close),
 log-loss, accuracy, and a calibration plot. Then the honest question: **RPS vs the
 bookmaker closing line.** Beating it is genuinely hard; matching it is a real result.
+
+Also report **RPS bucketed by matchday.** Early-season predictions should be measurably
+worse, given thin form data and freshly promoted sides. Better to measure that than to
+hide it inside a single average.
 
 **Learn with Claude — parallel agents again:** one agent per model family, all training
 and reporting simultaneously, then compare.
