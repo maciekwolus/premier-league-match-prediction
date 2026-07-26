@@ -131,6 +131,15 @@ to trace later.
 - **An unmapped FIFA club would vanish silently**, because the ratings files list every
   club in the world and non-Premier-League ones are dropped on purpose. The guard is
   asserting exactly 20 clubs per edition — a club we failed to map shows up as 19.
+- **Filter ratings to the clubs that played *that season***, taken from
+  `matches.parquet`, not to "clubs ever in the Premier League". Leeds and Sunderland
+  appear in every edition regardless of division, so the looser filter yields 28 clubs.
+- **EA FC 26 abbreviates club names** (`Man Utd`, `Newcastle Utd`, `Spurs`, bare
+  `Brighton`) where earlier editions spell them out, and the same file contains
+  `Newcastle Jets` and `Notts County` — so the mapping is exact-match, never fuzzy.
+- **Goalkeepers have null pace/shooting/etc.** by design; FIFA rates them on separate
+  `gk_` attributes. About 11% of rows. Aggregations in Phase 5 must not treat this as
+  missing data.
 - **SoFIFA returns 403 and Kaggle needs auth**, so there is no unattended path to this
   data. FIFA Index (fifaindex.com) is reachable and covers all seven editions, but its
   list pages carry only overall/potential — attributes need one request per player.

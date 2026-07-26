@@ -129,16 +129,23 @@ Every download stage caches; `--force` re-fetches.
 
 Kaggle requires an account, so these files cannot be fetched automatically.
 
-**The quickest route is three downloads, not seven.** Some datasets bundle every
-edition into one file with a version column, and the loader reads that shape directly:
+**Three downloads cover it.** Some datasets bundle every edition into one file with a
+version column, and the loader reads that shape directly:
 
 1. [EA Sports FC 24 complete player dataset](https://www.kaggle.com/datasets/stefanoleone992/ea-sports-fc-24-complete-player-dataset)
-   — its `male_players.csv` spans FIFA 15 to FC 24, so it covers **five** of the seven
-   editions. Save it as `data/raw/fifa/male_players.csv`.
-2. FC 25 — e.g. [mexwell/ea-fc25-player-database](https://www.kaggle.com/datasets/mexwell/ea-fc25-player-database)
-   → save as `data/raw/fifa/fc25.csv`
-3. FC 26 — e.g. [flynn28/eafc26-player-database](https://www.kaggle.com/datasets/flynn28/eafc26-player-database)
-   → save as `data/raw/fifa/fc26.csv`
+   — `male_players.csv` spans FIFA 15 to FC 24, covering **five** of the seven editions.
+   Save it unchanged as `data/raw/fifa/male_players.csv`.
+2. FC 26 — [flynn28/eafc26-player-database](https://www.kaggle.com/datasets/flynn28/eafc26-player-database).
+   Use the **men's** file and save it as `data/raw/fifa/fc26.csv`.
+3. FC 25 — see the warning below.
+
+> **Not every Kaggle dataset is usable.** Some are raw web scrapes whose columns are CSS
+> class names (`odd href`, `swapHeader`) and which identify clubs only by numeric id.
+> A dataset is usable only if it has a column of club **names**. `mexwell/ea-fc25-player-database`
+> does not, so avoid it; prefer a SoFIFA-derived dataset such as
+> [aniss7](https://www.kaggle.com/datasets/aniss7/fifa-player-data-from-sofifa-2025-06-03)
+> or [sametozturkk](https://www.kaggle.com/datasets/sametozturkk/ea-sports-fc-25-real-player-data-sofifa-merge),
+> which follow the same layout as `male_players.csv`.
 
 Otherwise download each edition separately — FIFA
 [20](https://www.kaggle.com/datasets/stefanoleone992/fifa-20-complete-player-dataset) ·
@@ -174,7 +181,15 @@ python -m src.data.load_fifa
 Running it before the files exist prints exactly which ones are missing and where they
 belong, so it is safe to use as a checklist. It writes
 `data/processed/fifa_players.parquet` — player ratings per season, already filtered to
-Premier League squads.
+the 20 clubs that actually played that season.
+
+Pass `--allow-missing` to build from the editions you have while still tracking down a
+source for another. Seasons it skips will have no squad-quality features, so it is not
+the default.
+
+Goalkeepers carry null pace/shooting/passing/dribbling/defending/physical — FIFA rates
+them on separate diving and handling attributes instead. That accounts for roughly 11%
+of rows and is expected, not missing data.
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and

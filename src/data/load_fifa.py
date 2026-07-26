@@ -22,12 +22,14 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import sys
 from functools import lru_cache
 
 import pandas as pd
 
 from src.config import PROCESSED_DIR, RAW_FIFA_DIR, SEASONS, Season
+from src.data.clean_matches import MATCHES_PARQUET
 from src.matching.team_names import PREMIER_LEAGUE_CLUBS_PER_SEASON, fifa_to_football_data
 
 FIFA_PLAYERS_PARQUET = PROCESSED_DIR / "fifa_players.parquet"
@@ -42,12 +44,16 @@ COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
     "potential": ("potential", "pot", "potential_rating"),
     "positions": ("player_positions", "positions", "position", "best_position"),
     "value_eur": ("value_eur", "value", "market_value", "value_euro"),
-    "pace": ("pace", "speed"),
-    "shooting": ("shooting",),
-    "passing": ("passing",),
-    "dribbling": ("dribbling",),
-    "defending": ("defending",),
-    "physic": ("physic", "physicality", "physical"),
+    # Short codes come first deliberately. Datasets that use them (EA FC 26) also carry
+    # detailed skills under the long names - "Dribbling" there is ball control, not the
+    # summary stat - so matching "dri" first keeps the six face stats consistent across
+    # editions. Datasets using long names (male_players.csv) have no short codes to hit.
+    "pace": ("pac", "pace", "speed"),
+    "shooting": ("sho", "shooting"),
+    "passing": ("pas", "passing"),
+    "dribbling": ("dri", "dribbling"),
+    "defending": ("def", "defending"),
+    "physic": ("phy", "physic", "physicality", "physical"),
 }
 
 REQUIRED = ("player_name", "club", "overall")
@@ -64,10 +70,11 @@ NUMERIC = (
     "physic",
 )
 
-# A Premier League squad is 25 registered players plus under-21s; anything far outside
-# this range means the club filter or the source file is wrong.
+# FIFA lists the full club roster - senior squad plus youth and players out on loan -
+# so a legitimate club runs from about 22 to the low 60s. The range is only here to
+# catch a broken filter, not to police squad registration rules.
 MIN_PLAYERS_PER_CLUB = 15
-MAX_PLAYERS_PER_CLUB = 60
+MAX_PLAYERS_PER_CLUB = 80
 
 
 def raw_path(season: Season):
@@ -147,11 +154,34 @@ def resolve_columns(columns) -> dict[str, str]:
     return resolved
 
 
-def load_edition(season: Season) -> tuple[pd.DataFrame, list[str]]:
-    """Read one edition and cut it down to Premier League players.
+@lru_cache(maxsize=1)
+def _matches_clubs() -> dict[str, frozenset[str]]:
+    """Season label -> the clubs that actually played it, from the match table."""
+    if not MATCHES_PARQUET.exists():
+        raise FileNotFoundError(
+            f"{MATCHES_PARQUET} not found. Run: python -m src.data.clean_matches"
+        )
+    matches = pd.read_parquet(MATCHES_PARQUET, columns=["season", "home_team"])
+    return {label: frozenset(group["home_team"]) for label, group in matches.groupby("season")}
+
+
+def season_clubs(season: Season) -> frozenset[str]:
+    """The 20 clubs that played this season.
+
+    Ratings files cover every division, so filtering on "is this ever a Premier League
+    club" lets Championship sides through - Leeds and Sunderland are in the file every
+    year. Only the clubs that actually played the season belong here.
+    """
+    return _matches_clubs()[season.label]
+
+
+def load_edition(
+    season: Season, clubs: frozenset[str] | None = None
+) -> tuple[pd.DataFrame, list[str]]:
+    """Read one edition and cut it down to the clubs that played that season.
 
     A per-edition file wins if present; otherwise this edition's rows are taken from a
-    combined multi-edition file.
+    combined multi-edition file. ``clubs`` defaults to the season's real participants.
     """
     path = raw_path(season)
 
@@ -185,7 +215,9 @@ def load_edition(season: Season) -> tuple[pd.DataFrame, list[str]]:
             notes.append(field)
 
     df["club_fd"] = df["club"].map(fifa_to_football_data)
-    premier_league = df[df["club_fd"].notna()].copy()
+    if clubs is None:
+        clubs = season_clubs(season)
+    premier_league = df[df["club_fd"].isin(clubs)].copy()
 
     premier_league["season"] = season.label
     premier_league["season_slug"] = season.slug
@@ -233,10 +265,21 @@ def validate_edition(df: pd.DataFrame, season: Season) -> list[str]:
     return problems
 
 
-def build(strict: bool = True) -> pd.DataFrame:
-    """Load, validate and stack every edition."""
+def build(strict: bool = True, allow_missing: bool = False) -> pd.DataFrame:
+    """Load, validate and stack every edition.
+
+    ``allow_missing`` builds from whatever editions are present. Useful while chasing
+    down a source for one edition, but the seasons it skips will have no squad-quality
+    features at all, so it is not the default.
+    """
     absent = missing_editions()
-    if absent:
+    if absent and allow_missing:
+        print(
+            f"Skipping {len(absent)} edition(s) with no data: "
+            f"{', '.join(s.fifa_edition for s in absent)}",
+            file=sys.stderr,
+        )
+    elif absent:
         wanted = "\n".join(f"  {s.fifa_edition:10} -> {raw_path(s)}" for s in absent)
         combined = combined_path()
         found = (
@@ -253,10 +296,13 @@ def build(strict: bool = True) -> pd.DataFrame:
 
     frames = []
     all_problems: list[str] = []
+    available = [s for s in SEASONS if s not in absent]
 
-    for season in SEASONS:
-        df, problems = load_edition(season)
-        problems += validate_edition(df, season)
+    for season in available:
+        # Notes are informational - an edition lacking an optional column is still
+        # usable. Only validation problems are fatal.
+        df, notes = load_edition(season)
+        problems = validate_edition(df, season)
         all_problems += problems
 
         print(
@@ -264,6 +310,8 @@ def build(strict: bool = True) -> pd.DataFrame:
             f"{df['club_fd'].nunique()} clubs, mean overall {df['overall'].mean():.1f}"
             + ("  PROBLEMS" if problems else "")
         )
+        for note in notes:
+            print(f"           note: {note}")
         frames.append(df)
 
     if all_problems:
@@ -288,9 +336,17 @@ def build(strict: bool = True) -> pd.DataFrame:
     return combined[ordered]
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--allow-missing",
+        action="store_true",
+        help="build from the editions present instead of requiring all seven",
+    )
+    args = parser.parse_args(argv)
+
     try:
-        players = build()
+        players = build(allow_missing=args.allow_missing)
     except FileNotFoundError as exc:
         # Absent ratings files are the expected first-run state, not a crash: the CSVs
         # have to be downloaded by hand. Say so plainly instead of via a traceback.

@@ -11,7 +11,7 @@ import pytest
 from src.config import SEASONS
 from src.data import load_fifa
 from src.data.load_fifa import load_edition, resolve_columns, validate_edition
-from src.matching.team_names import FIFA_TO_FOOTBALL_DATA
+from src.matching.team_names import FIFA_TO_FOOTBALL_DATA, fifa_to_football_data
 
 SEASON = SEASONS[0]
 
@@ -85,11 +85,27 @@ def make_edition_csv(path, clubs=CLUBS_2019_20, squad_size=25, columns="modern")
     return df
 
 
+CLUBS_2019_20_FD = frozenset(fifa_to_football_data(club) for club in CLUBS_2019_20)
+
+
+def _isolate(tmp_path, monkeypatch):
+    """Cut the loader off from the real data directory and the match table.
+
+    Without this the tests read whatever the developer happens to have downloaded -
+    `combined_path` scans the real `data/raw/fifa/`, and `season_clubs` reads
+    `matches.parquet`. Both must be stubbed for the suite to stay data-independent.
+    """
+    monkeypatch.setattr(load_fifa, "raw_path", lambda season: tmp_path / f"{season.fifa_slug}.csv")
+    monkeypatch.setattr(load_fifa, "RAW_FIFA_DIR", tmp_path)
+    monkeypatch.setattr(load_fifa, "season_clubs", lambda season: CLUBS_2019_20_FD)
+    load_fifa.read_combined.cache_clear()
+    return tmp_path
+
+
 @pytest.fixture
 def fifa_dir(tmp_path, monkeypatch):
     """Point ratings lookups at a temporary directory."""
-    monkeypatch.setattr(load_fifa, "raw_path", lambda season: tmp_path / f"{season.fifa_slug}.csv")
-    return tmp_path
+    return _isolate(tmp_path, monkeypatch)
 
 
 # ------------------------------------------------------------------ file naming
@@ -220,10 +236,7 @@ def test_detects_ratings_outside_the_valid_range(fifa_dir):
 @pytest.fixture
 def combined_dir(tmp_path, monkeypatch):
     """Point both per-edition and combined lookups at a temporary directory."""
-    monkeypatch.setattr(load_fifa, "raw_path", lambda season: tmp_path / f"{season.fifa_slug}.csv")
-    monkeypatch.setattr(load_fifa, "RAW_FIFA_DIR", tmp_path)
-    load_fifa.read_combined.cache_clear()
-    return tmp_path
+    return _isolate(tmp_path, monkeypatch)
 
 
 def make_combined_csv(path, versions=(20, 21, 22, 23, 24), version_column="fifa_version"):

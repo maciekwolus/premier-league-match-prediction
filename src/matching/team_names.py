@@ -62,6 +62,25 @@ FIFA_TO_FOOTBALL_DATA = {
     "West Bromwich Albion": "West Brom",
     "West Ham United": "West Ham",
     "Wolverhampton Wanderers": "Wolves",
+    # EA FC 26 abbreviates where earlier editions spelled clubs out. Listing the short
+    # forms explicitly beats normalising, because the abbreviations are not derivable
+    # ("Spurs", "Man Utd") and near-misses exist that must NOT match - "Newcastle Jets"
+    # and "Notts County" both live in the same file.
+    "Brighton": "Brighton",
+    "Man Utd": "Man United",
+    "Man City": "Man City",
+    "Newcastle Utd": "Newcastle",
+    "Nott'm Forest": "Nott'm Forest",
+    "West Ham": "West Ham",
+    "West Brom": "West Brom",
+    "Wolves": "Wolves",
+    "Tottenham": "Tottenham",
+    "Leeds": "Leeds",
+    "Leicester": "Leicester",
+    "Norwich": "Norwich",
+    "Ipswich": "Ipswich",
+    "Luton": "Luton",
+    "Sheffield Utd": "Sheffield United",
 }
 
 PREMIER_LEAGUE_CLUBS_PER_SEASON = 20
