@@ -43,6 +43,7 @@ FIFA_TO_FOOTBALL_DATA = {
     "Crystal Palace": "Crystal Palace",
     "Everton": "Everton",
     "Fulham": "Fulham",
+    "Fulham FC": "Fulham",
     "Ipswich Town": "Ipswich",
     "Leeds United": "Leeds",
     "Leicester City": "Leicester",

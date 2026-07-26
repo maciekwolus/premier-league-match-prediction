@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from functools import lru_cache
 
@@ -44,6 +45,7 @@ COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
     "potential": ("potential", "pot", "potential_rating"),
     "positions": ("player_positions", "positions", "position", "best_position"),
     "value_eur": ("value_eur", "value", "market_value", "value_euro"),
+    "dob": ("dob", "birth_date", "date_of_birth", "birthday"),
     # Short codes come first deliberately. Datasets that use them (EA FC 26) also carry
     # detailed skills under the long names - "Dribbling" there is ball control, not the
     # summary stat - so matching "dri" first keeps the six face stats consistent across
@@ -57,6 +59,13 @@ COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
 }
 
 REQUIRED = ("player_name", "club", "overall")
+
+# FIFA's six summary "face" stats. They are published as a set, so we take them only
+# when all six resolve. Some SoFIFA exports carry the *detailed* skills instead - a
+# column literally named "dribbling" that means ball control, alongside acceleration
+# and sprint_speed rather than pace. Accepting that one column would put a different
+# quantity in the same field for one season, which is worse than leaving it null.
+FACE_STATS = ("pace", "shooting", "passing", "dribbling", "defending", "physic")
 NUMERIC = (
     "age",
     "overall",
@@ -151,7 +160,34 @@ def resolve_columns(columns) -> dict[str, str]:
                 resolved[ours] = lookup[alias]
                 break
 
+    if not all(stat in resolved for stat in FACE_STATS):
+        for stat in FACE_STATS:
+            resolved.pop(stat, None)
+
     return resolved
+
+
+def parse_money(value):
+    """Turn "€115.5M" into 115500000. Values that are already numeric pass through."""
+    if pd.isna(value):
+        return pd.NA
+    if isinstance(value, int | float):
+        return value
+
+    match = re.search(r"([\d.]+)\s*([KMB])?", str(value), re.IGNORECASE)
+    if match is None:
+        return pd.NA
+
+    amount = float(match.group(1))
+    scale = {"k": 1e3, "m": 1e6, "b": 1e9}.get((match.group(2) or "").lower(), 1)
+    return amount * scale
+
+
+def age_at_season_start(dob, season: Season):
+    """Age on 1 August of the season's opening year, when only a birth date is given."""
+    birth = pd.to_datetime(dob, errors="coerce")
+    start = pd.Timestamp(year=int(season.label[:4]), month=8, day=1)
+    return ((start - birth).dt.days / 365.25).round(0)
 
 
 @lru_cache(maxsize=1)
@@ -223,12 +259,31 @@ def load_edition(
     premier_league["season_slug"] = season.slug
     premier_league["fifa_edition"] = season.fifa_edition
 
+    # Some exports append a dangling separator to the name ("Rodri -"). Phase 4 matches
+    # on these strings, so tidy them at the source rather than in every consumer.
+    for field in ("player_name", "long_name"):
+        premier_league[field] = (
+            premier_league[field].astype("string").str.strip().str.strip("-").str.strip()
+        )
+
+    premier_league["value_eur"] = premier_league["value_eur"].map(parse_money)
+
     for field in NUMERIC:
         premier_league[field] = pd.to_numeric(premier_league[field], errors="coerce")
 
+    # Where the source gives a birth date but no age, derive it.
+    if premier_league["age"].isna().all() and premier_league["dob"].notna().any():
+        premier_league["age"] = age_at_season_start(premier_league["dob"], season)
+
+    # `dob` is an input for deriving age, not an output field, and age is only genuinely
+    # absent if the derivation could not fill it either.
+    reportable = set(notes) - {"dob"}
+    if premier_league["age"].notna().any():
+        reportable.discard("age")
+
     problems = []
-    if notes:
-        problems.append(f"{season.fifa_edition}: no column found for {sorted(notes)}")
+    if reportable:
+        problems.append(f"{season.fifa_edition}: no column found for {sorted(reportable)}")
 
     return premier_league, problems
 

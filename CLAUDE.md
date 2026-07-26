@@ -140,6 +140,19 @@ to trace later.
 - **Goalkeepers have null pace/shooting/etc.** by design; FIFA rates them on separate
   `gk_` attributes. About 11% of rows. Aggregations in Phase 5 must not treat this as
   missing data.
+- **Attribute coverage is uneven across editions and features must tolerate it.**
+  `overall`, `potential`, `age` and `club` exist everywhere. The six face stats are
+  absent for 2024/25, and `potential`/`value_eur` are absent for 2025/26. Squad-quality
+  features should lean on `overall`, which is complete, and treat the rest as optional.
+- **The face stats are taken as a complete set or not at all.** Some SoFIFA exports
+  carry *detailed* skills instead — a column named `dribbling` meaning ball control,
+  alongside `acceleration`/`sprint_speed` rather than `pace`. Accepting that single
+  column would put a different quantity in the same field for one season.
+- **2024/25 ratings are an end-of-season snapshot (June 2025), not a release-time one.**
+  Every other season uses ratings published at kickoff. A June snapshot partly reflects
+  how players performed *during* 2024/25, so it is mildly leaky for that season alone.
+  Watch for 2024/25 scoring anomalously well in the Phase 6 walk-forward backtest; if it
+  does, that is the cause.
 - **SoFIFA returns 403 and Kaggle needs auth**, so there is no unattended path to this
   data. FIFA Index (fifaindex.com) is reachable and covers all seven editions, but its
   list pages carry only overall/potential — attributes need one request per player.

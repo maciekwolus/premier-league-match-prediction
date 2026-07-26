@@ -8,9 +8,16 @@ absorb.
 import pandas as pd
 import pytest
 
-from src.config import SEASONS
+from src.config import SEASONS, SEASONS_BY_LABEL
 from src.data import load_fifa
-from src.data.load_fifa import load_edition, resolve_columns, validate_edition
+from src.data.load_fifa import (
+    FACE_STATS,
+    age_at_season_start,
+    load_edition,
+    parse_money,
+    resolve_columns,
+    validate_edition,
+)
 from src.matching.team_names import FIFA_TO_FOOTBALL_DATA, fifa_to_football_data
 
 SEASON = SEASONS[0]
@@ -127,11 +134,29 @@ def test_resolves_the_common_layout():
 
 def test_resolves_an_alternative_layout():
     """Editions come from different Kaggle authors, so spellings differ."""
-    resolved = resolve_columns(["Name", "Team", "OVR", "Physicality"])
+    resolved = resolve_columns(["Name", "Team", "OVR", "POT", "Position"])
     assert resolved["player_name"] == "Name"
     assert resolved["club"] == "Team"
     assert resolved["overall"] == "OVR"
-    assert resolved["physic"] == "Physicality"
+    assert resolved["potential"] == "POT"
+
+
+def test_face_stats_are_taken_as_a_complete_set():
+    """EA FC 26 spells them PAC/SHO/... - all six resolve together."""
+    resolved = resolve_columns(["Name", "Team", "OVR", "PAC", "SHO", "PAS", "DRI", "DEF", "PHY"])
+    assert resolved["pace"] == "PAC"
+    assert resolved["physic"] == "PHY"
+
+
+def test_partial_face_stats_are_discarded():
+    """A lone "dribbling" in a SoFIFA export is ball control, not the summary stat.
+
+    Taking it would put a different quantity in the same column for one season, which
+    is worse than leaving the season null.
+    """
+    resolved = resolve_columns(["name", "club_name", "overall_rating", "dribbling", "finishing"])
+    assert resolved["player_name"] == "name"
+    assert not any(stat in resolved for stat in FACE_STATS)
 
 
 def test_column_matching_ignores_case_and_padding():
@@ -294,6 +319,45 @@ def test_combined_file_without_a_version_column_is_ignored(combined_dir):
     make_combined_csv(combined_dir / "male_players.csv", version_column="irrelevant")
     with pytest.raises(FileNotFoundError):
         load_edition(SEASON)
+
+
+# ------------------------------------------------------- value and age parsing
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("€115.5M", 115_500_000),
+        ("€104M", 104_000_000),
+        ("€750K", 750_000),
+        ("€0", 0),
+        (52_000_000, 52_000_000),
+    ],
+)
+def test_parse_money(raw, expected):
+    assert parse_money(raw) == expected
+
+
+def test_parse_money_handles_blanks():
+    assert pd.isna(parse_money(None))
+    assert pd.isna(parse_money("unknown"))
+
+
+def test_age_derived_from_birth_date():
+    """Age on 1 August of the opening year, for sources giving only a birth date."""
+    dob = pd.Series(pd.to_datetime(["1996-06-22", "2000-07-21", "1992-06-15"]))
+    ages = age_at_season_start(dob, SEASONS_BY_LABEL["2024/25"])
+    assert ages.tolist() == [28.0, 24.0, 32.0]
+
+
+def test_names_are_stripped_of_trailing_separators(fifa_dir):
+    """Some exports append a dangling dash; Phase 4 matches on these strings."""
+    df = make_edition_csv(fifa_dir / "fifa20.csv")
+    df["short_name"] = df["short_name"] + " -"
+    df.to_csv(fifa_dir / "fifa20.csv", index=False)
+
+    loaded, _ = load_edition(SEASON)
+    assert not loaded["player_name"].str.endswith("-").any()
 
 
 # ------------------------------------------------------------------- mapping

@@ -135,17 +135,15 @@ version column, and the loader reads that shape directly:
 1. [EA Sports FC 24 complete player dataset](https://www.kaggle.com/datasets/stefanoleone992/ea-sports-fc-24-complete-player-dataset)
    — `male_players.csv` spans FIFA 15 to FC 24, covering **five** of the seven editions.
    Save it unchanged as `data/raw/fifa/male_players.csv`.
-2. FC 26 — [flynn28/eafc26-player-database](https://www.kaggle.com/datasets/flynn28/eafc26-player-database).
-   Use the **men's** file and save it as `data/raw/fifa/fc26.csv`.
-3. FC 25 — see the warning below.
+2. FC 25 — [aniss7/fifa-player-data-from-sofifa-2025-06-03](https://www.kaggle.com/datasets/aniss7/fifa-player-data-from-sofifa-2025-06-03).
+   Save `player-data-full-2025-june.csv` as `data/raw/fifa/fc25.csv`.
+3. FC 26 — [flynn28/eafc26-player-database](https://www.kaggle.com/datasets/flynn28/eafc26-player-database).
+   Save the **men's** file (`EAFC26-Men.csv`) as `data/raw/fifa/fc26.csv`.
 
 > **Not every Kaggle dataset is usable.** Some are raw web scrapes whose columns are CSS
 > class names (`odd href`, `swapHeader`) and which identify clubs only by numeric id.
-> A dataset is usable only if it has a column of club **names**. `mexwell/ea-fc25-player-database`
-> does not, so avoid it; prefer a SoFIFA-derived dataset such as
-> [aniss7](https://www.kaggle.com/datasets/aniss7/fifa-player-data-from-sofifa-2025-06-03)
-> or [sametozturkk](https://www.kaggle.com/datasets/sametozturkk/ea-sports-fc-25-real-player-data-sofifa-merge),
-> which follow the same layout as `male_players.csv`.
+> A dataset is usable only if it has a column of club **names** —
+> `mexwell/ea-fc25-player-database` does not, so avoid it.
 
 Otherwise download each edition separately — FIFA
 [20](https://www.kaggle.com/datasets/stefanoleone992/fifa-20-complete-player-dataset) ·
@@ -191,6 +189,11 @@ Goalkeepers carry null pace/shooting/passing/dribbling/defending/physical — FI
 them on separate diving and handling attributes instead. That accounts for roughly 11%
 of rows and is expected, not missing data.
 
+Coverage differs by edition. Player name, club, overall, potential and age are present
+throughout; the six face stats are missing for 2024/25, and potential and value for
+2025/26. Overall rating — the strongest squad-quality signal — is complete for all seven
+seasons.
+
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
 both sources agreeing on every final score.
@@ -214,8 +217,8 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–3 complete — skeleton, match results, lineups with expected goals, and the
-player-ratings loader (which stays idle until the Kaggle CSVs are added in step 6).
+Phases 0–3 complete — skeleton, match results, lineups with expected goals, and player
+ratings (4,421 player-seasons across all seven editions).
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
