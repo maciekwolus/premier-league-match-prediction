@@ -55,10 +55,28 @@ python -m src.data.fetch_matches
 python -m src.data.clean_matches
 ```
 
-This produces `data/processed/matches.parquet` — one row per match with the result,
-match statistics, referee, and both opening and closing bookmaker odds. Cleaning
-validates every season before writing (380 matches, 20 teams, 19 home and 19 away per
-team, results agreeing with scores) and raises rather than emitting a suspect table.
+```bash
+python -m src.data.fetch_lineups
+```
+
+```bash
+python -m src.data.clean_lineups
+```
+
+This produces three tables in `data/processed/`:
+
+| Table | Contents |
+|---|---|
+| `matches.parquet` | 2,660 matches — result, match statistics, referee, opening and closing odds |
+| `understat_matches.parquet` | match-level expected goals |
+| `lineups.parquet` | 77,278 player appearances — position, minutes, xG, xA, cards |
+
+Every stage validates before writing and raises rather than emitting a suspect table:
+380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
+both sources agreeing on every final score.
+
+The lineup fetch makes roughly 2,660 requests and takes ~30 minutes. It caches each
+response, so interrupting it is safe — re-running resumes where it stopped.
 
 Downloaded and generated data is gitignored; the pipeline rebuilds it from scratch.
 
@@ -81,7 +99,7 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–1 complete — skeleton, configuration, and match-results ingestion.
+Phases 0–2 complete — skeleton, match-results ingestion, and lineups with expected goals.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
@@ -89,6 +107,7 @@ See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 ```
 src/config.py           seasons, paths, source URLs - the single place seasons are defined
 src/data/               acquisition and cleaning, one module per source
+src/matching/           name reconciliation between sources
 tests/                  unit tests, no network access
 data/raw/               downloaded source data (gitignored)
 data/processed/         cleaned and joined data (gitignored)

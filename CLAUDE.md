@@ -9,7 +9,7 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. Phases 0–1 are complete.
+read it before starting work. Phases 0–2 are complete.
 
 ## Commands
 
@@ -29,6 +29,8 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 ```
 .venv/Scripts/python.exe -m src.data.fetch_matches
 .venv/Scripts/python.exe -m src.data.clean_matches
+.venv/Scripts/python.exe -m src.data.fetch_lineups   # ~2,660 requests, run in background
+.venv/Scripts/python.exe -m src.data.clean_lineups
 ```
 
 Tests never hit the network — they build synthetic seasons — so they stay meaningful
@@ -57,6 +59,12 @@ renamed the game series mid-range: FIFA 20–23, then EA FC 24–26.
 later source — lineups, player ratings, features — joins onto it. It is deliberately
 human-readable so failed joins can be diagnosed by eye. Changing its format invalidates
 every downstream parquet.
+
+**Cross-source joins key on `(season, home_team, away_team)`, not on date.** A home/away
+pairing occurs exactly once per season, so it is unique, and it avoids the timezone and
+date-format fragility of date joins. Dates and final scores are then cross-checked
+*afterwards* as independent evidence the join is right — 2,660 matching scores is not
+something a wrong join produces by accident. Follow this shape for the FIFA join too.
 
 **Cleaners validate before writing and raise rather than emit a suspect table.**
 `clean_matches.build()` is strict by default; `validate_season` returns a list of
@@ -100,7 +108,13 @@ to trace later.
   so no mapping is needed within this source. Understat and FIFA will each need one.
 - **`understatapi` pins old transitive deps** (urllib3 1.26.5, idna 2.10), which suggests
   light maintenance. If it breaks, the fallbacks are the `soccerdata` library or scraping
-  Understat's embedded JSON directly.
+  Understat's embedded JSON directly. As of July 2026 it works and returned all 2,660
+  rosters without a single failure.
+- **Understat and football-data agree on 22 of 28 team names.** Only the six long-form
+  names differ, mapped explicitly in `src/matching/team_names.py`. An unmapped name
+  raises `UnknownTeamError` rather than dropping the fixture.
+- **Understat starters are `position != "Sub"`** and come to exactly 11 per side on all
+  2,660 matches. Its `time` field caps at 90, so stoppage time is not counted.
 
 ## Workflow
 
