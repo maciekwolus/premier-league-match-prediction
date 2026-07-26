@@ -194,6 +194,17 @@ throughout; the six face stats are missing for 2024/25, and potential and value 
 2025/26. Overall rating — the strongest squad-quality signal — is complete for all seven
 seasons.
 
+### What you end up with
+
+Four tables in `data/processed/`, roughly 160 MB of source data behind them:
+
+| Table | Rows | Contents |
+|---|---|---|
+| `matches.parquet` | 2,660 | Results, shots, cards, referee, opening and closing odds |
+| `understat_matches.parquet` | 2,660 | Match-level expected goals |
+| `lineups.parquet` | 77,278 | Player appearances — position, minutes, xG, xA, cards |
+| `fifa_players.parquet` | 4,421 | Player ratings per season, filtered to that season's 20 clubs |
+
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
 both sources agreeing on every final score.

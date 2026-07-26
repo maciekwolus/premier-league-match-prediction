@@ -9,8 +9,19 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. Phases 0–3 are complete, though Phase 3 stays inert until
-the FIFA CSVs are placed by hand.
+read it before starting work. **Phases 0–3 are complete and all three sources are joined
+and on disk.** Next is Phase 4, matching Understat player names to FIFA player names.
+
+What exists in `data/processed/` after a full build:
+
+| Table | Rows | Contents |
+|---|---|---|
+| `matches.parquet` | 2,660 | results, match statistics, referee, opening and closing odds |
+| `understat_matches.parquet` | 2,660 | match-level expected goals |
+| `lineups.parquet` | 77,278 | player appearances: position, minutes, xG, xA, cards |
+| `fifa_players.parquet` | 4,421 | player ratings per season, filtered to that season's 20 clubs |
+
+Phase 4 joins the last two: 1,486 distinct Understat names against 2,483 FIFA names.
 
 ## Commands
 
