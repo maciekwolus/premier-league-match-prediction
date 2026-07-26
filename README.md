@@ -29,23 +29,71 @@ model — which produce a scoreline probability matrix.
 
 Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
 
-## Setup
+## Getting started
+
+**No data is stored in this repository** — it is all gitignored and rebuilt from source.
+A fresh clone therefore needs step 5 before anything works.
+
+### Prerequisites
+
+| | |
+|---|---|
+| Python | 3.12 or newer (`python --version`) |
+| Disk | ~500 MB — 420 MB virtual environment, 50 MB data |
+| Network | Required for the initial data build |
+
+### 1. Clone
+
+```bash
+git clone https://github.com/maciekwolus/premier-league-match-prediction.git
+```
+
+```bash
+cd premier-league-match-prediction
+```
+
+### 2. Create a virtual environment
 
 ```bash
 python -m venv .venv
 ```
 
+### 3. Activate it
+
+macOS and Linux:
+
 ```bash
-.venv\Scripts\activate
+source .venv/bin/activate
 ```
+
+Windows PowerShell:
+
+```bash
+.venv\Scripts\Activate.ps1
+```
+
+Windows Git Bash:
+
+```bash
+source .venv/Scripts/activate
+```
+
+### 4. Install dependencies and verify
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Data pipeline
+```bash
+pytest
+```
 
-Downloads are cached, so re-running is cheap; pass `--force` to re-fetch.
+The tests need neither network nor data, so a green run here confirms the environment is
+sound before the slow step.
+
+### 5. Build the data
+
+Run in order — each stage reads the previous one's output.
 
 ```bash
 python -m src.data.fetch_matches
@@ -63,22 +111,23 @@ python -m src.data.fetch_lineups
 python -m src.data.clean_lineups
 ```
 
-This produces three tables in `data/processed/`:
+| Stage | Time | Produces |
+|---|---|---|
+| `fetch_matches` | ~10 s | 7 season CSVs |
+| `clean_matches` | ~5 s | `matches.parquet` — 2,660 matches with results, stats, referee, opening and closing odds |
+| `fetch_lineups` | **~35 min** | ~2,670 Understat responses |
+| `clean_lineups` | ~30 s | `understat_matches.parquet` (match xG) and `lineups.parquet` (77,278 player appearances) |
 
-| Table | Contents |
-|---|---|
-| `matches.parquet` | 2,660 matches — result, match statistics, referee, opening and closing odds |
-| `understat_matches.parquet` | match-level expected goals |
-| `lineups.parquet` | 77,278 player appearances — position, minutes, xG, xA, cards |
+`fetch_lineups` is slow on purpose: it spaces roughly 2,660 requests to stay polite
+towards a small free site. Every response is cached, so **interrupting it is safe** —
+re-running resumes where it stopped rather than starting over. Pass `--delay` to change
+the spacing, or `--season "2025/26"` to rebuild one season.
+
+All four stages cache their downloads; `--force` re-fetches.
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
 both sources agreeing on every final score.
-
-The lineup fetch makes roughly 2,660 requests and takes ~30 minutes. It caches each
-response, so interrupting it is safe — re-running resumes where it stopped.
-
-Downloaded and generated data is gitignored; the pipeline rebuilds it from scratch.
 
 ## Development
 

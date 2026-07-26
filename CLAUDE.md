@@ -33,8 +33,9 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.clean_lineups
 ```
 
-Tests never hit the network — they build synthetic seasons — so they stay meaningful
-when upstream sources change and are safe to run offline.
+Tests never hit the network and never read `data/` — they build synthetic seasons — so
+they stay meaningful when upstream sources change, and a green run verifies a fresh
+environment before the slow data build.
 
 ## Architecture
 
