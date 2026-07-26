@@ -192,8 +192,8 @@ a team is good, form says whether they are playing well right now.
 inside its own feature, which produces a spectacular backtest and a useless predictor:
 
 ```python
-df["form"] = df.groupby("team")["goals"].rolling(5).mean()          # WRONG
-df["form"] = df.groupby("team")["goals"].shift(1).rolling(5).mean() # RIGHT
+df["form"] = df.groupby("team")["goals"].rolling(5).mean()  # WRONG
+df["form"] = df.groupby("team")["goals"].shift(1).rolling(5).mean()  # RIGHT
 ```
 
 Phase 5 needs a test asserting that a match's own result never reaches its own features.
