@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import sys
+from functools import lru_cache
 
 import pandas as pd
 
@@ -74,9 +75,62 @@ def raw_path(season: Season):
     return RAW_FIFA_DIR / f"{season.fifa_slug}.csv"
 
 
+# Some Kaggle datasets ship every edition in one file, distinguished by a version
+# column - the FC 24 dataset's male_players.csv covers FIFA 15 through FC 24. Accepting
+# that shape directly saves splitting it by hand.
+COMBINED_FILENAMES = ("male_players.csv", "players.csv", "all_players.csv")
+VERSION_ALIASES = ("fifa_version", "version", "edition", "game_version", "fifa_edition")
+
+
+def combined_path():
+    """A multi-edition file in ``data/raw/fifa/``, if one was placed there."""
+    for name in COMBINED_FILENAMES:
+        candidate = RAW_FIFA_DIR / name
+        if candidate.exists():
+            return candidate
+    return None
+
+
+@lru_cache(maxsize=1)
+def read_combined(path_str: str) -> pd.DataFrame:
+    """Read the multi-edition file once, since it can run to hundreds of thousands of rows."""
+    return pd.read_csv(path_str, low_memory=False)
+
+
+def version_column(columns) -> str | None:
+    lookup = {str(column).strip().lower(): column for column in columns}
+    for alias in VERSION_ALIASES:
+        if alias in lookup:
+            return lookup[alias]
+    return None
+
+
+def edition_rows(season: Season) -> pd.DataFrame | None:
+    """This edition's rows from a combined file, or ``None`` if unavailable."""
+    path = combined_path()
+    if path is None:
+        return None
+
+    combined = read_combined(str(path))
+    column = version_column(combined.columns)
+    if column is None:
+        return None
+
+    # Versions appear as 24, "24", "FIFA 24" or "EA FC 24" depending on the author.
+    versions = pd.to_numeric(
+        combined[column].astype(str).str.extract(r"(\d+)", expand=False), errors="coerce"
+    )
+    rows = combined[versions == season.fifa_version]
+    return rows.reset_index(drop=True) if not rows.empty else None
+
+
 def missing_editions() -> list[Season]:
-    """Seasons whose ratings CSV has not been placed yet."""
-    return [season for season in SEASONS if not raw_path(season).exists()]
+    """Seasons with neither their own CSV nor rows in a combined file."""
+    return [
+        season
+        for season in SEASONS
+        if not raw_path(season).exists() and edition_rows(season) is None
+    ]
 
 
 def resolve_columns(columns) -> dict[str, str]:
@@ -94,15 +148,24 @@ def resolve_columns(columns) -> dict[str, str]:
 
 
 def load_edition(season: Season) -> tuple[pd.DataFrame, list[str]]:
-    """Read one edition and cut it down to Premier League players."""
-    path = raw_path(season)
-    if not path.exists():
-        raise FileNotFoundError(
-            f"{path} not found. Download {season.fifa_edition} from Kaggle and save it "
-            f"as {path.name} - see the README."
-        )
+    """Read one edition and cut it down to Premier League players.
 
-    raw = pd.read_csv(path, low_memory=False)
+    A per-edition file wins if present; otherwise this edition's rows are taken from a
+    combined multi-edition file.
+    """
+    path = raw_path(season)
+
+    if path.exists():
+        raw = pd.read_csv(path, low_memory=False)
+    else:
+        raw = edition_rows(season)
+        if raw is None:
+            raise FileNotFoundError(
+                f"{path} not found. Download {season.fifa_edition} from Kaggle and save "
+                f"it as {path.name}, or place a multi-edition file "
+                f"({' / '.join(COMBINED_FILENAMES)}) covering it - see the README."
+            )
+
     resolved = resolve_columns(raw.columns)
 
     absent_required = [field for field in REQUIRED if field not in resolved]
@@ -175,9 +238,17 @@ def build(strict: bool = True) -> pd.DataFrame:
     absent = missing_editions()
     if absent:
         wanted = "\n".join(f"  {s.fifa_edition:10} -> {raw_path(s)}" for s in absent)
+        combined = combined_path()
+        found = (
+            f"\nA combined file was found at {combined.name}, but it has no rows for "
+            f"{', '.join(s.fifa_edition for s in absent)}."
+            if combined is not None
+            else f"\nAlternatively place one multi-edition file "
+            f"({' / '.join(COMBINED_FILENAMES)}) in {RAW_FIFA_DIR}."
+        )
         raise FileNotFoundError(
-            f"{len(absent)} ratings file(s) missing. Download from Kaggle and save as:\n"
-            f"{wanted}\nSee the README for the download steps."
+            f"{len(absent)} edition(s) missing. Download from Kaggle and save as:\n"
+            f"{wanted}{found}\nSee the README for the download steps."
         )
 
     frames = []

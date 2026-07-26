@@ -214,6 +214,75 @@ def test_detects_ratings_outside_the_valid_range(fifa_dir):
     assert any("outside 40-99" in p for p in problems)
 
 
+# -------------------------------------------------------- combined edition file
+
+
+@pytest.fixture
+def combined_dir(tmp_path, monkeypatch):
+    """Point both per-edition and combined lookups at a temporary directory."""
+    monkeypatch.setattr(load_fifa, "raw_path", lambda season: tmp_path / f"{season.fifa_slug}.csv")
+    monkeypatch.setattr(load_fifa, "RAW_FIFA_DIR", tmp_path)
+    load_fifa.read_combined.cache_clear()
+    return tmp_path
+
+
+def make_combined_csv(path, versions=(20, 21, 22, 23, 24), version_column="fifa_version"):
+    """A single file covering several editions, as the FC 24 Kaggle dataset ships."""
+    frames = []
+    for version in versions:
+        df = make_edition_csv(path.parent / "_scratch.csv")
+        df[version_column] = version
+        frames.append(df)
+    combined = pd.concat(frames, ignore_index=True)
+    (path.parent / "_scratch.csv").unlink()
+    combined.to_csv(path, index=False)
+    return combined
+
+
+def test_edition_versions_are_derived_correctly():
+    assert [s.fifa_version for s in SEASONS] == [20, 21, 22, 23, 24, 25, 26]
+
+
+def test_loads_one_edition_out_of_a_combined_file(combined_dir):
+    make_combined_csv(combined_dir / "male_players.csv")
+    df, problems = load_edition(SEASON)  # FIFA 20
+
+    assert problems == []
+    assert len(df) == 20 * 25
+    assert df["fifa_edition"].unique().tolist() == ["FIFA 20"]
+
+
+def test_combined_file_satisfies_only_the_editions_it_contains(combined_dir):
+    make_combined_csv(combined_dir / "male_players.csv", versions=(20, 21))
+    absent = {s.fifa_edition for s in load_fifa.missing_editions()}
+
+    assert "FIFA 20" not in absent
+    assert "FIFA 21" not in absent
+    assert {"FIFA 22", "FIFA 23", "EA FC 24", "EA FC 25", "EA FC 26"} <= absent
+
+
+def test_version_labels_with_text_are_understood(combined_dir):
+    """Authors write the version as 24, "24" or "EA FC 24"."""
+    make_combined_csv(combined_dir / "male_players.csv", versions=("FIFA 20", "FIFA 21"))
+    df, _ = load_edition(SEASON)
+
+    assert len(df) == 20 * 25
+
+
+def test_per_edition_file_wins_over_the_combined_one(combined_dir):
+    make_combined_csv(combined_dir / "male_players.csv")
+    make_edition_csv(combined_dir / "fifa20.csv", clubs=CLUBS_2019_20[:20], squad_size=30)
+    df, _ = load_edition(SEASON)
+
+    assert len(df) == 20 * 30  # the dedicated file, not the combined one
+
+
+def test_combined_file_without_a_version_column_is_ignored(combined_dir):
+    make_combined_csv(combined_dir / "male_players.csv", version_column="irrelevant")
+    with pytest.raises(FileNotFoundError):
+        load_edition(SEASON)
+
+
 # ------------------------------------------------------------------- mapping
 
 

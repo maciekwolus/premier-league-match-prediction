@@ -127,9 +127,25 @@ Every download stage caches; `--force` re-fetches.
 
 ### 6. Add the player ratings (manual)
 
-Kaggle requires an account, so these seven files cannot be fetched automatically.
-Download the player database for each edition and save it in `data/raw/fifa/` under
-**exactly** these names:
+Kaggle requires an account, so these files cannot be fetched automatically.
+
+**The quickest route is three downloads, not seven.** Some datasets bundle every
+edition into one file with a version column, and the loader reads that shape directly:
+
+1. [EA Sports FC 24 complete player dataset](https://www.kaggle.com/datasets/stefanoleone992/ea-sports-fc-24-complete-player-dataset)
+   — its `male_players.csv` spans FIFA 15 to FC 24, so it covers **five** of the seven
+   editions. Save it as `data/raw/fifa/male_players.csv`.
+2. FC 25 — e.g. [mexwell/ea-fc25-player-database](https://www.kaggle.com/datasets/mexwell/ea-fc25-player-database)
+   → save as `data/raw/fifa/fc25.csv`
+3. FC 26 — e.g. [flynn28/eafc26-player-database](https://www.kaggle.com/datasets/flynn28/eafc26-player-database)
+   → save as `data/raw/fifa/fc26.csv`
+
+Otherwise download each edition separately — FIFA
+[20](https://www.kaggle.com/datasets/stefanoleone992/fifa-20-complete-player-dataset) ·
+[21](https://www.kaggle.com/datasets/stefanoleone992/fifa-21-complete-player-dataset) ·
+[22](https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset) ·
+[23](https://www.kaggle.com/datasets/stefanoleone992/fifa-23-complete-player-dataset)
+— and save them in `data/raw/fifa/` under **exactly** these names:
 
 | Season | Edition | Save as |
 |---|---|---|
@@ -140,6 +156,9 @@ Download the player database for each edition and save it in `data/raw/fifa/` un
 | 2023/24 | EA FC 24 | `data/raw/fifa/fc24.csv` |
 | 2024/25 | EA FC 25 | `data/raw/fifa/fc25.csv` |
 | 2025/26 | EA FC 26 | `data/raw/fifa/fc26.csv` |
+
+A per-edition file takes precedence over the combined one, so you can mix the two — use
+the bundle for the older editions and dedicated files for anything it misses.
 
 Each file needs at least a player name, a club and an overall rating. Age, potential,
 value, positions and the six attribute scores (pace, shooting, passing, dribbling,

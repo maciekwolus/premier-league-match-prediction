@@ -36,9 +36,11 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 ```
 
 **FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
-are the user's to handle. The seven CSVs are placed by hand in `data/raw/fifa/` named
-`fifa20…fifa23`, `fc24…fc26` (`Season.fifa_slug`). `load_fifa` run without them prints
-exactly which are missing and where they belong, and exits 1 rather than raising.
+are the user's to handle. Files are placed by hand in `data/raw/fifa/`, either one per
+edition named `fifa20…fifa23`, `fc24…fc26` (`Season.fifa_slug`), or a multi-edition
+`male_players.csv` carrying a `fifa_version` column — the FC 24 dataset bundles FIFA 15
+through FC 24 that way. A per-edition file wins over the bundle, so the two can be mixed.
+`load_fifa` run without them prints which editions are missing and exits 1.
 
 Tests never hit the network and never read `data/` — they build synthetic seasons — so
 they stay meaningful when upstream sources change, and a green run verifies a fresh

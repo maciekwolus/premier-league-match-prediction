@@ -65,6 +65,14 @@ class Season:
         """
         return self.fifa_edition.lower().replace("ea ", "").replace(" ", "")
 
+    @property
+    def fifa_version(self) -> int:
+        """Edition number: "FIFA 20" -> 20, "EA FC 24" -> 24.
+
+        Datasets that bundle several editions into one file identify them this way.
+        """
+        return int("".join(c for c in self.fifa_edition if c.isdigit()))
+
 
 # EA renamed the series after FIFA 23, hence the inconsistent-looking labels.
 SEASONS: tuple[Season, ...] = (
