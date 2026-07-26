@@ -123,7 +123,39 @@ towards a small free site. Every response is cached, so **interrupting it is saf
 re-running resumes where it stopped rather than starting over. Pass `--delay` to change
 the spacing, or `--season "2025/26"` to rebuild one season.
 
-All four stages cache their downloads; `--force` re-fetches.
+Every download stage caches; `--force` re-fetches.
+
+### 6. Add the player ratings (manual)
+
+Kaggle requires an account, so these seven files cannot be fetched automatically.
+Download the player database for each edition and save it in `data/raw/fifa/` under
+**exactly** these names:
+
+| Season | Edition | Save as |
+|---|---|---|
+| 2019/20 | FIFA 20 | `data/raw/fifa/fifa20.csv` |
+| 2020/21 | FIFA 21 | `data/raw/fifa/fifa21.csv` |
+| 2021/22 | FIFA 22 | `data/raw/fifa/fifa22.csv` |
+| 2022/23 | FIFA 23 | `data/raw/fifa/fifa23.csv` |
+| 2023/24 | EA FC 24 | `data/raw/fifa/fc24.csv` |
+| 2024/25 | EA FC 25 | `data/raw/fifa/fc25.csv` |
+| 2025/26 | EA FC 26 | `data/raw/fifa/fc26.csv` |
+
+Each file needs at least a player name, a club and an overall rating. Age, potential,
+value, positions and the six attribute scores (pace, shooting, passing, dribbling,
+defending, physical) are used when present. Column *names* do not matter — the loader
+recognises the common spellings and reports anything it cannot place.
+
+Then:
+
+```bash
+python -m src.data.load_fifa
+```
+
+Running it before the files exist prints exactly which ones are missing and where they
+belong, so it is safe to use as a checklist. It writes
+`data/processed/fifa_players.parquet` — player ratings per season, already filtered to
+Premier League squads.
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
@@ -148,7 +180,8 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–2 complete — skeleton, match-results ingestion, and lineups with expected goals.
+Phases 0–3 complete — skeleton, match results, lineups with expected goals, and the
+player-ratings loader (which stays idle until the Kaggle CSVs are added in step 6).
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout

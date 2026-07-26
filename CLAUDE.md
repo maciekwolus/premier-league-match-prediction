@@ -9,7 +9,8 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. Phases 0–2 are complete.
+read it before starting work. Phases 0–3 are complete, though Phase 3 stays inert until
+the FIFA CSVs are placed by hand.
 
 ## Commands
 
@@ -31,7 +32,13 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.clean_matches
 .venv/Scripts/python.exe -m src.data.fetch_lineups   # ~2,660 requests, run in background
 .venv/Scripts/python.exe -m src.data.clean_lineups
+.venv/Scripts/python.exe -m src.data.load_fifa       # needs hand-placed CSVs, see below
 ```
+
+**FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
+are the user's to handle. The seven CSVs are placed by hand in `data/raw/fifa/` named
+`fifa20…fifa23`, `fc24…fc26` (`Season.fifa_slug`). `load_fifa` run without them prints
+exactly which are missing and where they belong, and exits 1 rather than raising.
 
 Tests never hit the network and never read `data/` — they build synthetic seasons — so
 they stay meaningful when upstream sources change, and a green run verifies a fresh
@@ -116,6 +123,15 @@ to trace later.
   raises `UnknownTeamError` rather than dropping the fixture.
 - **Understat starters are `position != "Sub"`** and come to exactly 11 per side on all
   2,660 matches. Its `time` field caps at 90, so stoppage time is not counted.
+- **Ratings CSVs come from different Kaggle authors per edition**, so column names vary.
+  `load_fifa.COLUMN_ALIASES` lists every known spelling and matches case-insensitively;
+  a missing *required* column raises, a missing *optional* one is reported and left null.
+- **An unmapped FIFA club would vanish silently**, because the ratings files list every
+  club in the world and non-Premier-League ones are dropped on purpose. The guard is
+  asserting exactly 20 clubs per edition — a club we failed to map shows up as 19.
+- **SoFIFA returns 403 and Kaggle needs auth**, so there is no unattended path to this
+  data. FIFA Index (fifaindex.com) is reachable and covers all seven editions, but its
+  list pages carry only overall/potential — attributes need one request per player.
 
 ## Workflow
 

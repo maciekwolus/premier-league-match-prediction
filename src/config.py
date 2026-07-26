@@ -57,6 +57,14 @@ class Season:
     def matches_url(self) -> str:
         return FOOTBALL_DATA_URL.format(code=self.code)
 
+    @property
+    def fifa_slug(self) -> str:
+        """Filename form of the ratings edition: "FIFA 20" -> "fifa20", "EA FC 24" -> "fc24".
+
+        This is the name the ratings CSV must be saved under in ``data/raw/fifa/``.
+        """
+        return self.fifa_edition.lower().replace("ea ", "").replace(" ", "")
+
 
 # EA renamed the series after FIFA 23, hence the inconsistent-looking labels.
 SEASONS: tuple[Season, ...] = (
