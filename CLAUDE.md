@@ -71,7 +71,8 @@ as empty stubs ahead of time.
 cards and half-time scores from the match being predicted are post-match facts. They are
 kept in `matches.parquet` because rolling averages over *previous* matches are valuable,
 but using them for their own match produces a model that scores brilliantly in backtests
-and fails on Saturday.
+and fails on Saturday. Concretely: rolling features must shift before the window
+(`.shift(1).rolling(n)`), or every match lands inside its own average.
 
 **Validate walk-forward, never randomly.** Train on seasons 1..n, test on n+1. A random
 train/test split lets the model see the future.
