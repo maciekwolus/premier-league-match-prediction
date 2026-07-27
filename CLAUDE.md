@@ -9,9 +9,8 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **Phases 0–4 are complete: all three sources are joined,
-and players are matched across them at 98.6% of starting appearances.** Next is Phase 5,
-the feature table.
+read it before starting work. **Phases 0–5 are complete: the model-ready feature table
+exists at `data/final/features.parquet`.** Next is Phase 6, the models.
 
 What exists in `data/processed/` after a full build:
 
@@ -22,6 +21,9 @@ What exists in `data/processed/` after a full build:
 | `lineups.parquet` | 77,278 | player appearances: position, minutes, xG, xA, cards |
 | `fifa_players.parquet` | 127,930 | player ratings per season, every club, `in_premier_league` flags the season's 20 |
 | `player_map.parquet` | 3,874 | Understat player-season → FIFA player, with the rule that matched it |
+
+And `data/final/features.parquet`: 2,660 rows, 99 columns — one per match, nothing
+post-kickoff.
 
 ## Commands
 
@@ -45,6 +47,7 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.clean_lineups
 .venv/Scripts/python.exe -m src.data.load_fifa       # needs hand-placed CSVs, see below
 .venv/Scripts/python.exe -m src.matching.player_names
+.venv/Scripts/python.exe -m src.features.build
 ```
 
 **FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
@@ -114,6 +117,17 @@ kept in `matches.parquet` because rolling averages over *previous* matches are v
 but using them for their own match produces a model that scores brilliantly in backtests
 and fails on Saturday. Concretely: rolling features must shift before the window
 (`.shift(1).rolling(n)`), or every match lands inside its own average.
+
+This is enforced two ways, and the second is the one that matters.
+`features.build.FORBIDDEN` names post-match columns so a careless passthrough is caught
+by name — cheap, but blind to a window that includes its own row, because that column
+has an innocent name. So `test_form.py` **changes a match's score and asserts that
+match's own features do not move**, with a mirror test that later matches' features
+*do*. Any new feature belongs under both.
+
+**Healthy correlation with goal difference is about 0.43**, from squad-quality
+difference — roughly what the closing odds themselves manage. A feature correlating much
+higher is leaking, not clever.
 
 **Validate walk-forward, never randomly.** Train on seasons 1..n, test on n+1. A random
 train/test split lets the model see the future.
