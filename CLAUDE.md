@@ -106,8 +106,15 @@ starting appearances have no match and land as nulls, which aggregations must ex
 `clean_matches.build()` is strict by default; `validate_season` returns a list of
 problems and an empty list means clean. Follow this shape for new sources.
 
-Packages (`src/features/`, `src/models/`, …) are created when their phase begins, not
-as empty stubs ahead of time.
+**Per-team features are computed on a team-match table**, two rows per fixture rather
+than one. `features/form.py` builds it, and `features/build.py` pivots it back to one row
+per match with `home_`/`away_`/`diff_` columns. The shape is what makes the leakage rule
+enforceable: a team's history is a single chronological series whether it played home or
+away, so one `.shift(1)` covers every rolling feature instead of each needing its own
+correct handling. Phase 7 must build the same table for upcoming fixtures.
+
+Packages (`src/models/`, `src/evaluate/`, `src/predict/`) are created when their phase
+begins, not as empty stubs ahead of time.
 
 ## Rules that matter
 
@@ -187,8 +194,9 @@ to trace later.
   `Brighton`) where earlier editions spell them out, and the same file contains
   `Newcastle Jets` and `Notts County` — so the mapping is exact-match, never fuzzy.
 - **Goalkeepers have null pace/shooting/etc.** by design; FIFA rates them on separate
-  `gk_` attributes. About 11% of rows. Aggregations in Phase 5 must not treat this as
-  missing data.
+  `gk_` attributes. About 11% of rows, and not missing data. `features/squad.py` averages
+  face stats over outfielders only, which is the intended quantity — any new aggregation
+  should do the same rather than filling zeros.
 - **Attribute coverage is uneven across editions and features must tolerate it.**
   `overall`, `potential`, `age` and `club` exist everywhere. The six face stats are
   absent for 2024/25, and `potential`/`value_eur` are absent for 2025/26. Squad-quality
