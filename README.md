@@ -33,7 +33,7 @@ Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
 source, the exception being the hand-written override files in `data/manual/`. A fresh
-clone therefore needs steps 5 to 7 before anything works.
+clone therefore needs steps 5 to 8 before anything works.
 
 ### Prerequisites
 
@@ -206,9 +206,24 @@ This resolves the two, reaching **98.6% of starting appearances**. Unresolved na
 `data/manual/player_name_overrides.csv`, which is committed and always takes precedence —
 add a row there rather than loosening a matching threshold.
 
+### 8. Build the feature table
+
+```bash
+python -m src.features.build
+```
+
+Produces `data/final/features.parquet` — 2,660 rows, 99 columns, one per match. Squad
+quality from each starting XI, rolling form and expected goals over previous matches,
+Elo, rest days, and the home-minus-away difference of each.
+
+**Everything here is knowable before kickoff.** Shots, cards, half-time scores and the
+match's own expected goals are deliberately excluded; they appear only as rolling
+averages of *earlier* matches.
+
 ### What you end up with
 
-Five tables in `data/processed/`, roughly 160 MB of source data behind them:
+Five tables in `data/processed/` plus the feature table, roughly 160 MB of source data
+behind them:
 
 | Table | Rows | Contents |
 |---|---|---|
@@ -217,6 +232,7 @@ Five tables in `data/processed/`, roughly 160 MB of source data behind them:
 | `lineups.parquet` | 77,278 | Player appearances — position, minutes, xG, xA, cards |
 | `fifa_players.parquet` | 127,930 | Player ratings per season; `in_premier_league` flags the season's 20 clubs |
 | `player_map.parquet` | 3,874 | Each Understat player linked to their FIFA entry |
+| `final/features.parquet` | 2,660 | The model-ready table — one row per match, 99 columns |
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, both
@@ -241,8 +257,8 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–4 complete — match results, lineups with expected goals, player ratings, and
-players matched across all three sources at 98.6% of starting appearances.
+Phases 0–5 complete — all three sources ingested and joined, players matched across them
+at 98.6% of starting appearances, and the model-ready feature table built.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
