@@ -31,8 +31,9 @@ Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
 
 ## Getting started
 
-**No data is stored in this repository** — it is all gitignored and rebuilt from source.
-A fresh clone therefore needs step 5 before anything works.
+**Almost no data is stored in this repository** — it is gitignored and rebuilt from
+source, the exception being the hand-written override files in `data/manual/`. A fresh
+clone therefore needs steps 5 to 7 before anything works.
 
 ### Prerequisites
 
@@ -194,9 +195,20 @@ throughout; the six face stats are missing for 2024/25, and potential and value 
 2025/26. Overall rating — the strongest squad-quality signal — is complete for all seven
 seasons.
 
+### 7. Match players across the sources
+
+```bash
+python -m src.matching.player_names
+```
+
+Understat writes `Mohamed Salah`; FIFA writes `M. Salah` or `Mohamed Salah Hamed Ghaly`.
+This resolves the two, reaching **98.6% of starting appearances**. Unresolved names go in
+`data/manual/player_name_overrides.csv`, which is committed and always takes precedence —
+add a row there rather than loosening a matching threshold.
+
 ### What you end up with
 
-Four tables in `data/processed/`, roughly 160 MB of source data behind them:
+Five tables in `data/processed/`, roughly 160 MB of source data behind them:
 
 | Table | Rows | Contents |
 |---|---|---|
@@ -206,19 +218,9 @@ Four tables in `data/processed/`, roughly 160 MB of source data behind them:
 | `fifa_players.parquet` | 127,930 | Player ratings per season; `in_premier_league` flags the season's 20 clubs |
 | `player_map.parquet` | 3,874 | Each Understat player linked to their FIFA entry |
 
-### 7. Match players across the sources
-
-```bash
-python -m src.matching.player_names
-```
-
-Understat writes `Mohamed Salah`; FIFA writes `M. Salah` or `Mohamed Salah Hamed Ghaly`.
-This resolves the two, reaching **98.6% of starting appearances**. Unresolved names go in
-`data/manual/player_name_overrides.csv`, which is committed and always takes precedence.
-
 Every stage validates before writing and raises rather than emitting a suspect table:
-380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
-both sources agreeing on every final score.
+380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, both
+sources agreeing on every final score, and 20 flagged clubs per ratings edition.
 
 ## Development
 
