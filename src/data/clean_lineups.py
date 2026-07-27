@@ -21,6 +21,7 @@ Usage:
 
 from __future__ import annotations
 
+import html
 import json
 import sys
 
@@ -185,6 +186,9 @@ def roster_rows(understat_match_id: str, match_id: str, home: str, away: str) ->
         for player in roster[side].values():
             row = {source: player[source] for source in PLAYER_FIELDS}
             row = {PLAYER_FIELDS[k]: v for k, v in row.items()}
+            # Understat serves names HTML-escaped, so apostrophes arrive as "&#039;"
+            # ("Dara O&#039;Shea"). Phase 4 matches on these strings.
+            row["player"] = html.unescape(row["player"])
             row.update(
                 {
                     "match_id": match_id,

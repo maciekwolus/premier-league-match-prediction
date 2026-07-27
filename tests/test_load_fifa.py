@@ -172,22 +172,29 @@ def test_unmatched_columns_are_simply_absent():
 # ----------------------------------------------------------------- loading
 
 
-def test_loads_and_filters_to_premier_league(fifa_dir):
+def test_loads_and_flags_premier_league(fifa_dir):
     make_edition_csv(fifa_dir / "fifa20.csv")
     df, problems = load_edition(SEASON)
 
     assert problems == []
     assert len(df) == 20 * 25
+    assert df["in_premier_league"].all()
     assert df["club_fd"].nunique() == 20
     assert "Man United" in set(df["club_fd"])  # translated, not raw FIFA spelling
 
 
-def test_non_premier_league_clubs_are_dropped(fifa_dir):
+def test_non_premier_league_clubs_are_flagged_not_dropped(fifa_dir):
+    """Other clubs are kept so January signings stay matchable in Phase 4.
+
+    Ratings are a September snapshot, so a player who joins mid-season is listed at
+    their old club. Dropping those rows made them impossible to match later.
+    """
     make_edition_csv(fifa_dir / "fifa20.csv", clubs=[*CLUBS_2019_20, "FC Barcelona", "Juventus"])
     df, _ = load_edition(SEASON)
 
-    assert df["club_fd"].nunique() == 20
-    assert "FC Barcelona" not in set(df["club"])
+    assert "FC Barcelona" in set(df["club"])
+    assert df[df["in_premier_league"]]["club_fd"].nunique() == 20
+    assert not df[df["club"] == "FC Barcelona"]["in_premier_league"].any()
 
 
 def test_alternative_layout_loads_too(fifa_dir):

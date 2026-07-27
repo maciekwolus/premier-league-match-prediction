@@ -3,6 +3,10 @@ data/**
 !data/**/
 !data/**/.gitkeep
 
+# ...except hand-written override files, which are decisions rather than data and
+# would otherwise have to be re-derived by hand on every machine.
+!data/manual/*.csv
+
 # Python
 __pycache__/
 *.py[cod]

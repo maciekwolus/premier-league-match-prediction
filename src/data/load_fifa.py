@@ -253,7 +253,14 @@ def load_edition(
     df["club_fd"] = df["club"].map(fifa_to_football_data)
     if clubs is None:
         clubs = season_clubs(season)
-    premier_league = df[df["club_fd"].isin(clubs)].copy()
+
+    # Every club is kept, not just the season's twenty. Ratings files are a September
+    # snapshot, so a January signing from abroad is listed under their old club - Jarrod
+    # Bowen sits at Hull City in FIFA 20. Dropping non-Premier-League rows deleted those
+    # players outright and made them unmatchable in Phase 4. The flag preserves the
+    # distinction for squad-quality features without losing the ratings.
+    df["in_premier_league"] = df["club_fd"].isin(clubs)
+    premier_league = df.copy()
 
     premier_league["season"] = season.label
     premier_league["season_slug"] = season.slug
@@ -289,8 +296,13 @@ def load_edition(
 
 
 def validate_edition(df: pd.DataFrame, season: Season) -> list[str]:
-    """Return a list of problems with one edition. Empty list means clean."""
+    """Return a list of problems with one edition. Empty list means clean.
+
+    Validation covers the Premier League subset only; the rest of the world is carried
+    for name matching and has no expected shape.
+    """
     problems: list[str] = []
+    df = df[df["in_premier_league"]]
 
     clubs = sorted(df["club_fd"].unique())
     if len(clubs) != PREMIER_LEAGUE_CLUBS_PER_SEASON:
@@ -360,9 +372,11 @@ def build(strict: bool = True, allow_missing: bool = False) -> pd.DataFrame:
         problems = validate_edition(df, season)
         all_problems += problems
 
+        pl = df[df["in_premier_league"]]
         print(
-            f"{season.label}  {season.fifa_edition:9} {len(df):4} players, "
-            f"{df['club_fd'].nunique()} clubs, mean overall {df['overall'].mean():.1f}"
+            f"{season.label}  {season.fifa_edition:9} {len(pl):4} PL players in "
+            f"{pl['club_fd'].nunique()} clubs, mean overall {pl['overall'].mean():.1f}"
+            f"  (+{len(df) - len(pl)} elsewhere, kept for name matching)"
             + ("  PROBLEMS" if problems else "")
         )
         for note in notes:
@@ -381,6 +395,7 @@ def build(strict: bool = True, allow_missing: bool = False) -> pd.DataFrame:
         "season",
         "season_slug",
         "fifa_edition",
+        "in_premier_league",
         "player_name",
         "long_name",
         "club",

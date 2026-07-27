@@ -1,0 +1,70 @@
+season,understat_player,fifa_player_name,confidence,reason
+2019/20,Chicharito,J. Hernández,high,Chicharito is Javier Hernandez's well-known nickname
+2019/20,Son Heung-Min,H. Son,high,short name is abbreviated form of same player
+2020/21,Daniel N'Lundulu,D. Nlundulu,medium,Dan is nickname for Daniel apostrophe differs
+2020/21,Dara O'Shea,D. O'Shea,high,long name Dara Joseph O'Shea matches exactly
+2020/21,Son Heung-Min,H. Son,high,long name is Korean spelling of Son Heung-Min
+2021/22,Martin Odegaard,M. Ødegaard,high,accent-only spelling difference
+2021/22,Son Heung-Min,H. Son,high,short name abbreviation of same player
+2021/22,Tariqe Fosu-Henry,T. Fosu,medium,shortened surname and near-identical first name spelling
+2022/23,Joe Ayodele-Aribo,J. Aribo,high,long name matches surname Ayodele-Aribo exactly
+2022/23,Martin Odegaard,M. Ødegaard,high,accent variant of same name
+2022/23,Son Heung-Min,H. Son,high,long name is Korean/Chinese rendering of Heung-min Son
+2023/24,Dara O'Shea,D. O'Shea,high,long name matches exactly aside from apostrophe encoding
+2023/24,Martin Odegaard,M. Ødegaard,high,accent variant of same name
+2023/24,Ryan John Giles,R. Giles,high,middle name dropped; long name matches
+2023/24,Son Heung-Min,H. Son,high,Korean name order abbreviation; position/rating fit
+2024/25,Alex Iwobi,Alexander Chuka Iwobi,high,nickname for full name
+2024/25,Alex Palmer,Alexander Palmer,high,nickname for full name
+2024/25,Ben Chilwell,Benjamin James Chilwell,high,nickname for full name
+2024/25,Ben Godfrey,Benjamin Matthew Godfrey,high,nickname for full name
+2024/25,Ben Johnson,Benjamin Anthony Johnson,high,nickname for full name
+2024/25,Ben Mee,Benjamin Thomas Mee,high,nickname for full name
+2024/25,Ben White,Benjamin William White,high,nickname for full name
+2024/25,Ben Winterburn,Benjamin George Winterburn,high,nickname for full name
+2024/25,Charlie Taylor,Charles James Taylor,high,nickname for full name
+2024/25,Chris Richards,Christopher Jeffrey Richards,high,nickname for full name
+2024/25,Chris Wood,Christopher Grant Wood,high,nickname for full name
+2024/25,Dan Burn,Daniel Johnson Burn,high,nickname for full name
+2024/25,Danny Ings,Daniel William John Ings,high,nickname for full name
+2024/25,Danny Ward,Daniel Ward,high,nickname for full name matching surname
+2024/25,Danny Welbeck,Daniel Nii Tackie Mensah Welbeck,high,nickname for full birth name
+2024/25,Dara O'Shea,Dara Joseph O'Shea,high,full name match
+2024/25,Eddie Nketiah,Edward Keddar Nketiah,high,nickname for full name
+2024/25,Erling Haaland,Erling Braut Håland,high,accent difference
+2024/25,Ferdi Kadioglu,Ferdi Erenay Kadıoğlu,high,accent difference full name
+2024/25,Jesper Lindstrom,Jesper Grænge Lindstrøm,high,accent difference
+2024/25,Joe Ayodele-Aribo,Joseph Oluwaseyi Temitope Ayodele-Aribo,high,nickname for full name matching surname
+2024/25,Joe Lumley,Joseph Patrick Lumley,high,nickname for full name
+2024/25,Joe Willock,Joseph George Willock,high,nickname for full name
+2024/25,Jonny Evans,Jonathan Grant Evans,high,nickname for full name
+2024/25,Josh Acheampong,Joshua Kofi Acheampong,high,nickname for full name
+2024/25,Lukasz Fabianski,Łukasz Marek Fabiański,high,accent difference full name
+2024/25,Martin Odegaard,Martin Ødegaard,high,accent difference
+2024/25,Matt Doherty,Matthew James Doherty,high,nickname for full name
+2024/25,Matt O'Riley,Matthew Sean O'Riley,high,nickname for full name
+2024/25,Matt Targett,Matthew Robert Targett,high,nickname for full name
+2024/25,Max Kilman,Maximilian William Kilman,high,nickname for full name
+2024/25,Nick Pope,Nicholas David Pope,high,nickname for full name
+2024/25,Noni Madueke,Chukwunonso Tristan Madueke,high,known nickname for full birth name
+2024/25,Ola Aina,Temitayo Olufisayo Olaoluwa Aina,high,known nickname for full birth name
+2024/25,Ollie Watkins,Oliver George Arthur Watkins,high,nickname for full name
+2024/25,Phil Foden,Philip Walter Foden,high,nickname for full name
+2024/25,Sam Johnstone,Samuel Luke Johnstone,high,nickname for full name
+2024/25,Sammie Szmodics,Samuel Joseph Szmodics,high,nickname for full name
+2024/25,Solly March,Solomon Benjamin March,high,nickname for full name
+2024/25,Tim Iroegbunam,Timothy Emeka Iroegbunam,high,nickname for full name
+2024/25,Toby Collyer,Tobias Christopher Collyer,high,nickname for full name
+2024/25,Tom King,Thomas Lloyd King,high,nickname for full name
+2024/25,Tommy Doyle,Thomas Glyn Doyle,high,nickname for full name
+2024/25,Tosin Adarabioyo,Abdul-Nasir Oluwatosin Oluwadoyinsolami Adarabioyo,high,known nickname for full birth name
+2024/25,Wes Burns,Wesley James Burns,high,nickname for full name
+2025/26,Alejandro Jiménez,Álex Jiménez,high,Álex is a nickname for Alejandro
+2025/26,Ben White,Benjamin White,high,Ben is nickname for Benjamin
+2025/26,Chimuanya Ugochukwu,Lesley Ugochukwu,medium,rare shared surname only candidate at club
+2025/26,Fernando López,Fer López,high,Fer is nickname for Fernando
+2025/26,Martin Odegaard,Martin Ødegaard,high,accent variant of same name
+2025/26,Mathis Cherki,Rayan Cherki,medium,rare shared surname only candidate at club
+2025/26,Matthew Cash,Matty Cash,high,nickname for Matthew
+2025/26,Max Kilman,Maximilian Kilman,high,Max is nickname for Maximilian
+2025/26,Treymaurice Nyoni,Trey Nyoni,high,Trey is nickname for Treymaurice

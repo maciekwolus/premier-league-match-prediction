@@ -203,7 +203,18 @@ Four tables in `data/processed/`, roughly 160 MB of source data behind them:
 | `matches.parquet` | 2,660 | Results, shots, cards, referee, opening and closing odds |
 | `understat_matches.parquet` | 2,660 | Match-level expected goals |
 | `lineups.parquet` | 77,278 | Player appearances — position, minutes, xG, xA, cards |
-| `fifa_players.parquet` | 4,421 | Player ratings per season, filtered to that season's 20 clubs |
+| `fifa_players.parquet` | 127,930 | Player ratings per season; `in_premier_league` flags the season's 20 clubs |
+| `player_map.parquet` | 3,874 | Each Understat player linked to their FIFA entry |
+
+### 7. Match players across the sources
+
+```bash
+python -m src.matching.player_names
+```
+
+Understat writes `Mohamed Salah`; FIFA writes `M. Salah` or `Mohamed Salah Hamed Ghaly`.
+This resolves the two, reaching **98.6% of starting appearances**. Unresolved names go in
+`data/manual/player_name_overrides.csv`, which is committed and always takes precedence.
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, and
@@ -228,8 +239,8 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–3 complete — skeleton, match results, lineups with expected goals, and player
-ratings (4,421 player-seasons across all seven editions).
+Phases 0–4 complete — match results, lineups with expected goals, player ratings, and
+players matched across all three sources at 98.6% of starting appearances.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
