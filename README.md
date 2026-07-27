@@ -267,6 +267,7 @@ See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 src/config.py           seasons, paths, source URLs - the single place seasons are defined
 src/data/               acquisition and cleaning, one module per source
 src/matching/           name reconciliation between sources
+src/features/           squad quality, form, Elo, and the feature table
 tests/                  unit tests, no network access
 data/raw/               downloaded source data (gitignored)
 data/processed/         cleaned and joined data (gitignored)
