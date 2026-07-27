@@ -70,6 +70,11 @@ data/final/      the model-ready feature table
 data/manual/     hand-written override files (the only committed data)
 ```
 
+`.gitignore` excludes all of `data/` except `data/manual/*.csv`. Those files record
+decisions rather than data — losing them would mean re-deriving each one by hand — so
+they are committed deliberately. `player_name_overrides.csv` is consulted before the
+matching cascade runs and always wins; add a row there rather than loosening a threshold.
+
 **`src/config.py` is the only place seasons are defined.** Each upstream source names
 seasons differently, so the `Season` dataclass carries every identifier at once —
 `code` for football-data (`1920`), `understat` (`2019`), `fifa_edition` (`FIFA 20`).
@@ -86,7 +91,13 @@ every downstream parquet.
 pairing occurs exactly once per season, so it is unique, and it avoids the timezone and
 date-format fragility of date joins. Dates and final scores are then cross-checked
 *afterwards* as independent evidence the join is right — 2,660 matching scores is not
-something a wrong join produces by accident. Follow this shape for the FIFA join too.
+something a wrong join produces by accident. Use this shape for any new source.
+
+**`player_map.parquet` is how a lineup reaches a rating.** `lineups.parquet` names players
+as Understat spells them; `fifa_players.parquet` as FIFA does. The map joins
+`(season, team, understat_player)` to a `fifa_player_name`, so squad-quality features go
+lineups → player_map → fifa_players, never lineups → fifa_players directly. Around 1.4% of
+starting appearances have no match and land as nulls, which aggregations must expect.
 
 **Cleaners validate before writing and raise rather than emit a suspect table.**
 `clean_matches.build()` is strict by default; `validate_season` returns a list of
@@ -127,7 +138,8 @@ to trace later.
   football-data adds bookmakers. `COLUMN_MAP` takes only the subset present in all
   seasons; a missing column raises immediately rather than producing silent nulls.
 - **football-data team names are internally consistent** (28 distinct across 7 seasons),
-  so no mapping is needed within this source. Understat and FIFA will each need one.
+  so no mapping is needed within this source, and they are the canonical spelling every
+  other source is translated into.
 - **`understatapi` pins old transitive deps** (urllib3 1.26.5, idna 2.10), which suggests
   light maintenance. If it breaks, the fallbacks are the `soccerdata` library or scraping
   Understat's embedded JSON directly. As of July 2026 it works and returned all 2,660
@@ -140,17 +152,17 @@ to trace later.
 - **Ratings CSVs come from different Kaggle authors per edition**, so column names vary.
   `load_fifa.COLUMN_ALIASES` lists every known spelling and matches case-insensitively;
   a missing *required* column raises, a missing *optional* one is reported and left null.
-- **An unmapped FIFA club would vanish silently**, because the ratings files list every
-  club in the world and non-Premier-League ones are dropped on purpose. The guard is
-  asserting exactly 20 clubs per edition — a club we failed to map shows up as 19.
-- **Filter ratings to the clubs that played *that season***, taken from
-  `matches.parquet`, not to "clubs ever in the Premier League". Leeds and Sunderland
-  appear in every edition regardless of division, so the looser filter yields 28 clubs.
-  This is a *flag* (`in_premier_league`), not a filter — see the next point.
-- **Ratings are a September snapshot, so January signings sit at their old club.**
-  Jarrod Bowen is at Hull City in FIFA 20. Dropping non-Premier-League rows deleted those
-  players outright and made them unmatchable; `fifa_players.parquet` therefore keeps every
-  club and flags the Premier League subset. Squad-quality features filter on the flag.
+- **Ratings cover every club in the world and none are dropped.** They are a September
+  snapshot, so a January signing is still listed at their old club — Jarrod Bowen sits at
+  Hull City in FIFA 20. An earlier version filtered each edition to that season's twenty
+  clubs, which deleted those players outright and left them unmatchable in Phase 4.
+  `in_premier_league` flags the season's twenty instead; squad-quality features filter on
+  the flag, name matching uses the full pool.
+- **The season's twenty come from `matches.parquet`, not from "clubs ever in the Premier
+  League".** Leeds and Sunderland appear in every edition regardless of division, so the
+  looser test yields 28. An unmapped club would be invisible — it just looks like one of
+  the many non-Premier-League rows — so the guard is asserting exactly 20 flagged clubs
+  per edition. A club whose spelling we missed shows up as 19.
 - **Understat serves names HTML-escaped** — `Dara O&#039;Shea`. Unescaped in
   `clean_lineups`; 12 names across 406 rows were affected.
 - **`Ø`, `Ł`, `ß` and friends survive NFKD normalisation**, because they are distinct
