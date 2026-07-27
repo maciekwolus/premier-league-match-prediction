@@ -152,14 +152,14 @@ Cascade:
 4. Anything still unmatched → `data/manual/player_name_overrides.csv`
 
 Acceptance gate: **≥95% of starting-XI minutes matched per season**, reported per
-season so you can see which one is dragging.
+season so you can see which one is dragging. Achieved: 97.7–99.4%.
 
 → `data/processed/player_map.parquet` + a coverage report
 
-**Learn with Claude — parallel agents:** this is the ideal task for them. Launch one
-subagent per season to resolve that season's unmatched names into override rows;
-7 agents work simultaneously instead of you grinding through 7 lists. Say
-*"use subagents for this"* when we get here and I'll fan them out.
+**Done.** Reached 98.6% of starting appearances. The lesson worth keeping: seven agents
+ran in parallel over the residue *after* the automated cascade, not instead of it — and
+what they mostly proved was that the remaining names had no candidate to match, which
+pointed at a filtering bug in Phase 3 rather than at any name being hard.
 
 ---
 

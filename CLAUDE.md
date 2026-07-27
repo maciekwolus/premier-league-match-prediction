@@ -9,8 +9,9 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **Phases 0–3 are complete and all three sources are joined
-and on disk.** Next is Phase 4, matching Understat player names to FIFA player names.
+read it before starting work. **Phases 0–4 are complete: all three sources are joined,
+and players are matched across them at 98.6% of starting appearances.** Next is Phase 5,
+the feature table.
 
 What exists in `data/processed/` after a full build:
 
@@ -19,9 +20,8 @@ What exists in `data/processed/` after a full build:
 | `matches.parquet` | 2,660 | results, match statistics, referee, opening and closing odds |
 | `understat_matches.parquet` | 2,660 | match-level expected goals |
 | `lineups.parquet` | 77,278 | player appearances: position, minutes, xG, xA, cards |
-| `fifa_players.parquet` | 4,421 | player ratings per season, filtered to that season's 20 clubs |
-
-Phase 4 joins the last two: 1,486 distinct Understat names against 2,483 FIFA names.
+| `fifa_players.parquet` | 127,930 | player ratings per season, every club, `in_premier_league` flags the season's 20 |
+| `player_map.parquet` | 3,874 | Understat player-season → FIFA player, with the rule that matched it |
 
 ## Commands
 
@@ -44,6 +44,7 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.fetch_lineups   # ~2,660 requests, run in background
 .venv/Scripts/python.exe -m src.data.clean_lineups
 .venv/Scripts/python.exe -m src.data.load_fifa       # needs hand-placed CSVs, see below
+.venv/Scripts/python.exe -m src.matching.player_names
 ```
 
 **FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
@@ -145,6 +146,17 @@ to trace later.
 - **Filter ratings to the clubs that played *that season***, taken from
   `matches.parquet`, not to "clubs ever in the Premier League". Leeds and Sunderland
   appear in every edition regardless of division, so the looser filter yields 28 clubs.
+  This is a *flag* (`in_premier_league`), not a filter — see the next point.
+- **Ratings are a September snapshot, so January signings sit at their old club.**
+  Jarrod Bowen is at Hull City in FIFA 20. Dropping non-Premier-League rows deleted those
+  players outright and made them unmatchable; `fifa_players.parquet` therefore keeps every
+  club and flags the Premier League subset. Squad-quality features filter on the flag.
+- **Understat serves names HTML-escaped** — `Dara O&#039;Shea`. Unescaped in
+  `clean_lineups`; 12 names across 406 rows were affected.
+- **`Ø`, `Ł`, `ß` and friends survive NFKD normalisation**, because they are distinct
+  letters rather than a base plus a mark, and then get stripped as non-ASCII. `Ødegaard`
+  became `degaard` and matched nothing. `player_names.TRANSLITERATIONS` handles them
+  explicitly; add to it rather than reaching for a fuzzier threshold.
 - **EA FC 26 abbreviates club names** (`Man Utd`, `Newcastle Utd`, `Spurs`, bare
   `Brighton`) where earlier editions spell them out, and the same file contains
   `Newcastle Jets` and `Notts County` — so the mapping is exact-match, never fuzzy.
