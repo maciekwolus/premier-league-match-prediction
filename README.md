@@ -322,7 +322,8 @@ Two committed files fix that, and both record **changes, not whole squads**:
 | `data/manual/player_ratings_manual.csv` | Player with no FIFA entry at all |
 
 Moving a player is one line and a re-run — no code change, and an unrecognised name is
-reported rather than silently ignored.
+reported rather than silently ignored. Both files feed the expected XI that squad-quality
+features are built from, so an edit changes the prediction.
 
 A new season also starts before its own ratings edition exists: 2026/27 begins in August,
 EA FC 27 arrives in late September. `UPCOMING_SEASON` in `src/config.py` therefore points
@@ -397,8 +398,9 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–8 complete — the pipeline runs end to end, from raw downloads through player
-matching, features and eight benchmarked models to a report of predicted scorelines.
+**Complete.** All ten phases: raw downloads through player matching, features and eight
+benchmarked models to a report of predicted scorelines. 247 tests, none needing network
+or data.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout

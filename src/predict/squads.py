@@ -107,6 +107,9 @@ def apply_squad_changes(
 
     Rows whose ``team`` is blank are departures and are dropped outright.
     """
+    if changes.empty or "season" not in changes.columns:
+        return squad_players
+
     relevant = changes[changes["season"] == season]
     if relevant.empty:
         return squad_players
@@ -131,12 +134,93 @@ def apply_squad_changes(
     return updated
 
 
+def _with_manual_ratings(fifa: pd.DataFrame, lookup_season: str, season: str) -> pd.DataFrame:
+    """Add hand-written ratings to the pool, labelled so the squad join finds them."""
+    manual = load_manual_ratings()
+    if manual.empty:
+        return fifa
+
+    relevant = manual[manual["season"].isin({season, lookup_season})]
+    if relevant.empty:
+        return fifa
+
+    added = pd.DataFrame(
+        {
+            "season": lookup_season,
+            "player_name": relevant["fifa_player_name"],
+            "overall": pd.to_numeric(relevant["overall"], errors="coerce"),
+            "age": pd.to_numeric(relevant.get("age"), errors="coerce"),
+        }
+    )
+    return pd.concat([fifa, added], ignore_index=True)
+
+
+def expected_squad_features(
+    fixtures: pd.DataFrame,
+    lineups: pd.DataFrame,
+    player_map: pd.DataFrame,
+    fifa: pd.DataFrame,
+    lookup_season: str,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Squad quality for fixtures that have not been played.
+
+    Builds each side's expected XI, applies the hand-recorded transfers, and runs the
+    result through the same aggregation the training table used - so an upcoming fixture
+    is described in exactly the same terms as the matches the model learned from.
+
+    ``lookup_season`` is the season whose ratings and name map to use. A new season has
+    neither of its own: its ratings edition is published weeks after it starts, and no
+    player has been mapped to it yet, so the most recent completed season stands in.
+
+    Returns (features, problems). Problems name any transfer whose player could not be
+    found, since a typo there would otherwise do nothing at all.
+    """
+    season = fixtures["season"].iloc[0]
+
+    # Hand-written ratings join the pool before anything is looked up, so a signing FIFA
+    # has never heard of counts towards squad quality like any other player.
+    fifa = _with_manual_ratings(fifa, lookup_season, season)
+
+    changes = load_squad_changes()
+    known = set(player_map["fifa_player_name"].dropna()) | set(fifa["player_name"])
+    problems = [
+        f"squad change for an unknown player: {name!r}"
+        for name in unmatched_changes(changes, known, season)
+    ]
+
+    rows = []
+    for fixture in fixtures.itertuples():
+        for team in (fixture.home_team, fixture.away_team):
+            eleven = most_used_eleven(lineups, team, fixture.date)
+            for player in eleven.itertuples():
+                rows.append(
+                    {
+                        "match_id": fixture.match_id,
+                        "season": lookup_season,
+                        "team": team,
+                        "player": player.player,
+                        "position": player.position,
+                        "is_starter": True,
+                    }
+                )
+
+    if not rows:
+        return pd.DataFrame(), problems
+
+    from src.features.squad import squad_features
+
+    return squad_features(pd.DataFrame(rows), player_map, fifa), problems
+
+
 def unmatched_changes(changes: pd.DataFrame, known_players: set[str], season: str) -> list[str]:
     """Names in the change file that match no known player.
 
     A typo here would silently do nothing, so the caller reports these loudly rather
     than letting a transfer quietly fail to apply.
     """
+    if changes.empty or "season" not in changes.columns:
+        return []
+
     relevant = changes[changes["season"] == season]
     return sorted(
         {
