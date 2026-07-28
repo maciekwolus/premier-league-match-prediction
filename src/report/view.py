@@ -112,7 +112,13 @@ def disagreement(match: dict) -> tuple[str, float] | None:
 def summarise(predictions: list[dict]) -> dict:
     """Headline numbers for the top of the page."""
     if not predictions:
-        return {"fixtures": 0, "model": "—", "date_range": "—", "with_odds": 0}
+        return {
+            "fixtures": 0,
+            "model": "—",
+            "date_range": "—",
+            "with_odds": 0,
+            "mode": "upcoming",
+        }
 
     dates = sorted({match["date"] for match in predictions})
     date_range = dates[0] if len(dates) == 1 else f"{dates[0]} to {dates[-1]}"
@@ -122,4 +128,22 @@ def summarise(predictions: list[dict]) -> dict:
         "model": predictions[0].get("model", "—"),
         "date_range": date_range,
         "with_odds": sum(1 for match in predictions if match.get("bookmaker")),
+        "mode": predictions[0].get("mode", "upcoming"),
     }
+
+
+def modal_scoreline_share(predictions: list[dict]) -> float:
+    """How often the same scoreline tops the list.
+
+    Worth surfacing, because 1-1 leading nearly every card looks like a broken report
+    when it is largely a property of the sport: with both sides expected to score around
+    1.3 goals, 1-1 stays the single most likely result until one team is expected to
+    score roughly 2.4. It only stops being true for genuine mismatches.
+    """
+    if not predictions:
+        return 0.0
+
+    leaders = [match["scorelines"][0]["score"] for match in predictions if match.get("scorelines")]
+    if not leaders:
+        return 0.0
+    return max(leaders.count(score) for score in set(leaders)) / len(leaders)

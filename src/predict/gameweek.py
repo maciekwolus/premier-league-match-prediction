@@ -104,7 +104,9 @@ def features_for(fixtures: pd.DataFrame) -> pd.DataFrame:
     return rows.reset_index()
 
 
-def predict(fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list[dict]:
+def predict(
+    fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL, mode: str = "upcoming"
+) -> list[dict]:
     """Train on everything known, then predict the given fixtures."""
     history = pd.read_parquet(FEATURES_PARQUET)
 
@@ -144,6 +146,10 @@ def predict(fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list[dic
                 "home_team": fixture.home_team,
                 "away_team": fixture.away_team,
                 "model": model_name,
+                # Whether these are fixtures still to be played or a round being
+                # re-predicted. Without it the report cannot tell the reader which it is
+                # showing, and a replayed round reads as next week's matches.
+                "mode": mode,
                 "expected_goals": {
                     "home": round(float(lambda_home[index]), 2),
                     "away": round(float(lambda_away[index]), 2),
@@ -265,7 +271,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     print(f"{len(fixtures)} fixtures from {source}\n")
-    report = predict(fixtures, args.model)
+    report = predict(fixtures, args.model, mode="replay" if args.replay else "upcoming")
 
     print(format_report(report))
 

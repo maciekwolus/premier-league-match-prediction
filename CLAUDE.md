@@ -176,6 +176,14 @@ decisions — bar widths, percentages, the model-minus-market edge — so they c
 without a browser, and `app.py` is layout only. Presentation bugs are quiet: a flipped
 sign or a mis-scaled bar still renders, and the page looks authoritative either way.
 
+**Streamlit re-runs `app.py` but does not reload imported modules.** After editing
+anything under `src/`, restart the server — otherwise the page raises `ImportError` for a
+function that exists and whose tests pass, which is a confusing few minutes.
+
+**The report states whether it is showing upcoming fixtures or a replay.** A replayed
+round otherwise reads as next week's matches, since the cards look identical either way.
+`predictions.json` carries a `mode` field for exactly this.
+
 ## Rules that matter
 
 **No data leakage.** Features may only use information available *before* kickoff. Shots,

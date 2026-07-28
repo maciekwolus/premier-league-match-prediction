@@ -14,6 +14,7 @@ from src.report.view import (
     as_percent,
     disagreement,
     load_predictions,
+    modal_scoreline_share,
     most_likely_outcome,
     outcome_rows,
     scoreline_rows,
@@ -169,6 +170,33 @@ def test_summary_of_several_dates_is_a_range():
 def test_an_empty_report_does_not_crash():
     summary = summarise([])
     assert summary["fixtures"] == 0
+    assert summary["mode"] == "upcoming"  # every caller reads this key
+
+
+def test_a_replayed_round_is_labelled_as_one():
+    """Without this the page shows past matches as though they were next week's."""
+    replayed = make_match()
+    replayed["mode"] = "replay"
+
+    assert summarise([replayed])["mode"] == "replay"
+    assert summarise([make_match()])["mode"] == "upcoming"
+
+
+def test_modal_scoreline_share_measures_repetition():
+    """1-1 leading nearly every card is mostly the sport, but the page should say so."""
+    same = [make_match(scorelines=(("1-1", 0.12), ("2-1", 0.09))) for _ in range(4)]
+    assert modal_scoreline_share(same) == pytest.approx(1.0)
+
+    mixed = [
+        make_match(scorelines=(("1-1", 0.12),)),
+        make_match(scorelines=(("2-0", 0.11),)),
+    ]
+    assert modal_scoreline_share(mixed) == pytest.approx(0.5)
+
+
+def test_modal_scoreline_share_of_nothing_is_zero():
+    assert modal_scoreline_share([]) == 0.0
+    assert modal_scoreline_share([{"scorelines": []}]) == 0.0
 
 
 # ----------------------------------------------------------------- loading

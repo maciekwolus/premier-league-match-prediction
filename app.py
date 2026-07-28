@@ -14,6 +14,7 @@ import streamlit as st
 from src.report.view import (
     disagreement,
     load_predictions,
+    modal_scoreline_share,
     most_likely_outcome,
     outcome_rows,
     scoreline_rows,
@@ -107,6 +108,17 @@ def main() -> None:
         return
 
     summary = summarise(predictions)
+
+    if summary["mode"] == "replay":
+        st.warning(
+            f"**These are past matches, not upcoming ones.** This is a replay of the round "
+            f"of {summary['date_range']}, re-predicted using only what was known "
+            f"beforehand. The fixture feed carries no Premier League matches between "
+            f"seasons, so this is the only way to exercise the report out of season. "
+            f"To predict real fixtures, list them in "
+            f"`data/manual/upcoming_fixtures.csv` and re-run without `--replay`."
+        )
+
     left, middle, right = st.columns(3)
     left.metric("Fixtures", summary["fixtures"])
     middle.metric("Model", summary["model"])
@@ -118,6 +130,17 @@ def main() -> None:
         "results rather than confident calls. The bookmaker's line is shown alongside "
         "because it is the only honest reference for whether a prediction is worth much."
     )
+
+    share = modal_scoreline_share(predictions)
+    if share >= 0.5:
+        st.caption(
+            f"⚠️ The same scoreline tops {share:.0%} of these cards. That is mostly the "
+            f"sport rather than a fault: with both sides expected to score around 1.3, "
+            f"1-1 stays the single most likely result until one team is expected to "
+            f"score about 2.4. Read the home/draw/away split for the real differences "
+            f"between fixtures — those vary far more than the top scoreline does."
+        )
+
     st.divider()
 
     for match in predictions:
