@@ -42,7 +42,7 @@ results below.
 | | |
 |---|---|
 | Python | 3.12 or newer (`python --version`) |
-| Disk | ~950 MB — 700 MB virtual environment (AutoGluon is most of it), 200 MB data |
+| Disk | ~870 MB — 700 MB virtual environment (AutoGluon is most of it), 165 MB data |
 | Network | Required for the initial data build |
 
 ### 1. Clone
@@ -93,6 +93,11 @@ pytest
 
 The tests need neither network nor data, so a green run here confirms the environment is
 sound before the slow step.
+
+**AutoGluon is around 700 MB of that install and is optional.** It is imported only when
+a gradient-boosting model is actually built, so the whole data pipeline, the tests, and
+`compare --fast` all work without it. Comment it out of `requirements.txt` if you would
+rather not download it.
 
 ### 5. Build the data
 
