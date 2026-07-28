@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.report.render import match_card, summary_bar
+from src.report.render import legend_html, match_card, summary_bar
 from src.report.theme import CSS
 from src.report.view import load_predictions, modal_scoreline_share, summarise
 
@@ -89,6 +89,12 @@ def main() -> None:
     )
 
     render_notices(summary, repeated)
+
+    # Collapsed by default: the page should stay a scoreboard for anyone who already
+    # knows how to read it, and explain itself on request for anyone who does not.
+    with st.expander("❔  HOW TO READ THIS", expanded=False):
+        st.markdown(legend_html(), unsafe_allow_html=True)
+
     st.markdown(summary_bar(summary, repeated), unsafe_allow_html=True)
     render_grid(predictions)
 

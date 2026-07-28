@@ -5,7 +5,7 @@ looks perfectly fine on the page. These assert the parts are present and the tex
 escaped.
 """
 
-from src.report.render import match_card, summary_bar
+from src.report.render import LEGEND_ROWS, legend_html, match_card, summary_bar
 from tests.test_report import make_match
 
 
@@ -85,6 +85,52 @@ def test_a_card_without_expected_goals_still_renders():
     match.pop("expected_goals", None)
 
     assert "pl-card" in match_card(match)
+
+
+def test_legend_explains_every_part_of_a_card():
+    """Anything on a card that a newcomer cannot decode needs a row here."""
+    legend = legend_html()
+
+    for key in ("SCORELINES", "H / D / A", "BOOKMAKER", "DISAGREEMENT", "xG", "KITS"):
+        assert key in legend
+
+
+def test_legend_shows_real_samples_not_descriptions():
+    """The samples reuse the card's own classes, so the two cannot drift apart."""
+    legend = legend_html()
+
+    for css_class in ("pl-bar", "pl-outcome", "pl-market", "pl-flag", "pl-badge", "pl-xg"):
+        assert css_class in legend
+
+
+def test_legend_states_the_scoreline_ceiling():
+    """The single most misleading thing about the page is that 12% looks low."""
+    assert "12%" in legend_html()
+
+
+def test_legend_admits_the_market_wins():
+    """A report that hid this would be selling something."""
+    legend = legend_html()
+
+    assert "0.1965" in legend
+    assert "0.2027" in legend
+
+
+def test_legend_says_the_kits_are_not_badges():
+    assert "not club badges" in legend_html()
+
+
+def test_legend_has_a_row_for_each_entry():
+    assert legend_html().count("pl-legend-row") == len(LEGEND_ROWS)
+
+
+def test_stat_bar_carries_hover_explanations():
+    """ "TOP SCORE REPEATS 80%" means nothing without one."""
+    bar = summary_bar(
+        {"fixtures": 10, "model": "dixon-coles-squad", "with_odds": 10, "mode": "replay"},
+        0.8,
+    )
+    assert bar.count("title=") == 4
 
 
 def test_summary_bar_reports_the_headline_numbers():

@@ -172,6 +172,73 @@ h1 {{
   font-size: 0.55rem; letter-spacing: 0.06em; color: {INK};
 }}
 
+/* -------------------------------------------------------------------- legend */
+
+/* Streamlit's expander is the only widget on the page that keeps its own chrome, so
+   it is restyled rather than replaced - a details/summary of our own would lose the
+   open/closed state on every rerun. */
+[data-testid="stExpander"] {{
+  border: 2px solid {MUTED} !important;
+  border-radius: 0 !important;
+  background: {PANEL} !important;
+  margin-bottom: 1.1rem;
+}}
+[data-testid="stExpander"] summary {{ padding: 0.7rem 0.8rem !important; }}
+
+/* The label sits inside a markdown container that sets its own font, so the styling
+   has to reach that rather than the summary. The toggle arrow is deliberately left
+   alone: it is a Material Symbols ligature, and restyling its font would render the
+   word "keyboard_arrow_right" instead of an arrow. */
+[data-testid="stExpander"] summary [data-testid="stMarkdownContainer"],
+[data-testid="stExpander"] summary [data-testid="stMarkdownContainer"] p {{
+  font-family: 'Press Start 2P', ui-monospace, monospace !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.08em;
+  color: {ACCENT_2} !important;
+  margin: 0 !important;
+}}
+[data-testid="stExpander"] summary:hover
+  [data-testid="stMarkdownContainer"] p {{ color: {INK} !important; }}
+[data-testid="stExpander"] [data-testid="stIconMaterial"] {{ color: {ACCENT_2}; }}
+
+.pl-legend {{
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 0.72rem; line-height: 1.7; color: {INK};
+}}
+.pl-legend-lead, .pl-legend-foot {{
+  color: {MUTED}; padding: 0.2rem 0 0.9rem;
+}}
+.pl-legend-foot {{
+  border-top: 1px dashed rgba(244,241,232,0.25);
+  margin-top: 0.7rem; padding-top: 0.8rem; padding-bottom: 0.2rem;
+}}
+.pl-legend-foot b, .pl-legend-lead b {{ color: {ACCENT_2}; }}
+
+.pl-legend-row {{
+  display: grid;
+  grid-template-columns: 7rem minmax(180px, 15rem) 1fr;
+  gap: 0.9rem; align-items: center;
+  padding: 0.7rem 0;
+  border-top: 1px dashed rgba(244,241,232,0.18);
+}}
+.pl-legend-key {{
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 0.55rem; color: {ACCENT}; letter-spacing: 0.04em; line-height: 1.6;
+}}
+.pl-legend-sample {{ min-width: 0; }}
+.pl-legend-sample .pl-date {{ margin-bottom: 0; border-bottom: 0; padding-bottom: 0; }}
+.pl-legend-sample .pl-outcomes {{ margin: 0; }}
+.pl-legend-sample .pl-market {{ border-top: 0; padding-top: 0; }}
+.pl-legend-sample .pl-flag {{ margin-top: 0; }}
+.pl-legend-text b {{ color: {INK}; }}
+.pl-legend-text b.pl-up {{ color: {UP}; }}
+.pl-legend-text b.pl-down {{ color: {DOWN}; }}
+
+/* One column on a phone, where three would be unreadable. */
+@media (max-width: 640px) {{
+  .pl-legend-row {{ grid-template-columns: 1fr; gap: 0.45rem; }}
+}}
+
 /* ------------------------------------------------------------------- notices */
 
 .pl-notice {{

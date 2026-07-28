@@ -364,6 +364,10 @@ points, the card says so — the only genuinely interesting thing a model can of
 market exists. Not *who wins*, since the odds already answer that, but *where do I
 disagree*.
 
+A collapsed **HOW TO READ THIS** panel explains every part of a card, using live samples
+of the real components rather than descriptions of them — so the guide cannot drift out of
+step with what is on screen. The stat bar carries hover explanations for the same reason.
+
 Club badges are **pixel kit patterns, not crests**: real badges are trademarked and not
 ours to redistribute, so each club gets a twelve-pixel shirt in its own colours wearing
 the pattern it is known for — Newcastle striped black and white, Wolves gold on black,
