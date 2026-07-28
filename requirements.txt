@@ -13,7 +13,10 @@ understatapi>=0.5
 pytest>=8.0
 ruff>=0.4
 
-# Added in later phases, kept here as a record of what is coming:
-autogluon.tabular>=1.1  # Phase 6 models (~700 MB installed)
-typing_extensions       # autogluon needs it but does not declare it
-#   streamlit>=1.35          (Phase 8)
+# Models (Phase 6). This is the bulk of the install - around 700 MB.
+# Skip it if you only need the data pipeline; `compare --fast` runs without it.
+autogluon.tabular>=1.1
+typing_extensions      # autogluon imports it without declaring the dependency
+
+# Added in a later phase, kept here as a record of what is coming:
+#   streamlit>=1.35    (Phase 8)
