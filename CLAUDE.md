@@ -170,8 +170,7 @@ enforceable: a team's history is a single chronological series whether it played
 away, so one `.shift(1)` covers every rolling feature instead of each needing its own
 correct handling. Phase 7 must build the same table for upcoming fixtures.
 
-Packages (`src/predict/`, the Streamlit app) are created when their phase begins, not as
-empty stubs ahead of time.
+The Streamlit app is created when its phase begins, not as an empty stub ahead of time.
 
 ## Rules that matter
 
