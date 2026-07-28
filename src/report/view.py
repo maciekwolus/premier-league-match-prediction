@@ -1,0 +1,125 @@
+"""Shaping predictions for display.
+
+Kept out of the Streamlit file so it can be tested without a browser: the formatting
+decisions here are the ones that could quietly mislead - a rounded percentage that no
+longer sums to 100, or a disagreement with the market shown without its sign.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from src.config import FINAL_DIR
+
+PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
+
+OUTCOMES = ("home", "draw", "away")
+
+# Below this the model and the market are saying the same thing, given that neither is
+# precise to a percentage point. Above it, the disagreement is worth pointing at.
+NOTABLE_DISAGREEMENT = 0.10
+
+
+def load_predictions(path: Path | None = None) -> list[dict]:
+    """Read the prediction file, or return nothing if it has not been produced yet."""
+    path = path or PREDICTIONS_JSON
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def as_percent(probability: float) -> str:
+    return f"{round(probability * 100)}%"
+
+
+def scoreline_rows(match: dict) -> list[dict]:
+    """The most likely scorelines, with a bar width relative to the best of them.
+
+    Scaling to the leader rather than to 100 is deliberate: the top scoreline is around
+    12%, so bars drawn against a full scale would all be slivers and convey nothing.
+    """
+    scorelines = match.get("scorelines", [])
+    if not scorelines:
+        return []
+
+    best = max(entry["probability"] for entry in scorelines) or 1.0
+    return [
+        {
+            "score": entry["score"],
+            "probability": entry["probability"],
+            "label": as_percent(entry["probability"]),
+            "width": entry["probability"] / best,
+        }
+        for entry in scorelines
+    ]
+
+
+def outcome_rows(match: dict) -> list[dict]:
+    """Home / draw / away, with the bookmaker's view alongside where there is one."""
+    outcome = match.get("outcome", {})
+    bookmaker = match.get("bookmaker")
+
+    rows = []
+    for name in OUTCOMES:
+        model_probability = outcome.get(name, 0.0)
+        market_probability = bookmaker.get(name) if bookmaker else None
+        rows.append(
+            {
+                "outcome": name,
+                "model": model_probability,
+                "model_label": as_percent(model_probability),
+                "bookmaker": market_probability,
+                "bookmaker_label": as_percent(market_probability) if bookmaker else "—",
+                "edge": (model_probability - market_probability) if bookmaker else None,
+            }
+        )
+    return rows
+
+
+def most_likely_outcome(match: dict) -> str:
+    outcome = match.get("outcome", {})
+    if not outcome:
+        return "—"
+    best = max(OUTCOMES, key=lambda name: outcome.get(name, 0.0))
+    return {"home": "Home win", "draw": "Draw", "away": "Away win"}[best]
+
+
+def disagreement(match: dict) -> tuple[str, float] | None:
+    """The outcome where the model differs most from the market, if it differs much.
+
+    This is the only genuinely interesting thing a model can say once the market exists:
+    not "who wins" - the odds already answer that - but "where do I disagree".
+    """
+    bookmaker = match.get("bookmaker")
+    if not bookmaker:
+        return None
+
+    outcome = match.get("outcome", {})
+    gaps = {name: outcome.get(name, 0.0) - bookmaker.get(name, 0.0) for name in OUTCOMES}
+
+    # Both sets of probabilities sum to one, so whenever the draw agrees the home and
+    # away gaps are exact mirrors and "largest" is a tie. Ties resolve to the first in
+    # H/D/A order, which is arbitrary but stable - and the two readings say the same
+    # thing anyway, since rating the home side higher *is* rating the away side lower.
+    name = max(gaps, key=lambda key: abs(gaps[key]))
+
+    if abs(gaps[name]) < NOTABLE_DISAGREEMENT:
+        return None
+    return name, gaps[name]
+
+
+def summarise(predictions: list[dict]) -> dict:
+    """Headline numbers for the top of the page."""
+    if not predictions:
+        return {"fixtures": 0, "model": "—", "date_range": "—", "with_odds": 0}
+
+    dates = sorted({match["date"] for match in predictions})
+    date_range = dates[0] if len(dates) == 1 else f"{dates[0]} to {dates[-1]}"
+
+    return {
+        "fixtures": len(predictions),
+        "model": predictions[0].get("model", "—"),
+        "date_range": date_range,
+        "with_odds": sum(1 for match in predictions if match.get("bookmaker")),
+    }

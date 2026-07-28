@@ -9,8 +9,8 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **Phases 0–7 are complete: the pipeline predicts fixtures
-that have not been played.** Next is Phase 8, the Streamlit report.
+read it before starting work. **Phases 0–8 are complete: the pipeline runs end to end,
+from raw downloads to a Streamlit report.** What remains is Phase 9, tidying up.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -71,6 +71,7 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.evaluate.compare --fast   # skips AutoGluon, seconds
 .venv/Scripts/python.exe -m src.predict.gameweek          # next round
 .venv/Scripts/python.exe -m src.predict.gameweek --replay # last known round, as a check
+.venv/Scripts/python.exe -m streamlit run app.py          # the report
 ```
 
 **`--replay` is how the prediction path gets exercised out of season.** It predicts the
@@ -170,7 +171,10 @@ enforceable: a team's history is a single chronological series whether it played
 away, so one `.shift(1)` covers every rolling feature instead of each needing its own
 correct handling. Phase 7 must build the same table for upcoming fixtures.
 
-The Streamlit app is created when its phase begins, not as an empty stub ahead of time.
+**The report keeps its logic out of `app.py`.** `src/report/view.py` holds the shaping
+decisions — bar widths, percentages, the model-minus-market edge — so they can be tested
+without a browser, and `app.py` is layout only. Presentation bugs are quiet: a flipped
+sign or a mis-scaled bar still renders, and the page looks authoritative either way.
 
 ## Rules that matter
 

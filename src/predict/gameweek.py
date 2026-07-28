@@ -23,6 +23,7 @@ import pandas as pd
 from src.config import FINAL_DIR, UPCOMING_SEASON
 from src.data.clean_lineups import LINEUPS_PARQUET, UNDERSTAT_MATCHES_PARQUET
 from src.data.clean_matches import MATCHES_PARQUET
+from src.evaluate.metrics import implied_probabilities
 from src.features.build import FEATURES_PARQUET, NO_DIFFERENCE, TEAM_FEATURES
 from src.features.form import build_team_matches
 from src.models.score_matrix import outcome_probabilities, score_matrix, top_scorelines
@@ -125,6 +126,11 @@ def predict(fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list[dic
 
     lambda_home, lambda_away = model.predict(upcoming)
 
+    # The bookmaker's view of the same fixtures, where the feed supplied one. Showing it
+    # beside the model is the whole point of the report: it is the only reference that
+    # says whether a prediction is worth anything.
+    market = market_probabilities(fixtures)
+
     report = []
     for index, fixture in enumerate(upcoming.itertuples()):
         matrix = score_matrix(lambda_home[index], lambda_away[index])
@@ -132,6 +138,7 @@ def predict(fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list[dic
 
         report.append(
             {
+                "bookmaker": market.get(fixture.match_id),
                 "match_id": fixture.match_id,
                 "date": str(pd.Timestamp(fixture.date).date()),
                 "home_team": fixture.home_team,
@@ -156,6 +163,35 @@ def predict(fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list[dic
     return report
 
 
+def market_probabilities(fixtures: pd.DataFrame) -> dict[str, dict[str, float]]:
+    """Bookmaker odds turned into probabilities, keyed by match_id.
+
+    Returns an empty mapping when the fixtures carry no odds, which is normal well
+    before kickoff - the market has not formed yet.
+    """
+    columns = ("odds_close_avg_home", "odds_close_avg_draw", "odds_close_avg_away")
+    if not all(column in fixtures.columns for column in columns):
+        return {}
+
+    priced = fixtures.dropna(subset=list(columns))
+    if priced.empty:
+        return {}
+
+    probabilities = implied_probabilities(
+        priced["odds_close_avg_home"],
+        priced["odds_close_avg_draw"],
+        priced["odds_close_avg_away"],
+    )
+    return {
+        match_id: {
+            "home": round(float(row[0]), 3),
+            "draw": round(float(row[1]), 3),
+            "away": round(float(row[2]), 3),
+        }
+        for match_id, row in zip(priced["match_id"], probabilities, strict=True)
+    }
+
+
 def replay_fixtures() -> pd.DataFrame:
     """The most recent round of *known* matches, reshaped as if it were upcoming.
 
@@ -166,7 +202,17 @@ def replay_fixtures() -> pd.DataFrame:
     last_date = matches["date"].max()
     window = matches[matches["date"] >= last_date - pd.Timedelta(days=3)]
 
-    fixtures = window[["date", "home_team", "away_team", "season", "match_id"]].copy()
+    keep = [
+        "date",
+        "home_team",
+        "away_team",
+        "season",
+        "match_id",
+        "odds_close_avg_home",
+        "odds_close_avg_draw",
+        "odds_close_avg_away",
+    ]
+    fixtures = window[[column for column in keep if column in window.columns]].copy()
     for column in ("home_goals", "away_goals"):
         fixtures[column] = pd.NA
     return fixtures.reset_index(drop=True)
