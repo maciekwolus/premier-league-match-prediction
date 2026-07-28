@@ -37,7 +37,22 @@ MODELS = {
     "dixon-coles": ("src.models.dixon_coles", "DixonColesModel"),
     "baseline-elo": ("src.models.baselines", "EloModel"),
 }
-DEFAULT_MODEL = "poisson-glm"
+# Dixon-Coles rather than the model with the best RPS, deliberately.
+#
+# poisson-glm scores better on outcome probabilities (0.2040 against 0.2118) because it
+# hedges towards the average, and RPS rewards hedging. That same caution makes it call
+# 1-1 in 74% of matches and produce only nine distinct top scorelines across a season -
+# for Crystal Palace against Arsenal it predicts 1.27 vs 1.63 goals where the market has
+# the away side at 51%, and reports 1-1.
+#
+# Dixon-Coles estimates each club's attack and defence directly, so it commits: 1-1 tops
+# 60% of matches, eleven distinct scorelines appear, and that same fixture comes out at
+# 0.92 vs 1.68 with 0-1 most likely, which is what the bookmakers show.
+#
+# Since the product is a scoreline with a probability, a model that says 1-1 for three
+# matches in four is failing at the job even when its RPS is better. Use --model to
+# switch: poisson-glm remains the more accurate outcome predictor.
+DEFAULT_MODEL = "dixon-coles"
 
 
 def load_model(name: str):
