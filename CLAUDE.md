@@ -9,8 +9,28 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **Phases 0–5 are complete: the model-ready feature table
-exists at `data/final/features.parquet`.** Next is Phase 6, the models.
+read it before starting work. **Phases 0–6 are complete: eight models are trained and
+compared against the bookmaker's closing line.** Next is Phase 7, predicting upcoming
+fixtures.
+
+Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
+
+| | RPS |
+|---|---|
+| bookmaker (closing) | **0.1965** |
+| gbm-with-odds | 0.2027 |
+| poisson-glm-with-odds | 0.2029 |
+| poisson-glm | 0.2040 |
+| baseline-elo | 0.2051 |
+| gbm | 0.2068 |
+| dixon-coles | 0.2118 |
+| baseline-team-average | 0.2199 |
+| baseline-league-average | 0.2346 |
+
+**Nothing beats the market, and that is the expected result** — a model that did should
+be suspected of leakage before being believed. Note that plain Elo beats AutoGluon on 85
+features: treat the baselines as the bar any new model must clear before it has earned
+its complexity.
 
 What exists in `data/processed/` after a full build:
 
@@ -48,6 +68,8 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.load_fifa       # needs hand-placed CSVs, see below
 .venv/Scripts/python.exe -m src.matching.player_names
 .venv/Scripts/python.exe -m src.features.build
+.venv/Scripts/python.exe -m src.evaluate.compare          # all models, ~15 min
+.venv/Scripts/python.exe -m src.evaluate.compare --fast   # skips AutoGluon, seconds
 ```
 
 **FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
@@ -106,6 +128,17 @@ starting appearances have no match and land as nulls, which aggregations must ex
 `clean_matches.build()` is strict by default; `validate_season` returns a list of
 problems and an empty list means clean. Follow this shape for new sources.
 
+**Every model implements the same two-method contract** in `src/models/base.py`:
+`fit(train)` then `predict(test) -> (lambda_home, lambda_away)`. Nothing downstream knows
+which model produced a prediction, so the scoreline matrix, scoring and the report are
+identical for all of them — which is what makes the comparison fair. A new model needs
+one file and one entry in `evaluate/compare.build_models`.
+
+`tests/test_model_contract.py` runs every model through the same checks, the important
+one being that **rewriting the test set's results must not change any prediction**. That
+is the only check that catches a leaking model, because a leaking model's output is
+otherwise perfectly well-formed.
+
 **Per-team features are computed on a team-match table**, two rows per fixture rather
 than one. `features/form.py` builds it, and `features/build.py` pivots it back to one row
 per match with `home_`/`away_`/`diff_` columns. The shape is what makes the leakage rule
@@ -113,8 +146,8 @@ enforceable: a team's history is a single chronological series whether it played
 away, so one `.shift(1)` covers every rolling feature instead of each needing its own
 correct handling. Phase 7 must build the same table for upcoming fixtures.
 
-Packages (`src/models/`, `src/evaluate/`, `src/predict/`) are created when their phase
-begins, not as empty stubs ahead of time.
+Packages (`src/predict/`, the Streamlit app) are created when their phase begins, not as
+empty stubs ahead of time.
 
 ## Rules that matter
 

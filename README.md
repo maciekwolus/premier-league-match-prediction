@@ -24,8 +24,9 @@ actually adding anything.
 
 Player ratings are matched to the players who actually started each match, giving a
 squad-quality signal per team per fixture. Those, plus rolling form, xG, Elo and rest
-days, feed two models — a classical Dixon-Coles goals model and a gradient-boosting
-model — which produce a scoreline probability matrix.
+days, feed a set of goals models — from a naive league average through Dixon-Coles and
+Poisson regression to gradient boosting — each producing the two expected-goals numbers
+that become a scoreline probability matrix.
 
 Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
 
@@ -33,14 +34,15 @@ Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
 source, the exception being the hand-written override files in `data/manual/`. A fresh
-clone therefore needs steps 5 to 8 before anything works.
+clone therefore needs steps 5 to 8 before anything works, and step 9 to reproduce the
+results below.
 
 ### Prerequisites
 
 | | |
 |---|---|
 | Python | 3.12 or newer (`python --version`) |
-| Disk | ~500 MB — 420 MB virtual environment, 50 MB data |
+| Disk | ~950 MB — 700 MB virtual environment (AutoGluon is most of it), 200 MB data |
 | Network | Required for the initial data build |
 
 ### 1. Clone
@@ -220,6 +222,36 @@ Elo, rest days, and the home-minus-away difference of each.
 match's own expected goals are deliberately excluded; they appear only as rolling
 averages of *earlier* matches.
 
+### 9. Train and compare the models
+
+```bash
+python -m src.evaluate.compare --fast
+```
+
+Trains every model family and scores it against the bookmaker's closing line, using
+walk-forward validation — train on seasons 1..n, test on n+1, never a random split.
+`--fast` skips AutoGluon and finishes in seconds; the full run takes around 15 minutes.
+
+| Model | RPS | Accuracy |
+|---|---|---|
+| **bookmaker (closing)** | **0.1965** | 55.3% |
+| gbm-with-odds | 0.2027 | 53.3% |
+| poisson-glm-with-odds | 0.2029 | 53.6% |
+| poisson-glm | 0.2040 | 53.5% |
+| baseline-elo | 0.2051 | 53.1% |
+| gbm | 0.2068 | 52.9% |
+| dixon-coles | 0.2118 | 50.2% |
+| baseline-team-average | 0.2199 | 48.6% |
+| baseline-league-average | 0.2346 | 43.1% |
+
+Ranked Probability Score is the headline metric, not accuracy — football outcomes are
+*ordered*, and RPS is the only common metric that knows predicting a draw when the home
+side wins is a smaller error than predicting an away win. Lower is better.
+
+**Nothing beats the market.** That is the expected outcome, and a model that did beat it
+would be worth suspecting before celebrating. The best model lands 0.006 RPS behind a
+number anyone can read off a screen for free.
+
 ### What you end up with
 
 Five tables in `data/processed/` plus the feature table, roughly 160 MB of source data
@@ -257,8 +289,9 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–5 complete — all three sources ingested and joined, players matched across them
-at 98.6% of starting appearances, and the model-ready feature table built.
+Phases 0–6 complete — all three sources ingested and joined, players matched at 98.6% of
+starting appearances, the feature table built, and eight models trained and benchmarked
+against the closing line.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
@@ -267,6 +300,8 @@ See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 src/config.py           seasons, paths, source URLs - the single place seasons are defined
 src/data/               acquisition and cleaning, one module per source
 src/matching/           name reconciliation between sources
+src/models/             goals models and the scoreline matrix
+src/evaluate/           scoring, walk-forward backtesting, the bookmaker benchmark
 src/features/           squad quality, form, Elo, and the feature table
 tests/                  unit tests, no network access
 data/raw/               downloaded source data (gitignored)

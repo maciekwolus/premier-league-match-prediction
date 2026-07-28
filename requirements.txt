@@ -14,5 +14,6 @@ pytest>=8.0
 ruff>=0.4
 
 # Added in later phases, kept here as a record of what is coming:
-#   autogluon.tabular>=1.1   (Phase 6 - large download, ~2GB with torch)
+autogluon.tabular>=1.1  # Phase 6 models (~700 MB installed)
+typing_extensions       # autogluon needs it but does not declare it
 #   streamlit>=1.35          (Phase 8)
