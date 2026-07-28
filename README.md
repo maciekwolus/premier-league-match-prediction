@@ -354,11 +354,21 @@ at the newest edition that does exist. Change that one line when the new one is 
 streamlit run app.py
 ```
 
-One card per fixture: the most likely scorelines, the home / draw / away split, and the
+**Three fixtures to a row**, styled after a printed league table and teletext results
+page — hard edges, a monospaced grid, and a palette narrow enough to have been printed
+with three inks. Cards stack to one column on a phone.
+
+Each card carries the most likely scorelines, the home / draw / away split, and the
 bookmaker's line beside it. Where the model and the market disagree by more than ten
-points, the card says so — which is the only genuinely interesting thing a model can
-offer once a market exists. Not *who wins*, since the odds already answer that, but
-*where do I disagree*.
+points, the card says so — the only genuinely interesting thing a model can offer once a
+market exists. Not *who wins*, since the odds already answer that, but *where do I
+disagree*.
+
+Club badges are **pixel kit patterns, not crests**: real badges are trademarked and not
+ours to redistribute, so each club gets a twelve-pixel shirt in its own colours wearing
+the pattern it is known for — Newcastle striped black and white, Wolves gold on black,
+West Ham with a claret sash. They are generated as inline SVG, so the page needs no image
+files and no network.
 
 ```
 Crystal Palace vs Arsenal                      Most likely: Away win
