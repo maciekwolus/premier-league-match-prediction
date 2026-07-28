@@ -100,6 +100,11 @@ decisions rather than data — losing them would mean re-deriving each one by ha
 they are committed deliberately. `player_name_overrides.csv` is consulted before the
 matching cascade runs and always wins; add a row there rather than loosening a threshold.
 
+**Hand-maintained files record *changes*, never whole state.** Phase 7 adds squad edits for
+the open transfer window, and the same rule applies: a file that restates twenty full
+squads to move one player will go stale, and a stale file that looks authoritative is worse
+than no file. Adding a transfer should be one line and a rebuild.
+
 **`src/config.py` is the only place seasons are defined.** Each upstream source names
 seasons differently, so the `Season` dataclass carries every identifier at once —
 `code` for football-data (`1920`), `understat` (`2019`), `fifa_edition` (`FIFA 20`).
@@ -238,6 +243,11 @@ to trace later.
   carry *detailed* skills instead — a column named `dribbling` meaning ball control,
   alongside `acceleration`/`sprint_speed` rather than `pace`. Accepting that single
   column would put a different quantity in the same field for one season.
+- **A new season starts before its ratings edition exists.** 2026/27 kicks off in August
+  2026; EA FC 27 arrives in late September. Carry the previous edition forward by pointing
+  `Season.fifa_edition` at it, and swap when the new one lands. Meanwhile the summer
+  transfer window is open, so signings are listed at their old club — ratings right, club
+  wrong — which is what the Phase 7 squad-change file exists to correct.
 - **2024/25 ratings are an end-of-season snapshot (June 2025), not a release-time one.**
   Every other season uses ratings published at kickoff. A June snapshot partly reflects
   how players performed *during* 2024/25, so it is mildly leaky for that season alone.
