@@ -9,9 +9,8 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **Phases 0–6 are complete: eight models are trained and
-compared against the bookmaker's closing line.** Next is Phase 7, predicting upcoming
-fixtures.
+read it before starting work. **Phases 0–7 are complete: the pipeline predicts fixtures
+that have not been played.** Next is Phase 8, the Streamlit report.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -70,7 +69,14 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.features.build
 .venv/Scripts/python.exe -m src.evaluate.compare          # all models, ~15 min
 .venv/Scripts/python.exe -m src.evaluate.compare --fast   # skips AutoGluon, seconds
+.venv/Scripts/python.exe -m src.predict.gameweek          # next round
+.venv/Scripts/python.exe -m src.predict.gameweek --replay # last known round, as a check
 ```
+
+**`--replay` is how the prediction path gets exercised out of season.** It predicts the
+most recent round of matches that were actually played, so the output can be scored
+against reality. The Premier League fixture feed is empty between seasons, which means
+the live path cannot otherwise be run at all from June to August.
 
 **FIFA ratings are not downloadable here.** Kaggle requires an account, and credentials
 are the user's to handle. Files are placed by hand in `data/raw/fifa/`, either one per
@@ -143,6 +149,19 @@ one file and one entry in `evaluate/compare.build_models`.
 one being that **rewriting the test set's results must not change any prediction**. That
 is the only check that catches a leaking model, because a leaking model's output is
 otherwise perfectly well-formed.
+
+**Upcoming fixtures are appended to history with blank results**, then run through the
+same feature builder. A fixture that has not happened has no result to leak and the
+rolling windows already only look backwards, so prediction needs no separate code path.
+Two consequences worth remembering: `add_elo` must record a pre-match rating and skip the
+update when goals are missing, and `predict.gameweek.features_for` drops any history for
+the fixtures being predicted before appending them — otherwise a `match_id` appears twice
+and the join fans out into several conflicting predictions for one fixture.
+
+**`UPCOMING_SEASON` in `config.py` is deliberately outside `SEASONS`.** Every ingestion
+stage treats that tuple as "seasons with complete data" and would demand a results file
+and a ratings edition that do not exist yet. Move the season into `SEASONS` once it has
+finished.
 
 **Per-team features are computed on a team-match table**, two rows per fixture rather
 than one. `features/form.py` builds it, and `features/build.py` pivots it back to one row

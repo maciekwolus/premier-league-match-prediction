@@ -88,6 +88,22 @@ SEASONS: tuple[Season, ...] = (
 SEASONS_BY_CODE: dict[str, Season] = {s.code: s for s in SEASONS}
 SEASONS_BY_LABEL: dict[str, Season] = {s.label: s for s in SEASONS}
 
+# The season being predicted, kept out of SEASONS because every ingestion stage treats
+# that tuple as "seasons with complete data" and would demand a results file and a
+# ratings edition that do not exist yet.
+#
+# `fifa_edition` deliberately points at the *previous* game: a season starts in August
+# and its own edition is not published until late September, so the newest ratings that
+# exist are last year's. Change this line when the new edition lands. Until then the
+# transfer window makes squad membership wrong rather than the ratings, which is what
+# `data/manual/squad_changes.csv` corrects.
+UPCOMING_SEASON = Season("2026/27", "2627", "2026", "EA FC 26")
+
+
+def all_seasons() -> tuple[Season, ...]:
+    """Completed seasons plus the one being predicted."""
+    return (*SEASONS, UPCOMING_SEASON)
+
 
 def ensure_data_dirs() -> None:
     """Create every data directory if it does not already exist."""

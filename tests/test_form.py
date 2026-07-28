@@ -191,6 +191,21 @@ def test_elo_is_zero_sum_within_a_match():
     assert total.round(6).nunique() == 1  # two teams, ratings only ever swap points
 
 
+def test_an_unplayed_fixture_gets_a_rating_but_changes_nothing():
+    """Phase 7 appends fixtures with no result; they need Elo but cannot supply any."""
+    matches = make_matches(SEQUENCE[:2])
+    matches.loc[1, "home_goals"] = pd.NA
+    matches.loc[1, "away_goals"] = pd.NA
+
+    table = add_elo(team_match_table(matches, make_understat(matches)))
+    unplayed = table[table["match_id"] == matches.loc[1, "match_id"]]
+
+    assert unplayed["elo_before"].notna().all()
+
+    played_only = add_elo(team_match_table(make_matches(SEQUENCE[:1]), make_understat(matches)))
+    assert set(played_only["elo_before"]) == {ELO_START}
+
+
 def test_every_row_gets_an_elo():
     matches = make_matches(SEQUENCE)
     table = add_elo(team_match_table(matches, make_understat(matches)))
