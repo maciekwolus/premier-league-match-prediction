@@ -1,5 +1,19 @@
 # Premier League Match Predictor — Project Plan
 
+> **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
+> report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
+> a 99-column feature table, eight models benchmarked against the closing line, and
+> predictions for fixtures that have not been played. 247 tests, none needing network or
+> data.
+>
+> The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
+> best model's 0.2027.** That is the expected result and the project is more trustworthy
+> for it — a model beating the market would have deserved suspicion first.
+>
+> This document is kept as written, including the estimates that turned out wrong, since
+> what the plan expected against what happened is the more useful record. `CLAUDE.md`
+> describes the code as it now stands.
+
 ## Goal
 
 Given an upcoming Premier League fixture and its expected lineups, output the most
@@ -341,6 +355,16 @@ model — the most useful thing on the page.
 
 README with results, `CLAUDE.md` updated, tests over the matching and feature code
 (the two places where silent bugs hide), clean git history.
+
+**Done, and it found something.** A scan for functions defined but never called turned up
+the whole squad-change mechanism — `apply_squad_changes`, `load_manual_ratings` and their
+neighbours were written, tested and documented, but nothing in the prediction path called
+them. Worse, upcoming fixtures were getting *none* of the 48 squad-quality columns: they
+were filled with the training median, so every team looked exactly average to the model.
+
+Both are now wired in, with a regression test asserting that two squads of different
+quality produce different numbers. The lesson worth keeping: **passing tests and a green
+pipeline do not prove a feature is connected to anything.** Ask what calls it.
 
 ---
 

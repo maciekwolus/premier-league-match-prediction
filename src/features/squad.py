@@ -61,7 +61,11 @@ def starting_ratings(
     starting XI we actually have ratings for becomes a feature rather than a silent gap.
     """
     starters = lineups[lineups["is_starter"]].copy()
-    starters["season"] = starters["match_id"].str.slice(0, 7).str.replace("_", "/", regex=False)
+    # Historical rows carry the season inside match_id. Expected XIs for an upcoming
+    # fixture set it explicitly instead, because the ratings and name map they need to
+    # look up belong to the most recent season on record, not to the one being played.
+    if "season" not in starters.columns:
+        starters["season"] = starters["match_id"].str.slice(0, 7).str.replace("_", "/", regex=False)
     starters["line"] = starters["position"].map(line_of)
 
     linked = starters.merge(

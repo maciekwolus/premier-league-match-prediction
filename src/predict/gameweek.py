@@ -23,12 +23,14 @@ import pandas as pd
 from src.config import FINAL_DIR, UPCOMING_SEASON
 from src.data.clean_lineups import LINEUPS_PARQUET, UNDERSTAT_MATCHES_PARQUET
 from src.data.clean_matches import MATCHES_PARQUET
+from src.data.load_fifa import FIFA_PLAYERS_PARQUET
 from src.evaluate.metrics import implied_probabilities
 from src.features.build import FEATURES_PARQUET, NO_DIFFERENCE, TEAM_FEATURES
 from src.features.form import build_team_matches
+from src.matching.player_names import PLAYER_MAP_PARQUET
 from src.models.score_matrix import outcome_probabilities, score_matrix, top_scorelines
 from src.predict.fixtures import as_matches, upcoming_fixtures
-from src.predict.squads import RECENT_MATCHES, most_used_eleven
+from src.predict.squads import expected_squad_features
 
 PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
 
@@ -68,24 +70,14 @@ def lineups_with_dates() -> pd.DataFrame:
     return lineups.merge(matches, on="match_id", how="left")
 
 
-def expected_elevens(
-    fixtures: pd.DataFrame, lineups: pd.DataFrame
-) -> dict[tuple[str, str], pd.DataFrame]:
-    """One expected XI per (match_id, team)."""
-    elevens = {}
-    for fixture in fixtures.itertuples():
-        for team in (fixture.home_team, fixture.away_team):
-            elevens[(fixture.match_id, team)] = most_used_eleven(
-                lineups, team, fixture.date, RECENT_MATCHES
-            )
-    return elevens
-
-
-def features_for(fixtures: pd.DataFrame) -> pd.DataFrame:
+def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     """Build the feature row for each upcoming fixture.
 
     History and fixtures go through the same builder, so form, Elo and rest are computed
-    exactly as they were for every match the models trained on.
+    exactly as they were for every match the models trained on, and squad quality comes
+    from each side's expected XI.
+
+    Returns (features, problems).
     """
     matches = pd.read_parquet(MATCHES_PARQUET)
     understat = pd.read_parquet(UNDERSTAT_MATCHES_PARQUET)
@@ -102,6 +94,18 @@ def features_for(fixtures: pd.DataFrame) -> pd.DataFrame:
     combined = pd.concat([history, aligned], ignore_index=True).sort_values("date")
     team_matches = build_team_matches(combined, understat)
 
+    # Squad quality for the fixtures themselves. Without this the model is handed the
+    # league median for every rating column and sees two indistinguishable, average
+    # teams - which is not a missing nicety but half the feature table.
+    lineups = lineups_with_dates()
+    player_map = pd.read_parquet(PLAYER_MAP_PARQUET)
+    fifa = pd.read_parquet(FIFA_PLAYERS_PARQUET)
+    lookup_season = str(player_map["season"].max())
+
+    squads, problems = expected_squad_features(fixtures, lineups, player_map, fifa, lookup_season)
+    if not squads.empty:
+        team_matches = team_matches.merge(squads, on=["match_id", "team"], how="left")
+
     available = [column for column in TEAM_FEATURES if column in team_matches.columns]
     home = team_matches[team_matches["is_home"]].set_index("match_id")[available]
     away = team_matches[~team_matches["is_home"]].set_index("match_id")[available]
@@ -116,7 +120,7 @@ def features_for(fixtures: pd.DataFrame) -> pd.DataFrame:
     rows["is_promoted_home"] = rows["home_matches_played"] == 0
     rows["is_promoted_away"] = rows["away_matches_played"] == 0
 
-    return rows.reset_index()
+    return rows.reset_index(), problems
 
 
 def predict(
@@ -128,18 +132,20 @@ def predict(
     model = load_model(model_name)
     model.fit(history)
 
-    upcoming = features_for(fixtures)
+    upcoming, problems = features_for(fixtures)
+    for problem in problems:
+        print(f"  warning: {problem}", file=sys.stderr)
 
-    # A model may reference feature columns that the upcoming rows lack, because squad
-    # quality needs an expected XI that has not been assembled here yet. Filling from
-    # history's medians keeps the shapes compatible; the report shows what was missing.
-    for column in history.columns:
-        if column not in upcoming.columns:
-            upcoming[column] = (
-                history[column].median()
-                if pd.api.types.is_numeric_dtype(history[column])
-                else np.nan
-            )
+    # Anything still absent is filled with the training median so the shapes match. This
+    # should now be rare - squad quality is built above - and a column landing here means
+    # the model sees an average team, so it is worth knowing about rather than silent.
+    filled = [column for column in history.columns if column not in upcoming.columns]
+    for column in filled:
+        upcoming[column] = (
+            history[column].median() if pd.api.types.is_numeric_dtype(history[column]) else np.nan
+        )
+    if filled:
+        print(f"  {len(filled)} feature(s) unavailable, filled with the training median")
 
     lambda_home, lambda_away = model.predict(upcoming)
 

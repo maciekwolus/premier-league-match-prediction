@@ -9,8 +9,8 @@ just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → 
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **Phases 0–8 are complete: the pipeline runs end to end,
-from raw downloads to a Streamlit report.** What remains is Phase 9, tidying up.
+read it before starting work. **All ten phases are complete** — the pipeline runs from raw
+downloads to a Streamlit report, and 247 tests cover it.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -150,6 +150,13 @@ one file and one entry in `evaluate/compare.build_models`.
 one being that **rewriting the test set's results must not change any prediction**. That
 is the only check that catches a leaking model, because a leaking model's output is
 otherwise perfectly well-formed.
+
+**A feature that nothing calls is worse than a missing one**, because it reads as done.
+The squad-change files were written, tested and documented for a phase before anyone
+noticed the prediction path never called them — and in the same blind spot, upcoming
+fixtures were receiving none of the 48 squad-quality columns, just the training median for
+each, so every team looked average. Both had passing tests. When adding anything to the
+prediction path, check what calls it and assert the output actually varies.
 
 **Upcoming fixtures are appended to history with blank results**, then run through the
 same feature builder. A fixture that has not happened has no result to leak and the

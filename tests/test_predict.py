@@ -176,6 +176,147 @@ def test_change_file_missing_a_column_raises(tmp_path, monkeypatch):
         squads.load_squad_changes()
 
 
+# -------------------------------------------------------- squad quality for fixtures
+
+
+def make_player_map(team="Arsenal", season="2025/26", players=None):
+    players = players or [name for name, _ in ELEVEN]
+    return pd.DataFrame(
+        [
+            {
+                "season": season,
+                "team": team,
+                "understat_player": name,
+                "fifa_player_name": f"FIFA {name}",
+            }
+            for name in players
+        ]
+    )
+
+
+def make_fifa_ratings(season="2025/26", players=None, overall=78):
+    players = players or [name for name, _ in ELEVEN]
+    return pd.DataFrame(
+        [
+            {
+                "season": season,
+                "player_name": f"FIFA {name}",
+                "overall": overall,
+                "age": 27,
+                "potential": overall + 2,
+                "value_eur": 1_000_000,
+                "pace": 70,
+                "shooting": 65,
+                "passing": 68,
+                "dribbling": 71,
+                "defending": 55,
+                "physic": 66,
+            }
+            for name in players
+        ]
+    )
+
+
+def make_fixture(home="Arsenal", away="Chelsea", season="2026/27"):
+    return pd.DataFrame(
+        [
+            {
+                "match_id": "2026_27_20260815_arsenal_chelsea",
+                "season": season,
+                "date": pd.Timestamp("2026-08-15"),
+                "home_team": home,
+                "away_team": away,
+            }
+        ]
+    )
+
+
+def test_upcoming_fixtures_get_real_squad_ratings(monkeypatch):
+    """The regression this guards: for a while these were all filled with the league
+    median, so every team looked identical and half the feature table said nothing."""
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01")
+    features, problems = squads.expected_squad_features(
+        make_fixture(), lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+
+    assert problems == []
+    arsenal = features[features["team"] == "Arsenal"].iloc[0]
+    assert arsenal["squad_overall_mean"] == pytest.approx(78)
+    assert arsenal["starters_rated"] == 11
+
+
+def test_a_stronger_squad_scores_higher(monkeypatch):
+    """Two teams must not come out identical, which is what the bug looked like."""
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    strong = make_lineups(team="Arsenal", start_date="2026-01-01")
+    weak = make_lineups(team="Chelsea", start_date="2026-01-01")
+    weak["player"] = weak["player"] + " (C)"
+    lineups = pd.concat([strong, weak], ignore_index=True)
+
+    player_map = pd.concat(
+        [
+            make_player_map("Arsenal"),
+            make_player_map("Chelsea", players=[f"{n} (C)" for n, _ in ELEVEN]),
+        ],
+        ignore_index=True,
+    )
+    ratings = pd.concat(
+        [
+            make_fifa_ratings(overall=84),
+            make_fifa_ratings(players=[f"{n} (C)" for n, _ in ELEVEN], overall=71),
+        ],
+        ignore_index=True,
+    )
+
+    features, _ = squads.expected_squad_features(
+        make_fixture(), lineups, player_map, ratings, "2025/26"
+    )
+    by_team = features.set_index("team")["squad_overall_mean"]
+
+    assert by_team["Arsenal"] == pytest.approx(84)
+    assert by_team["Chelsea"] == pytest.approx(71)
+
+
+def test_a_transfer_is_reflected_in_the_squad(monkeypatch):
+    """The promise in the README: one line in the change file and a re-run."""
+    changes = pd.DataFrame(
+        [{"season": "2026/27", "fifa_player_name": "FIFA Unknown", "team": "Arsenal", "note": ""}]
+    )
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: changes)
+
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01")
+    _, problems = squads.expected_squad_features(
+        make_fixture(), lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+
+    # The player is not in the map, so the run reports it rather than doing nothing.
+    assert any("FIFA Unknown" in problem for problem in problems)
+
+
+def test_a_recognised_transfer_raises_no_complaint(monkeypatch):
+    changes = pd.DataFrame(
+        [
+            {
+                "season": "2026/27",
+                "fifa_player_name": "FIFA Keeper",
+                "team": "Arsenal",
+                "note": "",
+            }
+        ]
+    )
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: changes)
+
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01")
+    _, problems = squads.expected_squad_features(
+        make_fixture(), lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+
+    assert problems == []
+
+
 # -------------------------------------------------------------------- fixtures
 
 
