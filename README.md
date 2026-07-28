@@ -34,7 +34,7 @@ Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
 source, the exception being the hand-written override files in `data/manual/`. A fresh
-clone therefore needs steps 5 to 8 before anything works, and step 9 to reproduce the
+clone therefore needs steps 5 to 8 before anything works, and steps 9 and 10 to reproduce the
 results below.
 
 ### Prerequisites
@@ -257,6 +257,52 @@ side wins is a smaller error than predicting an away win. Lower is better.
 would be worth suspecting before celebrating. The best model lands 0.006 RPS behind a
 number anyone can read off a screen for free.
 
+### 10. Predict the next round
+
+```bash
+python -m src.predict.gameweek
+```
+
+Trains on everything known, then predicts fixtures that have not been played, writing
+`data/final/predictions.json`:
+
+```
+        Man City vs Aston Villa      2026-05-24
+      1-1 (11%) · 2-1 (10%) · 1-0 (9%)
+      Home 53% | Draw 24% | Away 23%
+```
+
+Between seasons the Premier League fixture feed is empty, so there is nothing to predict.
+Two ways round that — list fixtures by hand in `data/manual/upcoming_fixtures.csv`, or:
+
+```bash
+python -m src.predict.gameweek --replay
+```
+
+which predicts the most recent round that *was* played, so the output can be checked
+against what actually happened.
+
+#### Keeping squads current
+
+Lineups are not known until an hour before kickoff, so the expected XI defaults to the
+eleven a club has started most often recently. During a transfer window that goes stale
+quickly, and ratings make it worse: they are published once a year, so a July signing is
+still listed at their old club — the rating is right, the club is wrong.
+
+Two committed files fix that, and both record **changes, not whole squads**:
+
+| File | One row per |
+|---|---|
+| `data/manual/squad_changes.csv` | Transfer. A blank `team` means the player left the league |
+| `data/manual/player_ratings_manual.csv` | Player with no FIFA entry at all |
+
+Moving a player is one line and a re-run — no code change, and an unrecognised name is
+reported rather than silently ignored.
+
+A new season also starts before its own ratings edition exists: 2026/27 begins in August,
+EA FC 27 arrives in late September. `UPCOMING_SEASON` in `src/config.py` therefore points
+at the newest edition that does exist. Change that one line when the new one is published.
+
 ### What you end up with
 
 Five tables in `data/processed/` plus the feature table, roughly 160 MB of source data
@@ -294,9 +340,9 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–6 complete — all three sources ingested and joined, players matched at 98.6% of
-starting appearances, the feature table built, and eight models trained and benchmarked
-against the closing line.
+Phases 0–7 complete — sources ingested and joined, players matched at 98.6% of starting
+appearances, feature table built, eight models benchmarked against the closing line, and
+unplayed fixtures predicted end to end.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout

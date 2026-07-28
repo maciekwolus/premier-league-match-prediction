@@ -1,0 +1,241 @@
+"""Predict a round of fixtures and write the report's input.
+
+The upcoming fixtures are appended to the historical match table with their results left
+blank, and the existing feature machinery runs over the whole thing. That is the point of
+the team-match table shape: a fixture that has not happened has no result to leak, and
+the rolling windows already only look backwards, so nothing needs a separate code path.
+
+Usage:
+    python -m src.predict.gameweek                       # next round
+    python -m src.predict.gameweek --replay              # last known round, as a check
+    python -m src.predict.gameweek --model poisson-glm
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+
+import numpy as np
+import pandas as pd
+
+from src.config import FINAL_DIR, UPCOMING_SEASON
+from src.data.clean_lineups import LINEUPS_PARQUET, UNDERSTAT_MATCHES_PARQUET
+from src.data.clean_matches import MATCHES_PARQUET
+from src.features.build import FEATURES_PARQUET, NO_DIFFERENCE, TEAM_FEATURES
+from src.features.form import build_team_matches
+from src.models.score_matrix import outcome_probabilities, score_matrix, top_scorelines
+from src.predict.fixtures import as_matches, upcoming_fixtures
+from src.predict.squads import RECENT_MATCHES, most_used_eleven
+
+PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
+
+MODELS = {
+    "poisson-glm": ("src.models.poisson_glm", "PoissonRegressionModel"),
+    "dixon-coles": ("src.models.dixon_coles", "DixonColesModel"),
+    "baseline-elo": ("src.models.baselines", "EloModel"),
+}
+DEFAULT_MODEL = "poisson-glm"
+
+
+def load_model(name: str):
+    module_name, class_name = MODELS[name]
+    module = __import__(module_name, fromlist=[class_name])
+    return getattr(module, class_name)()
+
+
+def lineups_with_dates() -> pd.DataFrame:
+    """Lineups joined to their match dates, which the XI picker needs."""
+    lineups = pd.read_parquet(LINEUPS_PARQUET)
+    matches = pd.read_parquet(MATCHES_PARQUET)[["match_id", "date"]]
+    return lineups.merge(matches, on="match_id", how="left")
+
+
+def expected_elevens(
+    fixtures: pd.DataFrame, lineups: pd.DataFrame
+) -> dict[tuple[str, str], pd.DataFrame]:
+    """One expected XI per (match_id, team)."""
+    elevens = {}
+    for fixture in fixtures.itertuples():
+        for team in (fixture.home_team, fixture.away_team):
+            elevens[(fixture.match_id, team)] = most_used_eleven(
+                lineups, team, fixture.date, RECENT_MATCHES
+            )
+    return elevens
+
+
+def features_for(fixtures: pd.DataFrame) -> pd.DataFrame:
+    """Build the feature row for each upcoming fixture.
+
+    History and fixtures go through the same builder, so form, Elo and rest are computed
+    exactly as they were for every match the models trained on.
+    """
+    matches = pd.read_parquet(MATCHES_PARQUET)
+    understat = pd.read_parquet(UNDERSTAT_MATCHES_PARQUET)
+
+    # Drop any history for the fixtures being predicted before appending them. Without
+    # this the match_id appears twice and the join below fans out, producing several
+    # differing predictions for one fixture. It matters for --replay, where the round is
+    # by definition already in the table, and it makes a re-run harmless in general.
+    history = matches[~matches["match_id"].isin(fixtures["match_id"])]
+
+    # Line the fixtures up with the match table's columns before concatenating, so the
+    # result keeps its dtypes rather than being widened by all-NA columns.
+    aligned = fixtures.reindex(columns=matches.columns)
+    combined = pd.concat([history, aligned], ignore_index=True).sort_values("date")
+    team_matches = build_team_matches(combined, understat)
+
+    available = [column for column in TEAM_FEATURES if column in team_matches.columns]
+    home = team_matches[team_matches["is_home"]].set_index("match_id")[available]
+    away = team_matches[~team_matches["is_home"]].set_index("match_id")[available]
+
+    rows = fixtures.set_index("match_id")[["season", "date", "home_team", "away_team"]]
+    rows = rows.join(home.add_prefix("home_")).join(away.add_prefix("away_"))
+
+    for column in available:
+        if column not in NO_DIFFERENCE:
+            rows[f"diff_{column}"] = rows[f"home_{column}"] - rows[f"away_{column}"]
+
+    rows["is_promoted_home"] = rows["home_matches_played"] == 0
+    rows["is_promoted_away"] = rows["away_matches_played"] == 0
+
+    return rows.reset_index()
+
+
+def predict(fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list[dict]:
+    """Train on everything known, then predict the given fixtures."""
+    history = pd.read_parquet(FEATURES_PARQUET)
+
+    model = load_model(model_name)
+    model.fit(history)
+
+    upcoming = features_for(fixtures)
+
+    # A model may reference feature columns that the upcoming rows lack, because squad
+    # quality needs an expected XI that has not been assembled here yet. Filling from
+    # history's medians keeps the shapes compatible; the report shows what was missing.
+    for column in history.columns:
+        if column not in upcoming.columns:
+            upcoming[column] = (
+                history[column].median()
+                if pd.api.types.is_numeric_dtype(history[column])
+                else np.nan
+            )
+
+    lambda_home, lambda_away = model.predict(upcoming)
+
+    report = []
+    for index, fixture in enumerate(upcoming.itertuples()):
+        matrix = score_matrix(lambda_home[index], lambda_away[index])
+        home_probability, draw_probability, away_probability = outcome_probabilities(matrix)
+
+        report.append(
+            {
+                "match_id": fixture.match_id,
+                "date": str(pd.Timestamp(fixture.date).date()),
+                "home_team": fixture.home_team,
+                "away_team": fixture.away_team,
+                "model": model_name,
+                "expected_goals": {
+                    "home": round(float(lambda_home[index]), 2),
+                    "away": round(float(lambda_away[index]), 2),
+                },
+                "outcome": {
+                    "home": round(home_probability, 3),
+                    "draw": round(draw_probability, 3),
+                    "away": round(away_probability, 3),
+                },
+                "scorelines": [
+                    {"score": f"{home}-{away}", "probability": round(probability, 3)}
+                    for home, away, probability in top_scorelines(matrix, 3)
+                ],
+            }
+        )
+
+    return report
+
+
+def replay_fixtures() -> pd.DataFrame:
+    """The most recent round of *known* matches, reshaped as if it were upcoming.
+
+    A dry run that can be checked against reality, which matters because the real path
+    cannot be exercised outside a season.
+    """
+    matches = pd.read_parquet(MATCHES_PARQUET)
+    last_date = matches["date"].max()
+    window = matches[matches["date"] >= last_date - pd.Timedelta(days=3)]
+
+    fixtures = window[["date", "home_team", "away_team", "season", "match_id"]].copy()
+    for column in ("home_goals", "away_goals"):
+        fixtures[column] = pd.NA
+    return fixtures.reset_index(drop=True)
+
+
+def format_report(report: list[dict]) -> str:
+    lines = []
+    for match in report:
+        scorelines = " · ".join(
+            f"{entry['score']} ({entry['probability']:.0%})" for entry in match["scorelines"]
+        )
+        outcome = match["outcome"]
+        lines.append(
+            f"  {match['home_team']:>16} vs {match['away_team']:<16} {match['date']}\n"
+            f"      {scorelines}\n"
+            f"      Home {outcome['home']:.0%} | Draw {outcome['draw']:.0%} | "
+            f"Away {outcome['away']:.0%}"
+        )
+    return "\n".join(lines)
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--model", choices=sorted(MODELS), default=DEFAULT_MODEL, help="which model to use"
+    )
+    parser.add_argument(
+        "--replay",
+        action="store_true",
+        help="predict the last known round instead, as an end-to-end check",
+    )
+    parser.add_argument("--offline", action="store_true", help="never download fixtures")
+    args = parser.parse_args(argv)
+
+    if args.replay:
+        fixtures = replay_fixtures()
+        source = "replay of the last known round"
+    else:
+        raw, source = upcoming_fixtures(allow_download=not args.offline)
+        fixtures = as_matches(raw)
+
+    if fixtures.empty:
+        print(
+            f"No fixtures found ({source}).\n"
+            f"The Premier League feed is empty outside a season - add rows to "
+            f"data/manual/upcoming_fixtures.csv, or run with --replay to check the "
+            f"pipeline against the last round that was played.",
+            file=sys.stderr,
+        )
+        return 1
+
+    print(f"{len(fixtures)} fixtures from {source}\n")
+    report = predict(fixtures, args.model)
+
+    print(format_report(report))
+
+    FINAL_DIR.mkdir(parents=True, exist_ok=True)
+    PREDICTIONS_JSON.write_text(json.dumps(report, indent=2), encoding="utf-8")
+    print(f"\nwritten to {PREDICTIONS_JSON}")
+
+    if not args.replay and UPCOMING_SEASON.fifa_edition != "EA FC 27":
+        print(
+            f"\nNote: {UPCOMING_SEASON.label} is using {UPCOMING_SEASON.fifa_edition} ratings, "
+            f"the newest edition that exists. Record transfers in "
+            f"data/manual/squad_changes.csv until the new edition is published."
+        )
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

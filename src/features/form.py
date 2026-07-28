@@ -135,6 +135,12 @@ def add_elo(team_matches: pd.DataFrame) -> pd.DataFrame:
         before[(match.match_id, match.team)] = home_elo
         before[(match.match_id, match.opponent)] = away_elo
 
+        # A fixture that has not been played yet still needs a pre-match rating - that is
+        # the whole point of predicting it - but there is no result to learn from, so the
+        # update is skipped. Phase 7 appends such rows to history and relies on this.
+        if pd.isna(match.goals_for) or pd.isna(match.goals_against):
+            continue
+
         expected_home = 1 / (1 + 10 ** ((away_elo - home_elo - ELO_HOME_ADVANTAGE) / 400))
         if match.goals_for > match.goals_against:
             actual_home = 1.0
