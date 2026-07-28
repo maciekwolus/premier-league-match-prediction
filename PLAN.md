@@ -259,7 +259,7 @@ and reporting simultaneously, then compare.
 
 ---
 
-## Phase 7 — Upcoming-fixture predictions *(~1 session)*
+## Phase 7 — Upcoming-fixture predictions *(~1–2 sessions)*
 
 Fetch next gameweek's fixtures, assemble expected XIs, run the model, write
 `predictions.json`.
@@ -268,6 +268,50 @@ Open problem worth knowing up front: **you don't know the lineups until an hour 
 kickoff.** Three options, cheapest first — (a) each team's most-used XI from its last 5
 matches, (b) manual entry in the UI, (c) scrape a predicted-lineups site. Start with (a),
 and make lineups overridable so you can re-run once teams are announced.
+
+### The squad problem, which is the real work
+
+Everything up to Phase 6 predicted the past, where the squads were a matter of record.
+Predicting forwards breaks two assumptions at once.
+
+**A new season has no ratings edition for most of its first two months.** The 2026/27
+season starts in August 2026; EA FC 27 is released in late September. For those opening
+weeks the newest ratings we can have are FC 26's, published a year earlier. The fix is
+carry-forward: point `Season.fifa_edition` at the most recent edition that exists, and
+swap it when the new one lands. That is a one-line change in `config.py`, which is the
+design working as intended.
+
+**The transfer window is open while the season starts.** A player who signs in July is
+listed in FC 26 at their old club — the same September-snapshot problem that broke Phase 4,
+except now it is unavoidable rather than historical. Ratings are still correct; only the
+club is wrong.
+
+So the mechanism must make squad edits **cheap and incremental**, because they will happen
+weekly during a window and occasionally all season. Two committed files under
+`data/manual/`, following `player_name_overrides.csv`:
+
+| File | Purpose |
+|---|---|
+| `squad_changes.csv` | `season, fifa_player_name, team, note` — one row per move. `team` blank means the player has left the league |
+| `player_ratings_manual.csv` | `season, fifa_player_name, overall, age, position, note` — for a signing with no FIFA entry at all |
+
+**Record changes, not state.** The default squad for a club is whoever played for it most
+recently; the change file only says what is different. Restating 20 full squads to move one
+player would guarantee the file goes stale, and a stale squad file is worse than none
+because it looks authoritative.
+
+`player_ratings_manual.csv` covers the genuinely new: a signing from a league outside the
+dataset, or an academy player with no rating anywhere. An overall rating alone is enough to
+compute squad quality; the rest of the columns are optional.
+
+Also needed: `season_clubs()` currently reads the participating clubs from
+`matches.parquet`, which has no rows for a season that has not started. Phase 7 needs a
+promoted/relegated list for the upcoming season, which is another two-line manual file or a
+fixture-list scrape.
+
+**Acceptance test for the mechanism:** adding a single transfer should be one line in one
+file, followed by a rebuild — no code change, no threshold to tune, and a clear error if the
+player name does not match anything.
 
 ---
 
