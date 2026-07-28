@@ -28,14 +28,15 @@ days, feed a set of goals models — from a naive league average through Dixon-C
 Poisson regression to gradient boosting — each producing the two expected-goals numbers
 that become a scoreline probability matrix.
 
-Seasons covered: **2019/20 through 2025/26** (7 seasons, 2,660 matches).
+Trained on **2019/20 through 2025/26** — 7 seasons, 2,660 matches — and used to predict
+whatever is played next.
 
 ## Getting started
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
 source, the exception being the hand-written override files in `data/manual/`. A fresh
-clone therefore needs steps 5 to 8 before anything works, and steps 9 and 10 to reproduce the
-results below.
+clone therefore needs steps 5 to 8 before anything works, then 9 and 10 to reproduce the
+results below and predict a round.
 
 ### Prerequisites
 
@@ -305,17 +306,18 @@ at the newest edition that does exist. Change that one line when the new one is 
 
 ### What you end up with
 
-Five tables in `data/processed/` plus the feature table, roughly 160 MB of source data
-behind them:
+Five tables in `data/processed/`, then the feature table and the predictions in
+`data/final/`, with roughly 160 MB of source data behind them:
 
-| Table | Rows | Contents |
+| File | Rows | Contents |
 |---|---|---|
-| `matches.parquet` | 2,660 | Results, shots, cards, referee, opening and closing odds |
-| `understat_matches.parquet` | 2,660 | Match-level expected goals |
-| `lineups.parquet` | 77,278 | Player appearances — position, minutes, xG, xA, cards |
-| `fifa_players.parquet` | 127,930 | Player ratings per season; `in_premier_league` flags the season's 20 clubs |
-| `player_map.parquet` | 3,874 | Each Understat player linked to their FIFA entry |
+| `processed/matches.parquet` | 2,660 | Results, shots, cards, referee, opening and closing odds |
+| `processed/understat_matches.parquet` | 2,660 | Match-level expected goals |
+| `processed/lineups.parquet` | 77,278 | Player appearances — position, minutes, xG, xA, cards |
+| `processed/fifa_players.parquet` | 127,930 | Player ratings per season; `in_premier_league` flags the season's 20 clubs |
+| `processed/player_map.parquet` | 3,874 | Each Understat player linked to their FIFA entry |
 | `final/features.parquet` | 2,660 | The model-ready table — one row per match, 99 columns |
+| `final/predictions.json` | one round | Scorelines and outcome probabilities for the fixtures predicted |
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, both
@@ -354,9 +356,10 @@ src/matching/           name reconciliation between sources
 src/models/             goals models and the scoreline matrix
 src/evaluate/           scoring, walk-forward backtesting, the bookmaker benchmark
 src/features/           squad quality, form, Elo, and the feature table
+src/predict/            fixtures, expected XIs, and predictions for unplayed matches
 tests/                  unit tests, no network access
 data/raw/               downloaded source data (gitignored)
 data/processed/         cleaned and joined data (gitignored)
-data/final/             model-ready feature table (gitignored)
-data/manual/            hand-written name-override files (committed)
+data/final/             feature table and predictions (gitignored)
+data/manual/            hand-written overrides: names, squad changes, fixtures (committed)
 ```
