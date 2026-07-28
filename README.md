@@ -246,6 +246,7 @@ walk-forward validation — train on seasons 1..n, test on n+1, never a random s
 | poisson-glm | 0.2040 | 53.5% |
 | baseline-elo | 0.2051 | 53.1% |
 | gbm | 0.2068 | 52.9% |
+| dixon-coles-squad | 0.2087 | 51.7% |
 | dixon-coles | 0.2118 | 50.2% |
 | baseline-team-average | 0.2199 | 48.6% |
 | baseline-league-average | 0.2346 | 43.1% |
@@ -267,18 +268,36 @@ best also produce the least interesting scorelines:
 |---|---|---|---|
 | poisson-glm | **0.2040** | 74% of matches | 9 |
 | gbm | 0.2068 | 65% | 11 |
-| **dixon-coles** | 0.2118 | **60%** | **11** |
+| **dixon-coles-squad** | 0.2087 | **54%** | **11** |
+| dixon-coles | 0.2118 | 60% | 11 |
 
 Take Crystal Palace against Arsenal, with the market pricing the away win at 51%.
-`poisson-glm` expects 1.27 goals to 1.63 and calls it **1-1**. `dixon-coles` expects 0.92
-to 1.68 and calls it **0-1** — which is what the bookmakers show. Lowering the
-regularisation does not close the gap; the fixture stays 1-1 even at a quarter of the
+`poisson-glm` expects 1.27 goals to 1.63 and calls it **1-1**. The Dixon-Coles models
+expect around 0.9 to 1.7 and call it **0-1** — which is what the bookmakers show. Lowering
+the regularisation does not close the gap; the fixture stays 1-1 even at a quarter of the
 penalty, so it is the model's structure rather than its tuning.
 
-Dixon-Coles estimates each club's attack and defence strength directly, so it commits.
-The GLM spreads the same information across 85 correlated features and retreats to the
-average. **Since the output here is a scoreline with a probability, the report uses
-Dixon-Coles and accepts the worse RPS.**
+Dixon-Coles estimates each club's attack and defence strength directly, so it commits. The
+GLM spreads the same information across 85 correlated features and retreats to the average.
+**Since the output here is a scoreline with a probability, the report accepts the worse RPS
+for a model that says something.**
+
+#### How the player ratings reach the prediction
+
+Plain Dixon-Coles reads results and nothing else, so the FIFA work would not touch the
+report at all. `dixon-coles-squad` adds one term to the likelihood — **not** the squad
+rating itself, which merely restates what the attack parameter already knows, but how far
+today's XI sits from the one that club usually fields:
+
+```
+delta = (this XI's mean overall − the club's usual mean) / scale
+```
+
+That deviation is the part results cannot see: whether a side is stronger or weaker than
+normal *today*. Fitted across seven seasons, a stronger-than-usual XI lifts its own scoring
+(`+0.086`) and suppresses the opponent's (`+0.121`), and the model beats plain Dixon-Coles
+on every metric while repeating itself less. A club with no history is measured against the
+league rather than itself, so a weak promoted side starts below average instead of at it.
 
 ### 10. Predict the next round
 
@@ -287,7 +306,7 @@ python -m src.predict.gameweek
 ```
 
 Trains on everything known, then predicts fixtures that have not been played, writing
-`data/final/predictions.json`. Uses Dixon-Coles by default — see
+`data/final/predictions.json`. Uses `dixon-coles-squad` by default — see
 [why the report does not use the best model](#why-the-report-does-not-use-the-best-model)
 — and `--model poisson-glm` switches to the more accurate outcome predictor:
 

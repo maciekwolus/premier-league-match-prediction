@@ -22,6 +22,7 @@ Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 | poisson-glm | 0.2040 |
 | baseline-elo | 0.2051 |
 | gbm | 0.2068 |
+| dixon-coles-squad | 0.2087 |
 | dixon-coles | 0.2118 |
 | baseline-team-average | 0.2199 |
 | baseline-league-average | 0.2346 |
@@ -140,6 +141,15 @@ starting appearances have no match and land as nulls, which aggregations must ex
 `clean_matches.build()` is strict by default; `validate_season` returns a list of
 problems and an empty list means clean. Follow this shape for new sources.
 
+**Squad ratings enter the goals models as a deviation, never as a level.**
+`dixon_coles_squad.py` adds `(this XI's mean overall − the club's usual mean)`, because a
+club's attack parameter and its average squad rating explain the same variation and
+compete if both are levels. The deviation is the part results cannot see: whether a side
+is fielding better or worse than it normally does. It earns its place — RPS 0.2118 to
+0.2087 over plain Dixon-Coles, with fewer repeated scorelines — and it is the only model
+that uses the FIFA pipeline *and* commits to a scoreline. A club with no history is
+measured against the league instead, which is where absolute rating is the right quantity.
+
 **Every model implements the same two-method contract** in `src/models/base.py`:
 `fit(train)` then `predict(test) -> (lambda_home, lambda_away)`. Nothing downstream knows
 which model produced a prediction, so the scoreline matrix, scoring and the report are
@@ -215,7 +225,7 @@ higher is leaking, not clever.
 train/test split lets the model see the future.
 
 **The best-scoring model is not the best report, and the report knows it.**
-`predict.gameweek.DEFAULT_MODEL` is `dixon-coles` (RPS 0.2118), not `poisson-glm`
+`predict.gameweek.DEFAULT_MODEL` is `dixon-coles-squad` (RPS 0.2087), not `poisson-glm`
 (0.2040). Do not "fix" this without reading the comment there. The GLM hedges towards the
 average — which is exactly what RPS rewards — and the cost is that it calls 1-1 in 74% of
 matches with nine distinct top scorelines all season. Dixon-Coles estimates each club's

@@ -36,6 +36,7 @@ PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
 
 MODELS = {
     "poisson-glm": ("src.models.poisson_glm", "PoissonRegressionModel"),
+    "dixon-coles-squad": ("src.models.dixon_coles_squad", "SquadDixonColesModel"),
     "dixon-coles": ("src.models.dixon_coles", "DixonColesModel"),
     "baseline-elo": ("src.models.baselines", "EloModel"),
 }
@@ -54,7 +55,7 @@ MODELS = {
 # Since the product is a scoreline with a probability, a model that says 1-1 for three
 # matches in four is failing at the job even when its RPS is better. Use --model to
 # switch: poisson-glm remains the more accurate outcome predictor.
-DEFAULT_MODEL = "dixon-coles"
+DEFAULT_MODEL = "dixon-coles-squad"
 
 
 def load_model(name: str):

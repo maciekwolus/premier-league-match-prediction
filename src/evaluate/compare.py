@@ -21,6 +21,7 @@ from src.evaluate.backtest import backtest, calibration, compare, score_by_seaso
 from src.features.build import FEATURES_PARQUET
 from src.models.baselines import EloModel, LeagueAverageModel, TeamAverageModel
 from src.models.dixon_coles import DixonColesModel
+from src.models.dixon_coles_squad import SquadDixonColesModel
 from src.models.poisson_glm import PoissonRegressionModel
 
 PREDICTIONS_DIR = FEATURES_PARQUET.parent / "predictions"
@@ -33,6 +34,7 @@ def build_models(fast: bool = False) -> list:
         TeamAverageModel(),
         EloModel(),
         DixonColesModel(),
+        SquadDixonColesModel(),
         PoissonRegressionModel(),
         PoissonRegressionModel(use_odds=True),
     ]
