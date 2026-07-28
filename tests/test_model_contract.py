@@ -14,6 +14,7 @@ import pytest
 
 from src.models.baselines import EloModel, LeagueAverageModel, TeamAverageModel
 from src.models.dixon_coles import DixonColesModel
+from src.models.dixon_coles_squad import SquadDixonColesModel
 from src.models.poisson_glm import PoissonRegressionModel
 
 MODELS = [
@@ -21,6 +22,7 @@ MODELS = [
     pytest.param(TeamAverageModel, id="team-average"),
     pytest.param(EloModel, id="elo"),
     pytest.param(DixonColesModel, id="dixon-coles"),
+    pytest.param(SquadDixonColesModel, id="dixon-coles-squad"),
     pytest.param(PoissonRegressionModel, id="poisson-glm"),
 ]
 
