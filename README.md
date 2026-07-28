@@ -35,8 +35,8 @@ whatever is played next.
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
 source, the exception being the hand-written override files in `data/manual/`. A fresh
-clone therefore needs steps 5 to 8 before anything works, then 9 and 10 to reproduce the
-results below and predict a round.
+clone therefore needs steps 5 to 8 before anything works, then 9 to 11 to reproduce the
+results below, predict a round, and read it.
 
 ### Prerequisites
 
@@ -304,6 +304,28 @@ A new season also starts before its own ratings edition exists: 2026/27 begins i
 EA FC 27 arrives in late September. `UPCOMING_SEASON` in `src/config.py` therefore points
 at the newest edition that does exist. Change that one line when the new one is published.
 
+### 11. Read the report
+
+```bash
+streamlit run app.py
+```
+
+One card per fixture: the most likely scorelines, the home / draw / away split, and the
+bookmaker's line beside it. Where the model and the market disagree by more than ten
+points, the card says so — which is the only genuinely interesting thing a model can
+offer once a market exists. Not *who wins*, since the odds already answer that, but
+*where do I disagree*.
+
+```
+Crystal Palace vs Arsenal                      Most likely: Away win
+  1-1  ████████████  12%
+  1-2  █████████      9%
+  0-1  ████████       8%
+
+  Home 35%  (+11 vs market)   Draw 26%   Away 39%  (-12 vs market)
+  Bookmaker: Home 24% · Draw 26% · Away 51%
+```
+
 ### What you end up with
 
 Five tables in `data/processed/`, then the feature table and the predictions in
@@ -342,9 +364,8 @@ and stay meaningful if an upstream source changes.
 
 ## Project status
 
-Phases 0–7 complete — sources ingested and joined, players matched at 98.6% of starting
-appearances, feature table built, eight models benchmarked against the closing line, and
-unplayed fixtures predicted end to end.
+Phases 0–8 complete — the pipeline runs end to end, from raw downloads through player
+matching, features and eight benchmarked models to a report of predicted scorelines.
 See [PLAN.md](PLAN.md) for the full ten-phase build plan and where things stand.
 
 ## Layout
@@ -357,6 +378,8 @@ src/models/             goals models and the scoreline matrix
 src/evaluate/           scoring, walk-forward backtesting, the bookmaker benchmark
 src/features/           squad quality, form, Elo, and the feature table
 src/predict/            fixtures, expected XIs, and predictions for unplayed matches
+src/report/             shaping predictions for display
+app.py                  the Streamlit report
 tests/                  unit tests, no network access
 data/raw/               downloaded source data (gitignored)
 data/processed/         cleaned and joined data (gitignored)

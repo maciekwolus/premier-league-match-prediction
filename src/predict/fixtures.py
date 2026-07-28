@@ -53,17 +53,26 @@ def download_fixtures() -> pd.DataFrame:
     if english.empty:
         return pd.DataFrame(columns=["date", "home_team", "away_team"])
 
-    return (
-        pd.DataFrame(
-            {
-                "date": pd.to_datetime(english["Date"], dayfirst=True, errors="coerce"),
-                "home_team": english["HomeTeam"],
-                "away_team": english["AwayTeam"],
-            }
-        )
-        .dropna(subset=["date"])
-        .reset_index(drop=True)
+    fixtures = pd.DataFrame(
+        {
+            "date": pd.to_datetime(english["Date"], dayfirst=True, errors="coerce"),
+            "home_team": english["HomeTeam"],
+            "away_team": english["AwayTeam"],
+        }
     )
+
+    # The feed carries a market average when one exists. It is the *opening* line rather
+    # than the closing one - the fixture has not kicked off - but showing the model
+    # against the market is the point of the report, so take it when offered.
+    for source, ours in (
+        ("AvgH", "odds_close_avg_home"),
+        ("AvgD", "odds_close_avg_draw"),
+        ("AvgA", "odds_close_avg_away"),
+    ):
+        if source in english.columns:
+            fixtures[ours] = pd.to_numeric(english[source], errors="coerce").to_numpy()
+
+    return fixtures.dropna(subset=["date"]).reset_index(drop=True)
 
 
 def upcoming_fixtures(allow_download: bool = True) -> tuple[pd.DataFrame, str]:
