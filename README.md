@@ -258,6 +258,28 @@ side wins is a smaller error than predicting an away win. Lower is better.
 would be worth suspecting before celebrating. The best model lands 0.006 RPS behind a
 number anyone can read off a screen for free.
 
+#### Why the report does not use the best model
+
+RPS scores the home / draw / away split, and it rewards hedging. The models that hedge
+best also produce the least interesting scorelines:
+
+| Model | RPS | 1-1 most likely | Distinct top scorelines |
+|---|---|---|---|
+| poisson-glm | **0.2040** | 74% of matches | 9 |
+| gbm | 0.2068 | 65% | 11 |
+| **dixon-coles** | 0.2118 | **60%** | **11** |
+
+Take Crystal Palace against Arsenal, with the market pricing the away win at 51%.
+`poisson-glm` expects 1.27 goals to 1.63 and calls it **1-1**. `dixon-coles` expects 0.92
+to 1.68 and calls it **0-1** — which is what the bookmakers show. Lowering the
+regularisation does not close the gap; the fixture stays 1-1 even at a quarter of the
+penalty, so it is the model's structure rather than its tuning.
+
+Dixon-Coles estimates each club's attack and defence strength directly, so it commits.
+The GLM spreads the same information across 85 correlated features and retreats to the
+average. **Since the output here is a scoreline with a probability, the report uses
+Dixon-Coles and accepts the worse RPS.**
+
 ### 10. Predict the next round
 
 ```bash
@@ -265,12 +287,14 @@ python -m src.predict.gameweek
 ```
 
 Trains on everything known, then predicts fixtures that have not been played, writing
-`data/final/predictions.json`:
+`data/final/predictions.json`. Uses Dixon-Coles by default — see
+[why the report does not use the best model](#why-the-report-does-not-use-the-best-model)
+— and `--model poisson-glm` switches to the more accurate outcome predictor:
 
 ```
         Man City vs Aston Villa      2026-05-24
-      1-1 (11%) · 2-1 (10%) · 1-0 (9%)
-      Home 53% | Draw 24% | Away 23%
+      2-0 (10%) · 2-1 (10%) · 1-1 (10%)
+      Home 64% | Draw 20% | Away 16%
 ```
 
 Between seasons the Premier League fixture feed is empty, so there is nothing to predict.
@@ -318,13 +342,22 @@ offer once a market exists. Not *who wins*, since the odds already answer that, 
 
 ```
 Crystal Palace vs Arsenal                      Most likely: Away win
-  1-1  ████████████  12%
-  1-2  █████████      9%
-  0-1  ████████       8%
+  0-1  ████████████  14%
+  0-2  ██████████    12%
+  1-1  ██████████    12%
 
-  Home 35%  (+11 vs market)   Draw 26%   Away 39%  (-12 vs market)
+  Home 17%  (-7 vs market)   Draw 25%   Away 58%  (+7 vs market)
   Bookmaker: Home 24% · Draw 26% · Away 51%
 ```
+
+The page also says so when it is showing a replay rather than upcoming fixtures, and when
+one scoreline tops most of the cards — 1-1 recurs because it stays the single most likely
+result until one side is expected to score around 2.4 goals, so it dominates every round
+that lacks a mismatch. The home / draw / away split is where fixtures actually differ.
+
+**Editing anything under `src/` needs a server restart.** Streamlit re-runs `app.py` but
+does not reload imported modules, so a stale copy raises `ImportError` for a function that
+exists and whose tests pass.
 
 ### What you end up with
 

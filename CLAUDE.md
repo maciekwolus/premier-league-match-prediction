@@ -207,6 +207,18 @@ higher is leaking, not clever.
 **Validate walk-forward, never randomly.** Train on seasons 1..n, test on n+1. A random
 train/test split lets the model see the future.
 
+**The best-scoring model is not the best report, and the report knows it.**
+`predict.gameweek.DEFAULT_MODEL` is `dixon-coles` (RPS 0.2118), not `poisson-glm`
+(0.2040). Do not "fix" this without reading the comment there. The GLM hedges towards the
+average — which is exactly what RPS rewards — and the cost is that it calls 1-1 in 74% of
+matches with nine distinct top scorelines all season. Dixon-Coles estimates each club's
+attack and defence directly, commits, and gives 60% and eleven. For Crystal Palace against
+Arsenal the GLM predicts 1.27 goals to 1.63 and reports 1-1 where the market has the away
+side at 51%; Dixon-Coles predicts 0.92 to 1.68 and reports 0-1, matching the bookmakers.
+Lowering the ridge penalty does not help — the fixture stays 1-1 even at 0.25 — so this is
+structural. **When the deliverable is a scoreline, a model that says 1-1 three times in
+four is failing whatever its score says.**
+
 **Bookmaker odds are the benchmark, not a free feature.** The headline metric is Ranked
 Probability Score against closing odds (`odds_close_*` — closing, not opening; they
 absorb team news). A variant using odds as features is trained separately to measure
