@@ -31,6 +31,53 @@ that become a scoreline probability matrix.
 Trained on **2019/20 through 2025/26** — 7 seasons, 2,660 matches — and used to predict
 whatever is played next.
 
+## Running it locally
+
+Once the data is built, this is all you need. From the repository root — on Windows:
+
+```bash
+.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+macOS and Linux:
+
+```bash
+.venv/bin/python -m streamlit run app.py
+```
+
+It opens on **http://localhost:8501**. `Ctrl+C` in that terminal stops it.
+
+Those name the interpreter directly, so they work whether or not the virtual environment
+is activated. If you *have* activated it ([step 3](#3-activate-it)), the short form does
+the same thing:
+
+```bash
+streamlit run app.py
+```
+
+To refresh the predictions the page shows:
+
+```bash
+.venv\Scripts\python.exe -m src.predict.gameweek --replay
+```
+
+Then reload the browser. `--replay` re-predicts the last round that was actually played,
+which is the only thing available between seasons; drop it once real fixtures exist.
+
+> **Two things that will otherwise cost you ten minutes.**
+> `streamlit` is not on your PATH — it lives in the virtual environment, so without
+> activating you get *"command not found"*.
+> And Streamlit re-runs `app.py` on save but **does not reload imported modules**, so
+> after editing anything under `src/` you must restart the server or you will get an
+> `ImportError` for a function that plainly exists.
+
+**Never built the data?** Start with *Getting started* below — a fresh clone has no data
+at all, and the page will tell you so rather than showing an empty grid.
+
+**[COMMANDS.md](COMMANDS.md) lists every command the project accepts** — each stage's
+flags, the manual squad files, the test and lint invocations, and a table of what the
+common error messages mean.
+
 ## Getting started
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
@@ -353,6 +400,9 @@ at the newest edition that does exist. Change that one line when the new one is 
 ```bash
 streamlit run app.py
 ```
+
+See [Running it locally](#running-it-locally) for the shortcuts and the two things that
+otherwise waste ten minutes.
 
 **Three fixtures to a row**, styled after a printed league table and teletext results
 page — hard edges, a monospaced grid, and a palette narrow enough to have been printed
