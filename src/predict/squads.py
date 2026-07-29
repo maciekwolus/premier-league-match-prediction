@@ -155,14 +155,14 @@ def _with_manual_ratings(fifa: pd.DataFrame, lookup_season: str, season: str) ->
     return pd.concat([fifa, added], ignore_index=True)
 
 
-def expected_squad_features(
+def expected_squad_players(
     fixtures: pd.DataFrame,
     lineups: pd.DataFrame,
     player_map: pd.DataFrame,
     fifa: pd.DataFrame,
     lookup_season: str,
 ) -> tuple[pd.DataFrame, list[str]]:
-    """Squad quality for fixtures that have not been played.
+    """Every expected starter, with the ratings we could find for them.
 
     Builds each side's expected XI, applies the hand-recorded transfers, and runs the
     result through the same aggregation the training table used - so an upcoming fixture
@@ -200,6 +200,7 @@ def expected_squad_features(
                         "team": team,
                         "player": player.player,
                         "position": player.position,
+                        "starts": int(player.starts),
                         "is_starter": True,
                     }
                 )
@@ -207,9 +208,66 @@ def expected_squad_features(
     if not rows:
         return pd.DataFrame(), problems
 
-    from src.features.squad import squad_features
+    from src.features.squad import starting_ratings
 
-    return squad_features(pd.DataFrame(rows), player_map, fifa), problems
+    return starting_ratings(pd.DataFrame(rows), player_map, fifa), problems
+
+
+def expected_squad_features(
+    fixtures: pd.DataFrame,
+    lineups: pd.DataFrame,
+    player_map: pd.DataFrame,
+    fifa: pd.DataFrame,
+    lookup_season: str,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Squad quality per (match_id, team), aggregated from the expected XIs."""
+    from src.features.squad import aggregate_ratings
+
+    rated, problems = expected_squad_players(fixtures, lineups, player_map, fifa, lookup_season)
+    if rated.empty:
+        return pd.DataFrame(), problems
+
+    return aggregate_ratings(rated), problems
+
+
+# Order a team sheet reads in, rather than by rating - a lineup with the keeper in the
+# middle looks wrong however accurate it is.
+LINE_ORDER = {"gk": 0, "def": 1, "mid": 2, "att": 3, "unknown": 4}
+
+
+def lineups_by_side(rated: pd.DataFrame, fixtures: pd.DataFrame) -> dict[str, dict[str, list]]:
+    """The expected XIs as plain data, keyed by match_id then home/away."""
+    if rated.empty:
+        return {}
+
+    sides = {
+        fixture.match_id: {"home": fixture.home_team, "away": fixture.away_team}
+        for fixture in fixtures.itertuples()
+    }
+
+    rated = rated.copy()
+    rated["order"] = rated["line"].map(LINE_ORDER).fillna(len(LINE_ORDER))
+
+    result: dict[str, dict[str, list]] = {}
+    for (match_id, team), group in rated.groupby(["match_id", "team"], sort=False):
+        teams = sides.get(match_id)
+        if not teams:
+            continue
+        side = "home" if teams["home"] == team else "away"
+
+        players = [
+            {
+                "player": row.player,
+                "position": row.position,
+                "line": row.line,
+                "starts": int(row.starts) if pd.notna(row.starts) else 0,
+                "overall": int(row.overall) if pd.notna(row.overall) else None,
+            }
+            for row in group.sort_values(["order", "starts"], ascending=[True, False]).itertuples()
+        ]
+        result.setdefault(match_id, {})[side] = players
+
+    return result
 
 
 def unmatched_changes(changes: pd.DataFrame, known_players: set[str], season: str) -> list[str]:

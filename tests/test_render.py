@@ -87,6 +87,86 @@ def test_a_card_without_expected_goals_still_renders():
     assert "pl-card" in match_card(match)
 
 
+def with_lineups(match: dict | None = None, home=None, away=None) -> dict:
+    match = match or make_match()
+    match["lineups"] = {
+        "home": home
+        if home is not None
+        else [
+            {"player": "A Keeper", "position": "GK", "line": "gk", "starts": 6, "overall": 82},
+            {"player": "A Defender", "position": "DC", "line": "def", "starts": 5, "overall": 79},
+        ],
+        "away": away
+        if away is not None
+        else [
+            {"player": "B Keeper", "position": "GK", "line": "gk", "starts": 6, "overall": 87},
+        ],
+    }
+    return match
+
+
+def test_lineups_are_collapsed_behind_a_toggle():
+    """Open by default would bury the grid the three-across layout exists to avoid."""
+    card = match_card(with_lineups())
+
+    assert "<details" in card
+    assert '<details class="pl-lineups" open>' not in card
+
+
+def test_lineups_list_players_with_their_ratings():
+    card = match_card(with_lineups())
+
+    assert "A Keeper" in card
+    assert "B Keeper" in card
+    assert ">82<" in card
+    assert card.count("pl-xi-row") == 3
+
+
+def test_lineups_show_each_side_average():
+    """The whole point: seeing why one side is favoured."""
+    card = match_card(with_lineups())
+
+    assert "80.5" in card  # (82 + 79) / 2
+    assert "87.0" in card
+
+
+def test_an_unrated_player_still_appears():
+    """A player we could not match must not silently vanish from the eleven."""
+    card = match_card(
+        with_lineups(home=[{"player": "Unmatched", "position": "FW", "line": "att", "starts": 3}])
+    )
+
+    assert "Unmatched" in card
+    assert "pl-xi-unrated" in card
+
+
+def test_a_side_with_no_history_says_so():
+    """A promoted club has no recent Premier League matches to read an XI from."""
+    card = match_card(with_lineups(home=[]))
+    assert "no recent history" in card
+
+
+def test_a_card_without_lineups_omits_the_toggle():
+    card = match_card(make_match())
+
+    assert "pl-lineups" not in card
+    assert "EXPECTED XI" not in card
+
+
+def test_lineups_say_they_are_not_a_team_sheet():
+    """Calling this a predicted lineup would overstate it, especially in August."""
+    assert "Not a team sheet" in match_card(with_lineups())
+
+
+def test_player_names_are_escaped():
+    card = match_card(
+        with_lineups(home=[{"player": "<img src=x>", "position": "FW", "line": "att", "starts": 1}])
+    )
+
+    assert "<img src=x>" not in card
+    assert "&lt;img" in card
+
+
 def test_legend_explains_every_part_of_a_card():
     """Anything on a card that a newcomer cannot decode needs a row here."""
     legend = legend_html()

@@ -88,6 +88,64 @@ def _flag(match: dict) -> str:
     )
 
 
+def _eleven(players: list[dict]) -> str:
+    """One side's expected XI as rows of name, position and rating."""
+    if not players:
+        return '<div class="pl-xi-empty">no recent history</div>'
+
+    rows = []
+    for player in players:
+        overall = player.get("overall")
+        rating = (
+            f'<span class="pl-xi-rating">{overall}</span>'
+            if overall is not None
+            else '<span class="pl-xi-rating pl-xi-unrated" title="no rating found">–</span>'
+        )
+        rows.append(
+            f'<div class="pl-xi-row">'
+            f'<span class="pl-xi-pos pl-line-{escape(player.get("line", "unknown"))}">'
+            f"{escape(player.get('position', ''))}</span>"
+            f'<span class="pl-xi-name">{escape(player["player"])}</span>'
+            f"{rating}</div>"
+        )
+    return "".join(rows)
+
+
+def _lineups(match: dict) -> str:
+    """The expected XIs, collapsed behind a toggle.
+
+    A ``details`` element rather than a Streamlit widget: the card is one block of
+    markup, and opening it must not rerun the script or reflow the grid.
+
+    Labelled for what it actually is. These are the players a club has started most
+    often recently, not a team sheet - nobody knows the real one until an hour before
+    kick-off, and in August it is last season's side.
+    """
+    lineups = match.get("lineups") or {}
+    home, away = lineups.get("home", []), lineups.get("away", [])
+    if not home and not away:
+        return ""
+
+    def mean(players: list[dict]) -> str:
+        rated = [p["overall"] for p in players if p.get("overall") is not None]
+        return f"{sum(rated) / len(rated):.1f}" if rated else "–"
+
+    return (
+        '<details class="pl-lineups">'
+        "<summary>EXPECTED XI</summary>"
+        '<div class="pl-xi-note">Most-used eleven from each club\'s last 6 matches, '
+        "with FIFA overall ratings. Not a team sheet.</div>"
+        '<div class="pl-xi-grid">'
+        f'<div class="pl-xi-side"><div class="pl-xi-head">'
+        f'{escape(match["home_team"])}<span class="pl-xi-mean">{mean(home)}</span></div>'
+        f"{_eleven(home)}</div>"
+        f'<div class="pl-xi-side"><div class="pl-xi-head">'
+        f'{escape(match["away_team"])}<span class="pl-xi-mean">{mean(away)}</span></div>'
+        f"{_eleven(away)}</div>"
+        "</div></details>"
+    )
+
+
 def match_card(match: dict) -> str:
     """One fixture as a self-contained block of HTML."""
     home, away = escape(match["home_team"]), escape(match["away_team"])
@@ -115,6 +173,7 @@ def match_card(match: dict) -> str:
         f"{_outcome_grid(match)}"
         f"{_market_row(match)}"
         f"{_flag(match)}"
+        f"{_lineups(match)}"
         "</div>"
     )
 
@@ -172,6 +231,23 @@ LEGEND_ROWS: tuple[tuple[str, str, str], ...] = (
         '<span class="pl-xg">xG 1.50 - 1.06</span></div>',
         "Expected goals: how many each side is predicted to score. Everything else on "
         "the card is derived from these two numbers.",
+    ),
+    (
+        "EXPECTED XI",
+        '<details class="pl-lineups" open><summary>EXPECTED XI</summary>'
+        '<div class="pl-xi-grid"><div class="pl-xi-side">'
+        '<div class="pl-xi-head">Arsenal<span class="pl-xi-mean">84.7</span></div>'
+        '<div class="pl-xi-row"><span class="pl-xi-pos pl-line-gk">GK</span>'
+        '<span class="pl-xi-name">David Raya</span>'
+        '<span class="pl-xi-rating">87</span></div>'
+        '<div class="pl-xi-row"><span class="pl-xi-pos pl-line-def">DC</span>'
+        '<span class="pl-xi-name">Gabriel</span>'
+        '<span class="pl-xi-rating">88</span></div>'
+        "</div></div></details>",
+        "Open a card's <b>EXPECTED XI</b> for both sides, with each player's FIFA "
+        "overall and the team average. This is the eleven a club has started most often "
+        "in its last six matches — <i>not</i> a team sheet, which nobody has until an "
+        "hour before kick-off. In August it is last season's side.",
     ),
     (
         "KITS",

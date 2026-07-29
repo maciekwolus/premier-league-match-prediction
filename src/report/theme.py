@@ -172,6 +172,53 @@ h1 {{
   font-size: 0.55rem; letter-spacing: 0.06em; color: {INK};
 }}
 
+/* ------------------------------------------------------------------- lineups */
+
+.pl-lineups {{
+  margin-top: 0.5rem;
+  border-top: 1px dashed rgba(244,241,232,0.25);
+  padding-top: 0.45rem;
+}}
+.pl-lineups summary {{
+  cursor: pointer; list-style: none;
+  font-size: 0.55rem; letter-spacing: 0.14em; color: {MUTED};
+}}
+.pl-lineups summary::-webkit-details-marker {{ display: none; }}
+.pl-lineups summary::before {{ content: "▸ "; color: {ACCENT}; }}
+.pl-lineups[open] summary::before {{ content: "▾ "; }}
+.pl-lineups summary:hover {{ color: {ACCENT_2}; }}
+
+.pl-xi-note {{
+  font-size: 0.52rem; line-height: 1.6; color: {MUTED};
+  margin: 0.45rem 0 0.5rem; font-style: italic;
+}}
+.pl-xi-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }}
+.pl-xi-side {{ min-width: 0; }}
+.pl-xi-head {{
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.52rem; letter-spacing: 0.06em; color: {INK};
+  border-bottom: 1px solid rgba(244,241,232,0.2);
+  padding-bottom: 0.22rem; margin-bottom: 0.3rem;
+}}
+.pl-xi-mean {{ color: {ACCENT_2}; }}
+
+.pl-xi-row {{
+  display: grid; grid-template-columns: 2.1rem 1fr 1.5rem;
+  gap: 0.25rem; align-items: baseline;
+  font-size: 0.55rem; line-height: 1.75;
+}}
+.pl-xi-pos {{ color: {MUTED}; font-size: 0.5rem; }}
+.pl-xi-name {{ color: {INK}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
+.pl-xi-rating {{ text-align: right; color: {ACCENT_2}; }}
+.pl-xi-unrated {{ color: {MUTED}; }}
+.pl-xi-empty {{ font-size: 0.55rem; color: {MUTED}; font-style: italic; padding: 0.3rem 0; }}
+
+/* Colour the position by line, so the shape of the side reads at a glance. */
+.pl-line-gk {{ color: {ACCENT_2}; }}
+.pl-line-def {{ color: #7FB3D5; }}
+.pl-line-mid {{ color: #82CA9C; }}
+.pl-line-att {{ color: {ACCENT}; }}
+
 /* -------------------------------------------------------------------- legend */
 
 /* Streamlit's expander is the only widget on the page that keeps its own chrome, so
