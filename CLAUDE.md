@@ -197,6 +197,19 @@ sign or a mis-scaled bar still renders, and the page looks authoritative either 
 anything under `src/`, restart the server — otherwise the page raises `ImportError` for a
 function that exists and whose tests pass, which is a confusing few minutes.
 
+**Interactivity in a card is CSS, never a Streamlit widget.** A card is one block of
+markup so it can be packed three to a row, and raw HTML cannot trigger a rerun. The
+expected-XI overlay is therefore a hidden checkbox with `<label>`s as its button and its
+close control: no JavaScript, no rerun, and the grid does not move when it opens. Reach
+for the same pattern before considering a custom component.
+
+**Verify the report by measuring the rendered page, not by reading the code.** Every
+front-end bug in this project was invisible in the source and obvious in the DOM: a
+grid that silently stacked because the pane was 393px wide, a pixel font that never
+reached the expander label, an icon that would have rendered as the word
+`keyboard_arrow_right`. `read_page` and `javascript_tool` for computed styles and
+bounding boxes.
+
 **The report states whether it is showing upcoming fixtures or a replay.** A replayed
 round otherwise reads as next week's matches, since the cards look identical either way.
 `predictions.json` carries a `mode` field for exactly this.
