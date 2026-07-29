@@ -4,7 +4,17 @@ Every command this project accepts, and what it does. For *why* any of it is bui
 way it is, read [README.md](README.md); for the rules a change has to respect, read
 [CLAUDE.md](CLAUDE.md).
 
-Run everything from the repository root — `C:\repositories\premier-league-match-prediction`.
+**Every command here must be run from the project folder.** Not some of them — all of
+them. `cd` there first, every time you open a new terminal:
+
+```bash
+cd C:\repositories\premier-league-match-prediction
+```
+
+> **If you skip that, PowerShell blames the wrong thing.** You get
+> *"The module '.venv' could not be loaded"* and a suggestion to run `Import-Module .venv`,
+> which is nonsense — there is no module. It means only that there is no `.venv` folder
+> **here**, because you are in the wrong directory. `cd` and re-run.
 
 **Every command below names the interpreter directly** (`.venv\Scripts\python.exe`), so it
 works whether or not the virtual environment is activated. If you have activated it, plain
@@ -15,6 +25,9 @@ works whether or not the virtual environment is activated. If you have activated
 
 ## Run the site
 
+```bash
+cd C:\repositories\premier-league-match-prediction
+```
 ```bash
 .venv\Scripts\python.exe -m streamlit run app.py
 ```
@@ -196,6 +209,7 @@ Run lint, format and the full suite before opening a PR.
 
 | Symptom | Cause |
 |---|---|
+| `The module '.venv' could not be loaded` | **You are in the wrong folder.** PowerShell's message is misleading — there is no module. `cd` to the project folder and re-run |
 | `streamlit: command not found` | The venv is not activated. Use `.venv\Scripts\python.exe -m streamlit run app.py` |
 | `ImportError` for a function that exists | Streamlit did not reload the module. Restart the server |
 | `FileNotFoundError` on a parquet | That build stage has not run. See the order above |

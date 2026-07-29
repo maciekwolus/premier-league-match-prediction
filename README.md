@@ -33,8 +33,12 @@ whatever is played next.
 
 ## Running it locally
 
-Once the data is built, this is all you need. From the repository root — on Windows:
+Once the data is built, this is all you need. **Both lines matter** — the `cd` first, in
+every new terminal:
 
+```bash
+cd C:\repositories\premier-league-match-prediction
+```
 ```bash
 .venv\Scripts\python.exe -m streamlit run app.py
 ```
@@ -44,6 +48,10 @@ macOS and Linux:
 ```bash
 .venv/bin/python -m streamlit run app.py
 ```
+
+> **Skipping the `cd` produces a misleading error.** PowerShell says *"The module '.venv'
+> could not be loaded"* and suggests `Import-Module .venv`. There is no module — it means
+> there is no `.venv` folder in whatever directory you are actually in.
 
 It opens on **http://localhost:8501**. `Ctrl+C` in that terminal stops it.
 

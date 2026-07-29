@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from html import escape
+from pathlib import Path
 
 from src.report.badges import badge_data_uri
 from src.report.view import (
@@ -21,6 +22,10 @@ from src.report.view import (
 )
 
 OUTCOME_LABELS = {"home": "H", "draw": "D", "away": "A"}
+
+# Shown in the empty state, so the reader can paste a cd that is right for their machine
+# rather than one copied from whoever wrote the docs.
+REPO_ROOT_HINT = str(Path(__file__).resolve().parents[2])
 
 # Below this the model and the market agree closely enough that flagging it would be
 # noise rather than information.
@@ -325,6 +330,30 @@ def legend_html() -> str:
         '<div class="pl-legend-foot">The honest headline: over 2,280 matches the '
         "bookmaker scores <b>0.1965</b> and the best model here <b>0.2027</b> — lower is "
         "better. Nothing beats the market, which is the expected result.</div>"
+        "</div>"
+    )
+
+
+def empty_notice(repo_root: str = REPO_ROOT_HINT) -> str:
+    """What the page shows with no predictions on disk.
+
+    This is the one message a stuck reader is guaranteed to see, so it carries commands
+    that must work as pasted. Both spell out the interpreter inside the virtual
+    environment rather than a bare ``python``, which only resolves once the environment
+    is activated - and they lead with ``cd``, because running them from the wrong folder
+    is what actually happens. PowerShell reports that as "the module '.venv' could not be
+    loaded", which names neither the directory nor the real problem.
+    """
+    return (
+        '<div class="pl-notice"><b>NO PREDICTIONS YET.</b><br><br>'
+        "The report reads <code>data/final/predictions.json</code> and there is none. "
+        "Generate it — from the project folder, in a terminal:<br><br>"
+        f"<code>cd {escape(repo_root)}</code><br>"
+        "<code>.venv\\Scripts\\python.exe -m src.predict.gameweek --replay</code>"
+        "<br><br>Then reload this page. <code>--replay</code> predicts the last round "
+        "that was actually played; between seasons the fixture feed is empty, so drop "
+        "the flag only once real fixtures exist. On macOS or Linux the interpreter is "
+        "<code>.venv/bin/python</code>."
         "</div>"
     )
 
