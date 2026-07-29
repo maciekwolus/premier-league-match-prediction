@@ -74,6 +74,10 @@ which is the only thing available between seasons; drop it once real fixtures ex
 **Never built the data?** Start with *Getting started* below — a fresh clone has no data
 at all, and the page will tell you so rather than showing an empty grid.
 
+**[COMMANDS.md](COMMANDS.md) lists every command the project accepts** — each stage's
+flags, the manual squad files, the test and lint invocations, and a table of what the
+common error messages mean.
+
 ## Getting started
 
 **Almost no data is stored in this repository** — it is gitignored and rebuilt from
