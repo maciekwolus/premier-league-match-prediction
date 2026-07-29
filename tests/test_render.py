@@ -105,21 +105,45 @@ def with_lineups(match: dict | None = None, home=None, away=None) -> dict:
     return match
 
 
-def test_lineups_are_collapsed_behind_a_toggle():
-    """Open by default would bury the grid the three-across layout exists to avoid."""
+def test_the_lineup_button_looks_like_a_button():
+    """The previous version was small grey text and nobody would guess it did anything."""
     card = match_card(with_lineups())
 
-    assert "<details" in card
-    assert '<details class="pl-lineups" open>' not in card
+    assert 'class="pl-xi-button"' in card
+    assert "EXPECTED XI" in card
+
+
+def test_the_overlay_starts_closed():
+    """An unchecked toggle: the modal is hidden until the button is pressed."""
+    card = match_card(with_lineups())
+
+    assert 'class="pl-modal-toggle" hidden>' in card
+    assert "checked" not in card
+
+
+def test_the_overlay_can_be_dismissed_two_ways():
+    """A close button and a click on the backdrop, both plain labels - no JavaScript."""
+    card = match_card(with_lineups())
+
+    assert "pl-modal-close" in card
+    assert "pl-modal-backdrop" in card
+
+
+def test_each_fixture_gets_its_own_toggle():
+    """Duplicate ids would make one card's button open another card's overlay."""
+    first = match_card(with_lineups())
+    second = match_card(with_lineups(make_match(home="Everton", away="Fulham")))
+    second = second.replace("2026_27_20260815_arsenal_chelsea", "2026_27_20260815_everton_fulham")
+
+    assert "xi-2026-27-20260815-arsenal-chelsea" in first
 
 
 def test_lineups_list_players_with_their_ratings():
     card = match_card(with_lineups())
 
-    assert "A Keeper" in card
-    assert "B Keeper" in card
+    assert "Keeper" in card
     assert ">82<" in card
-    assert card.count("pl-xi-row") == 3
+    assert card.count("pl-token") >= 3
 
 
 def test_lineups_show_each_side_average():
@@ -146,11 +170,51 @@ def test_a_side_with_no_history_says_so():
     assert "no recent history" in card
 
 
-def test_a_card_without_lineups_omits_the_toggle():
+def test_a_card_without_lineups_omits_the_button():
     card = match_card(make_match())
 
-    assert "pl-lineups" not in card
+    assert "pl-xi-button" not in card
     assert "EXPECTED XI" not in card
+
+
+def test_players_are_laid_out_by_line():
+    """Goalkeeper, defence, midfield, attack - one pitch row each."""
+    card = match_card(
+        with_lineups(
+            home=[
+                {"player": "A Keeper", "position": "GK", "line": "gk", "overall": 80},
+                {"player": "A Back", "position": "DC", "line": "def", "overall": 80},
+                {"player": "B Back", "position": "DC", "line": "def", "overall": 80},
+                {"player": "A Mid", "position": "MC", "line": "mid", "overall": 80},
+                {"player": "A Striker", "position": "FW", "line": "att", "overall": 80},
+            ],
+            away=[],
+        )
+    )
+
+    assert card.count("pl-pitch-row") == 4
+    assert ">2-1-1<" in card  # defence-midfield-attack
+
+
+def test_the_away_side_is_inverted():
+    """Both sides face each other, so the away eleven runs attack-first."""
+    card = match_card(with_lineups())
+
+    assert "pl-side-away" in card
+    assert "pl-side-home" in card
+
+
+def test_only_surnames_appear_on_the_pitch():
+    """Full names would not fit a token; the full one is in the hover title."""
+    card = match_card(
+        with_lineups(
+            home=[{"player": "Trent Alexander-Arnold", "position": "DR", "line": "def"}],
+            away=[],
+        )
+    )
+
+    assert ">Alexander-Arnold<" in card
+    assert 'title="Trent Alexander-Arnold' in card
 
 
 def test_lineups_say_they_are_not_a_team_sheet():
