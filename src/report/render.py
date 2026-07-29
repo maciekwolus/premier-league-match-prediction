@@ -8,6 +8,7 @@ a card that silently loses its bookmaker row still renders perfectly well.
 
 from __future__ import annotations
 
+import re
 from html import escape
 
 from src.report.badges import badge_data_uri
@@ -88,6 +89,117 @@ def _flag(match: dict) -> str:
     )
 
 
+LINES = ("gk", "def", "mid", "att")
+
+
+def _slug(value: str) -> str:
+    """A value safe to use as an HTML id."""
+    return re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
+
+
+def _mean_rating(players: list[dict]) -> str:
+    rated = [p["overall"] for p in players if p.get("overall") is not None]
+    return f"{sum(rated) / len(rated):.1f}" if rated else "–"
+
+
+def _player_token(player: dict, team: str) -> str:
+    """One player on the pitch: kit, name, rating."""
+    overall = player.get("overall")
+    rating = (
+        f'<span class="pl-token-rating">{overall}</span>'
+        if overall is not None
+        else '<span class="pl-token-rating pl-xi-unrated" title="no rating found">–</span>'
+    )
+    surname = player["player"].split()[-1] if player["player"].split() else player["player"]
+    return (
+        f'<div class="pl-token" title="{escape(player["player"])} '
+        f'({escape(player.get("position", ""))})">'
+        f'<img class="pl-token-kit" src="{badge_data_uri(team, scale=3)}" '
+        f'alt="" width="26" height="26">'
+        f'<span class="pl-token-name">{escape(surname)}</span>'
+        f"{rating}</div>"
+    )
+
+
+def _formation(players: list[dict], team: str, invert: bool) -> str:
+    """A side laid out by line, as it would stand on a pitch.
+
+    ``invert`` reverses the order for the away side, so both teams face each other the
+    way a broadcast graphic shows them - attackers meeting at the halfway line.
+    """
+    if not players:
+        return '<div class="pl-xi-empty">no recent history for this club</div>'
+
+    by_line = {line: [p for p in players if p.get("line") == line] for line in LINES}
+    spare = [p for p in players if p.get("line") not in LINES]
+    if spare:
+        by_line["mid"] = by_line["mid"] + spare
+
+    order = LINES if not invert else tuple(reversed(LINES))
+    rows = [
+        f'<div class="pl-pitch-row">'
+        f"{''.join(_player_token(player, team) for player in by_line[line])}"
+        f"</div>"
+        for line in order
+        if by_line[line]
+    ]
+
+    shape = "-".join(str(len(by_line[line])) for line in ("def", "mid", "att") if by_line[line])
+    return (
+        f'<div class="pl-side {"pl-side-away" if invert else "pl-side-home"}">'
+        f'<div class="pl-side-head">'
+        f'<span class="pl-side-name">{escape(team)}</span>'
+        f'<span class="pl-side-shape">{shape}</span>'
+        f'<span class="pl-side-mean">{_mean_rating(players)}</span>'
+        f"</div>"
+        f"{''.join(rows)}</div>"
+    )
+
+
+def _lineups(match: dict) -> str:
+    """The expected XIs, shown on a pitch in an overlay.
+
+    The toggle is a hidden checkbox and the button a ``label``, because a card is one
+    block of markup: a Streamlit widget would rerun the script and reflow the grid, and
+    a ``details`` element pushed the rest of the page down when it opened. This way the
+    overlay floats above everything and the grid never moves.
+
+    Labelled for what it actually is. These are the players a club has started most
+    often recently, not a team sheet - nobody knows the real one until an hour before
+    kick-off, and in August it is last season's side.
+    """
+    lineups = match.get("lineups") or {}
+    home, away = lineups.get("home", []), lineups.get("away", [])
+    if not home and not away:
+        return ""
+
+    toggle = f"xi-{_slug(match['match_id'])}"
+    title = f"{escape(match['home_team'])} v {escape(match['away_team'])}"
+
+    return (
+        f'<input type="checkbox" id="{toggle}" class="pl-modal-toggle" hidden>'
+        f'<label for="{toggle}" class="pl-xi-button" role="button" tabindex="0">'
+        f"⚽ EXPECTED XI</label>"
+        f'<div class="pl-modal">'
+        f'<label for="{toggle}" class="pl-modal-backdrop" aria-label="Close"></label>'
+        f'<div class="pl-modal-box" role="dialog">'
+        f'<div class="pl-modal-head">'
+        f'<span class="pl-modal-title">{title}</span>'
+        f'<label for="{toggle}" class="pl-modal-close" role="button" '
+        f'aria-label="Close">✕</label>'
+        f"</div>"
+        f'<div class="pl-pitch">'
+        f"{_formation(away, match['away_team'], invert=True)}"
+        f'<div class="pl-halfway"></div>'
+        f"{_formation(home, match['home_team'], invert=False)}"
+        f"</div>"
+        f'<div class="pl-modal-note">Most-used eleven from each club\'s last 6 matches, '
+        f"with FIFA overall ratings and the team average. <b>Not a team sheet</b> — "
+        f"nobody has one until an hour before kick-off.</div>"
+        f"</div></div>"
+    )
+
+
 def match_card(match: dict) -> str:
     """One fixture as a self-contained block of HTML."""
     home, away = escape(match["home_team"]), escape(match["away_team"])
@@ -115,6 +227,7 @@ def match_card(match: dict) -> str:
         f"{_outcome_grid(match)}"
         f"{_market_row(match)}"
         f"{_flag(match)}"
+        f"{_lineups(match)}"
         "</div>"
     )
 
@@ -172,6 +285,15 @@ LEGEND_ROWS: tuple[tuple[str, str, str], ...] = (
         '<span class="pl-xg">xG 1.50 - 1.06</span></div>',
         "Expected goals: how many each side is predicted to score. Everything else on "
         "the card is derived from these two numbers.",
+    ),
+    (
+        "EXPECTED XI",
+        '<span class="pl-xi-button" style="cursor:default">⚽ EXPECTED XI</span>',
+        "The button on every card. It opens both sides laid out on a pitch, each player "
+        "with their FIFA overall, plus the shape and the team average. This is the "
+        "eleven a club has started most often in its last six matches — <i>not</i> a "
+        "team sheet, which nobody has until an hour before kick-off. In August it is "
+        "last season's side.",
     ),
     (
         "KITS",

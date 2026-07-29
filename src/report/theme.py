@@ -172,6 +172,122 @@ h1 {{
   font-size: 0.55rem; letter-spacing: 0.06em; color: {INK};
 }}
 
+/* ------------------------------------------------------------------- lineups */
+
+/* The button. It has to read as pressable at a glance - the previous version was a
+   line of small grey text and nobody would guess it did anything. */
+.pl-xi-button {{
+  display: block; margin-top: 0.55rem; cursor: pointer; user-select: none;
+  text-align: center;
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 0.52rem; letter-spacing: 0.08em;
+  color: {PAPER}; background: {ACCENT_2};
+  border: 2px solid {INK}; box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+  padding: 0.45rem 0.3rem;
+  transition: transform 0.04s ease, box-shadow 0.04s ease;
+}}
+.pl-xi-button:hover {{ background: {INK}; }}
+.pl-xi-button:active {{ transform: translate(3px, 3px); box-shadow: none; }}
+
+/* Checkbox toggle rather than a details element or a Streamlit widget: the overlay must
+   float above the grid without moving it, and without rerunning the script. */
+.pl-modal {{
+  display: none;
+  position: fixed; inset: 0; z-index: 9999;
+  align-items: center; justify-content: center;
+  padding: 1.5rem;
+}}
+.pl-modal-toggle:checked ~ .pl-modal {{ display: flex; }}
+
+.pl-modal-backdrop {{
+  position: absolute; inset: 0;
+  background: rgba(8,10,12,0.82);
+  cursor: pointer;
+}}
+.pl-modal-box {{
+  position: relative;
+  width: min(760px, 100%); max-height: 88vh; overflow-y: auto;
+  background: {PANEL}; border: 2px solid {INK};
+  box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+  padding: 0.9rem 1rem 1rem;
+}}
+.pl-modal-head {{
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 2px solid {INK}; padding-bottom: 0.55rem; margin-bottom: 0.8rem;
+}}
+.pl-modal-title {{
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 0.68rem; color: {INK};
+}}
+.pl-modal-close {{
+  cursor: pointer; user-select: none;
+  font-family: ui-monospace, monospace; font-size: 0.9rem; line-height: 1;
+  color: {PAPER}; background: {ACCENT};
+  border: 2px solid {INK}; padding: 0.2rem 0.5rem;
+}}
+.pl-modal-close:hover {{ background: {INK}; color: {ACCENT}; }}
+.pl-modal-note {{
+  margin-top: 0.85rem; padding-top: 0.6rem;
+  border-top: 1px dashed rgba(244,241,232,0.25);
+  font-family: ui-monospace, monospace; font-size: 0.6rem;
+  line-height: 1.65; color: {MUTED};
+}}
+.pl-modal-note b {{ color: {ACCENT_2}; }}
+
+/* ---------------------------------------------------------------------- pitch */
+
+.pl-pitch {{
+  background:
+    repeating-linear-gradient(
+      0deg, rgba(255,255,255,0.022) 0 28px, transparent 28px 56px
+    ),
+    #16301F;
+  border: 2px solid rgba(244,241,232,0.35);
+  padding: 0.7rem 0.5rem;
+}}
+.pl-halfway {{
+  border-top: 2px dashed rgba(244,241,232,0.35);
+  margin: 0.55rem 0;
+}}
+.pl-side {{ display: flex; flex-direction: column; gap: 0.45rem; }}
+.pl-side-head {{
+  display: flex; align-items: baseline; gap: 0.6rem;
+  font-family: ui-monospace, monospace; font-size: 0.58rem;
+  letter-spacing: 0.08em; color: {INK};
+}}
+.pl-side-away .pl-side-head {{ order: 99; }}
+.pl-side-name {{ font-weight: 700; }}
+.pl-side-shape {{ color: {MUTED}; }}
+.pl-side-mean {{ margin-left: auto; color: {ACCENT_2}; }}
+
+.pl-pitch-row {{
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+}}
+.pl-token {{
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+  width: 4.6rem; text-align: center;
+}}
+.pl-token-kit {{ image-rendering: pixelated; display: block; }}
+.pl-token-name {{
+  font-family: ui-monospace, monospace; font-size: 0.55rem; color: {INK};
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}}
+.pl-token-rating {{
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 0.5rem; color: {ACCENT_2};
+}}
+.pl-xi-unrated {{ color: {MUTED}; }}
+.pl-xi-empty {{
+  font-family: ui-monospace, monospace; font-size: 0.6rem;
+  color: {MUTED}; font-style: italic; padding: 0.8rem 0; text-align: center;
+}}
+
+@media (max-width: 640px) {{
+  .pl-token {{ width: 3.9rem; }}
+  .pl-modal {{ padding: 0.6rem; }}
+}}
+
 /* -------------------------------------------------------------------- legend */
 
 /* Streamlit's expander is the only widget on the page that keeps its own chrome, so

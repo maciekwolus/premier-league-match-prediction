@@ -93,7 +93,16 @@ def squad_features(
     lineups: pd.DataFrame, player_map: pd.DataFrame, fifa: pd.DataFrame
 ) -> pd.DataFrame:
     """Aggregate each starting XI into one row of squad-quality features."""
-    rated = starting_ratings(lineups, player_map, fifa)
+    return aggregate_ratings(starting_ratings(lineups, player_map, fifa))
+
+
+def aggregate_ratings(rated: pd.DataFrame) -> pd.DataFrame:
+    """Collapse rated players into one row per (match_id, team).
+
+    Split out from ``squad_features`` so a caller that already has the rated rows - the
+    report, which lists the individual players - can aggregate them without joining
+    everything a second time.
+    """
     grouped = rated.groupby(["match_id", "team"], sort=False)
 
     features = grouped.agg(

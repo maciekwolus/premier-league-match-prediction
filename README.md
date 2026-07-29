@@ -364,6 +364,15 @@ points, the card says so — the only genuinely interesting thing a model can of
 market exists. Not *who wins*, since the odds already answer that, but *where do I
 disagree*.
 
+Each card has an **⚽ EXPECTED XI** button that opens both sides laid out on a pitch —
+attackers meeting at the halfway line, the shape (3-5-2) and each player's FIFA rating
+shown, with the team average. That is where the squad-quality signal becomes visible
+rather than staying an input to the model.
+
+The overlay floats above the page and closes on the ✕ or the backdrop, so the grid never
+moves and nothing reruns. It is labelled as what it is: the players a club has started
+most often lately, not a team sheet.
+
 A collapsed **HOW TO READ THIS** panel explains every part of a card, using live samples
 of the real components rather than descriptions of them — so the guide cannot drift out of
 step with what is on screen. The stat bar carries hover explanations for the same reason.

@@ -27,10 +27,11 @@ from src.data.load_fifa import FIFA_PLAYERS_PARQUET
 from src.evaluate.metrics import implied_probabilities
 from src.features.build import FEATURES_PARQUET, NO_DIFFERENCE, TEAM_FEATURES
 from src.features.form import build_team_matches
+from src.features.squad import aggregate_ratings
 from src.matching.player_names import PLAYER_MAP_PARQUET
 from src.models.score_matrix import outcome_probabilities, score_matrix, top_scorelines
 from src.predict.fixtures import as_matches, upcoming_fixtures
-from src.predict.squads import expected_squad_features
+from src.predict.squads import expected_squad_players, lineups_by_side
 
 PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
 
@@ -71,14 +72,14 @@ def lineups_with_dates() -> pd.DataFrame:
     return lineups.merge(matches, on="match_id", how="left")
 
 
-def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str], dict]:
     """Build the feature row for each upcoming fixture.
 
     History and fixtures go through the same builder, so form, Elo and rest are computed
     exactly as they were for every match the models trained on, and squad quality comes
     from each side's expected XI.
 
-    Returns (features, problems).
+    Returns (features, problems, expected XIs keyed by match_id).
     """
     matches = pd.read_parquet(MATCHES_PARQUET)
     understat = pd.read_parquet(UNDERSTAT_MATCHES_PARQUET)
@@ -103,9 +104,11 @@ def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     fifa = pd.read_parquet(FIFA_PLAYERS_PARQUET)
     lookup_season = str(player_map["season"].max())
 
-    squads, problems = expected_squad_features(fixtures, lineups, player_map, fifa, lookup_season)
-    if not squads.empty:
-        team_matches = team_matches.merge(squads, on=["match_id", "team"], how="left")
+    rated, problems = expected_squad_players(fixtures, lineups, player_map, fifa, lookup_season)
+    if not rated.empty:
+        team_matches = team_matches.merge(
+            aggregate_ratings(rated), on=["match_id", "team"], how="left"
+        )
 
     available = [column for column in TEAM_FEATURES if column in team_matches.columns]
     home = team_matches[team_matches["is_home"]].set_index("match_id")[available]
@@ -121,7 +124,7 @@ def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
     rows["is_promoted_home"] = rows["home_matches_played"] == 0
     rows["is_promoted_away"] = rows["away_matches_played"] == 0
 
-    return rows.reset_index(), problems
+    return rows.reset_index(), problems, lineups_by_side(rated, fixtures)
 
 
 def predict(
@@ -133,7 +136,7 @@ def predict(
     model = load_model(model_name)
     model.fit(history)
 
-    upcoming, problems = features_for(fixtures)
+    upcoming, problems, elevens = features_for(fixtures)
     for problem in problems:
         print(f"  warning: {problem}", file=sys.stderr)
 
@@ -163,6 +166,7 @@ def predict(
         report.append(
             {
                 "bookmaker": market.get(fixture.match_id),
+                "lineups": elevens.get(fixture.match_id, {}),
                 "match_id": fixture.match_id,
                 "date": str(pd.Timestamp(fixture.date).date()),
                 "home_team": fixture.home_team,

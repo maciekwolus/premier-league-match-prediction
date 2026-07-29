@@ -317,6 +317,55 @@ def test_a_recognised_transfer_raises_no_complaint(monkeypatch):
     assert problems == []
 
 
+def test_expected_lineups_are_returned_per_side(monkeypatch):
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01")
+    fixtures = make_fixture()
+    rated, _ = squads.expected_squad_players(
+        fixtures, lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+    sides = squads.lineups_by_side(rated, fixtures)
+
+    match_id = fixtures["match_id"].item()
+    assert sides[match_id]["home"][0]["player"]
+    assert len(sides[match_id]["home"]) == 11
+
+
+def test_lineups_are_ordered_like_a_team_sheet(monkeypatch):
+    """Goalkeeper first, then defence, midfield, attack - not by rating."""
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01")
+    fixtures = make_fixture()
+    rated, _ = squads.expected_squad_players(
+        fixtures, lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+    eleven = squads.lineups_by_side(rated, fixtures)[fixtures["match_id"].item()]["home"]
+
+    order = [squads.LINE_ORDER[player["line"]] for player in eleven]
+    assert order == sorted(order)
+    assert eleven[0]["line"] == "gk"
+
+
+def test_lineups_carry_the_rating_used_for_squad_quality(monkeypatch):
+    """The listed ratings must be the same ones the model was given."""
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01")
+    fixtures = make_fixture()
+    rated, _ = squads.expected_squad_players(
+        fixtures, lineups, make_player_map(), make_fifa_ratings(overall=81), "2025/26"
+    )
+    eleven = squads.lineups_by_side(rated, fixtures)[fixtures["match_id"].item()]["home"]
+
+    assert {player["overall"] for player in eleven} == {81}
+
+
+def test_no_players_yields_no_lineups():
+    assert squads.lineups_by_side(pd.DataFrame(), make_fixture()) == {}
+
+
 # -------------------------------------------------------------------- fixtures
 
 
