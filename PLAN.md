@@ -3,7 +3,7 @@
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
 > a 99-column feature table, eight models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 247 tests, none needing network or
+> predictions for fixtures that have not been played. 336 tests, none needing network or
 > data.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the

@@ -39,3 +39,6 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Chrome profile written by tools/screenshots.py, if it is ever pointed here
+chrome-profile/
