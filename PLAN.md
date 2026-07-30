@@ -3,7 +3,7 @@
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
 > a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 387 tests, none needing network or
+> predictions for fixtures that have not been played. 413 tests, none needing network or
 > data.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
@@ -14,11 +14,11 @@
 > what the plan expected against what happened is the more useful record. `CLAUDE.md`
 > describes the code as it now stands.
 >
-> **Stage two: Phases 11 and 13 are done; 12, 14 and 15 remain.** Predictions are archived
-> per gameweek and never rewritten, and the report browses stored rounds and scores them
-> against what happened. Still to come: squads corrected against a ratings edition that
-> will not exist, suspensions, and the skills. Phase 12 is blocked on two answers that
-> cannot be guessed.
+> **Stage two: Phases 11, 13 and 14 are done; 12 and 15 remain.** Predictions are archived
+> per gameweek and never rewritten, the report browses stored rounds and scores them against
+> what happened, and suspensions come out of the cards already on disk. **Phase 12 is no
+> longer blocked** — the official Fantasy Premier League API supplies the 2026/27 club list
+> and all 380 fixtures, found while spiking for injury data.
 
 ## Goal
 
@@ -520,6 +520,64 @@ and terms that permit the use. My honest expectation is that it returns nothing,
 case a manual override file is the answer — and we will have paid a little to know that
 rather than having assumed it.
 
+**Done — and the spike contradicted the expectation above.** 33 new tests, 413 in total.
+
+### Suspensions: built, and the effect measured rather than assumed
+
+Red cards and yellow accumulation come out of `lineups.parquet`, and unavailable players
+are dropped from the expected XI *before* the eleven is picked, so the next-most-used
+player steps up rather than a hole appearing.
+
+Measured on 2025/26 rather than asserted:
+
+| | |
+|---|---|
+| Team-matches with at least one suspension | 63 of 760 — **8.3%** |
+| Mean change in squad overall | **−0.084** rating points |
+| Median change | **0.000** |
+| Range | −1.55 to +0.73 |
+| Changed by ≥0.5 | 11 of 63 |
+
+**The median is zero**, because more often than not the suspended player was not in the
+expected XI to begin with. Against a `squad_overall_mean` standard deviation of 3.4, the
+mean effect is around 2.5% of one standard deviation. The feature is correct and it fires,
+but it is small, and the occasional *positive* change is real: the twelfth-most-used player
+is sometimes rated above the eleventh, so losing a starter can raise the mean.
+
+The offence is not in the data — only 7 of 318 reds carry a yellow on the same row — so
+every dismissal is one match. That under-counts violent conduct deliberately: banning an
+available player on a guess is the worse error.
+
+### The injury spike: GO, and it found more than injuries
+
+The **official Fantasy Premier League API** meets every criterion: free, no authentication,
+JSON, all 20 clubs, updated before each gameweek.
+
+```
+https://fantasy.premierleague.com/api/bootstrap-static/
+```
+
+564 players with `status`, `chance_of_playing_next_round`, and a `news` string
+(*"Groin injury - Expected back 21 Aug"*). 55 were flagged when checked. Caveat worth
+keeping: it is undocumented, so it can change without notice.
+
+**The real work is name matching, and it is Phase 4 all over again** — 57% of FPL names
+match an Understat name on exact normalisation, 61% counting the short form. Some of that
+gap is players who simply never appeared in 2025/26, but a club-scoped fuzzy cascade is the
+known answer and it is a piece of work, not a line.
+
+**The same source answers both of Phase 12's blocking questions.** `/api/fixtures/` returns
+all **380 fixtures for 2026/27**, each with a kickoff time and an *official* gameweek
+number, first deadline 21 August 2026. And the club list gives the turnover directly:
+
+| | |
+|---|---|
+| Promoted | Coventry City, Hull City, Ipswich Town |
+| Relegated | Burnley, West Ham, Wolves |
+
+Not acted on here — that is Phase 12 — but it is no longer blocked. Note the club names
+need mapping (`Man Utd`, `Spurs`), exactly as every other source has.
+
 ## Phase 15 — Skills *(~1 session)*
 
 `refresh-squads`, `refresh-gameweek`, and predicting the opening round.
@@ -572,7 +630,11 @@ to 14 can be built in any order once it lands, though 12 gates predicting anythi
 ~~**Next action: Phase 12 — squads for 2026/27.**~~ *Phase 13 was taken first, since 12 is
 blocked and 13 was not.*
 
-**Next action: Phase 14 — suspensions**, which is unblocked and needs nothing from
-outside: red cards and yellow accumulation both come from `lineups.parquet`. Phase 12 still
-gates predicting anything in 2026/27 and still needs two answers that cannot be guessed —
-the promoted and relegated clubs, and where a full-season fixture list comes from.
+~~**Next action: Phase 14 — suspensions**, which is unblocked and needs nothing from
+outside.~~ *Done.*
+
+**Next action: Phase 12 — squads for 2026/27**, now unblocked. The Fantasy Premier League
+API supplies the club list (Coventry City, Hull City and Ipswich Town up; Burnley, West Ham
+and Wolves down) and all 380 fixtures with official gameweek numbers. The work left is a
+club-name mapping, the transfer file, and a name-matching cascade for FPL players — which
+is Phase 4's problem again and should reuse its cascade rather than a fresh one.

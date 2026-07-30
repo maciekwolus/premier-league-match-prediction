@@ -177,6 +177,7 @@ Adding a transfer should be one line plus a rebuild.
 | `squad_changes.csv` | `season,fifa_player_name,team,note` | A player transferred and the ratings file still lists their old club |
 | `player_ratings_manual.csv` | `season,fifa_player_name,overall,age,position,note` | A player has no FIFA entry at all — a new signing from another league |
 | `player_name_overrides.csv` | `season,understat_player,fifa_player_name,confidence,reason` | The name matcher missed a pair, e.g. `Chicharito` → `J. Hernández` |
+| `unavailable.csv` | `season,team,player,from_date,until_date,reason,note` | A player is out injured. Suspensions are derived automatically and need no row. A blank `until_date` means open-ended |
 
 After editing any of them:
 
@@ -201,7 +202,7 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 387 tests, about fifteen seconds |
+| `-m pytest` | All 413 tests, about fifteen seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |

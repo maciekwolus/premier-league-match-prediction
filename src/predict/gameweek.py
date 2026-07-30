@@ -71,9 +71,13 @@ def load_model(name: str):
 
 
 def lineups_with_dates() -> pd.DataFrame:
-    """Lineups joined to their match dates, which the XI picker needs."""
+    """Lineups joined to their match dates and season.
+
+    The XI picker needs the date; suspensions need the season too, because a ban is
+    counted in that club's matches within the season the card was shown.
+    """
     lineups = pd.read_parquet(LINEUPS_PARQUET)
-    matches = pd.read_parquet(MATCHES_PARQUET)[["match_id", "date"]]
+    matches = pd.read_parquet(MATCHES_PARQUET)[["match_id", "date", "season"]]
     return lineups.merge(matches, on="match_id", how="left")
 
 

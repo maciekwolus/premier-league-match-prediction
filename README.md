@@ -129,7 +129,7 @@ src/evaluate/     scoring, walk-forward backtesting, the bookmaker benchmark
 src/predict/      fixtures, expected XIs, and predictions for unplayed matches
 src/report/       shaping predictions for display
 app.py            the Streamlit report
-tests/            387 tests, no network access and no reading of data/
+tests/            413 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, squad changes, fixtures (committed)
 ```
 

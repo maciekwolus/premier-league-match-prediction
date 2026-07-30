@@ -26,6 +26,7 @@ import pandas as pd
 
 from src.config import MANUAL_DIR
 from src.features.squad import STARTERS_PER_TEAM, line_of
+from src.predict.suspensions import load_unavailable, unavailable_for
 
 SQUAD_CHANGES_CSV = MANUAL_DIR / "squad_changes.csv"
 MANUAL_RATINGS_CSV = MANUAL_DIR / "player_ratings_manual.csv"
@@ -64,13 +65,22 @@ def load_manual_ratings() -> pd.DataFrame:
 
 
 def most_used_eleven(
-    lineups: pd.DataFrame, team: str, before: pd.Timestamp, matches: int = RECENT_MATCHES
+    lineups: pd.DataFrame,
+    team: str,
+    before: pd.Timestamp,
+    matches: int = RECENT_MATCHES,
+    unavailable: set[str] | None = None,
 ) -> pd.DataFrame:
     """The eleven this club has started most often in its last few matches.
 
     Selection is by starts, then by minutes, and only positions the club actually used
     are represented - taking the top eleven by appearances alone would happily field
     four goalkeepers.
+
+    ``unavailable`` names players who cannot play - suspended, or flagged by hand. They
+    are removed *before* the eleven is picked rather than after, so the next-most-used
+    player steps up and the side is still eleven strong. Dropping them afterwards would
+    field ten and understate the squad, which is a bigger error than the absence itself.
     """
     history = lineups[(lineups["team"] == team) & (lineups["date"] < before)]
     if history.empty:
@@ -78,6 +88,8 @@ def most_used_eleven(
 
     recent_ids = history.drop_duplicates("match_id").nlargest(matches, "date")["match_id"].tolist()
     recent = history[history["match_id"].isin(recent_ids) & history["is_starter"]]
+    if unavailable:
+        recent = recent[~recent["player"].isin(unavailable)]
     if recent.empty:
         return pd.DataFrame(columns=["player", "position", "line", "starts"])
 
@@ -188,10 +200,15 @@ def expected_squad_players(
         for name in unmatched_changes(changes, known, season)
     ]
 
+    hand_flagged = load_unavailable()
+
     rows = []
     for fixture in fixtures.itertuples():
         for team in (fixture.home_team, fixture.away_team):
-            eleven = most_used_eleven(lineups, team, fixture.date)
+            # Bans are counted against the season being played, not the season whose
+            # ratings are being borrowed - a card shown last May is served last May.
+            out = unavailable_for(lineups, team, season, fixture.date, unavailable=hand_flagged)
+            eleven = most_used_eleven(lineups, team, fixture.date, unavailable=out)
             for player in eleven.itertuples():
                 rows.append(
                     {
