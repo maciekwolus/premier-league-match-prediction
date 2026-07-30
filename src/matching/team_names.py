@@ -21,6 +21,21 @@ UNDERSTAT_TO_FOOTBALL_DATA = {
 }
 
 
+# Fantasy Premier League club name -> football-data name.
+#
+# Only the differences are listed; the other fifteen agree. The three promoted clubs are
+# spelled by football-data as they appear in its Championship files - `Coventry`, `Hull`,
+# `Ipswich` - which was checked against the source rather than guessed, and Ipswich is
+# already in `matches.parquet` from 2024/25 under exactly that name.
+FPL_TO_FOOTBALL_DATA = {
+    "Man Utd": "Man United",
+    "Spurs": "Tottenham",
+    "Coventry City": "Coventry",
+    "Hull City": "Hull",
+    "Ipswich Town": "Ipswich",
+}
+
+
 # FIFA / EA FC club name -> football-data name.
 #
 # Unlike Understat, the ratings files cover every club in the world, so a name that is
@@ -31,6 +46,11 @@ UNDERSTAT_TO_FOOTBALL_DATA = {
 # Several clubs appear under more than one name across editions, usually for licensing
 # reasons, so this mapping is deliberately many-to-one.
 FIFA_TO_FOOTBALL_DATA = {
+    # Promoted for 2026/27. They have never been in this project's Premier League window,
+    # so their ratings were previously dropped as any other foreign club would be - which
+    # left three clubs of the new season with no squad quality at all.
+    "Coventry City": "Coventry",
+    "Hull City": "Hull",
     "Arsenal": "Arsenal",
     "Aston Villa": "Aston Villa",
     "AFC Bournemouth": "Bournemouth",
@@ -104,6 +124,25 @@ def understat_to_football_data(name: str, known_teams: set[str] | None = None) -
         raise UnknownTeamError(
             f"Understat team {name!r} mapped to {mapped!r}, which is not a known "
             f"football-data team. Add it to UNDERSTAT_TO_FOOTBALL_DATA."
+        )
+
+    return mapped
+
+
+def fpl_to_football_data(name: str) -> str:
+    """Translate a Fantasy Premier League club name to its football-data equivalent.
+
+    Raises on anything unrecognised rather than passing it through. Unlike the ratings
+    files, the FPL club list is exactly the twenty clubs in the division, so a name we
+    cannot place is a real problem - a promoted club we have not mapped - and silently
+    accepting it would put a club into the pipeline under a name nothing else uses.
+    """
+    mapped = FPL_TO_FOOTBALL_DATA.get(name, name)
+
+    if mapped not in set(FIFA_TO_FOOTBALL_DATA.values()) | set(FPL_TO_FOOTBALL_DATA.values()):
+        raise UnknownTeamError(
+            f"FPL team {name!r} mapped to {mapped!r}, which is not a football-data team "
+            f"this project knows. Add it to FPL_TO_FOOTBALL_DATA."
         )
 
     return mapped

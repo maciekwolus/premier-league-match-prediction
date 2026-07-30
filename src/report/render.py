@@ -199,10 +199,34 @@ def _lineups(match: dict) -> str:
         f'<div class="pl-halfway"></div>'
         f"{_formation(home, match['home_team'], invert=False)}"
         f"</div>"
-        f'<div class="pl-modal-note">Most-used eleven from each club\'s last 6 matches, '
-        f"with FIFA overall ratings and the team average. <b>Not a team sheet</b> — "
-        f"nobody has one until an hour before kick-off.</div>"
+        f'<div class="pl-modal-note">{_xi_note(home, away)}</div>'
         f"</div></div>"
+    )
+
+
+def _xi_note(home: list[dict], away: list[dict]) -> str:
+    """What the eleven actually is, which is not the same for every club.
+
+    A promoted side has no history in this division, so its XI comes from ratings — who
+    its best players are — rather than from who has been starting. Describing that as a
+    most-used eleven would be a quiet lie about exactly the club a reader knows least
+    about, so the note changes when the source does.
+    """
+    from_ratings = any(
+        player.get("source") == "ratings" for side in (home, away) for player in side
+    )
+    caveat = (
+        " <b>Where a club is newly promoted</b> there is no history in this division to "
+        "read an eleven from, so its side is its best-rated players instead — who they "
+        "are, not who will start."
+        if from_ratings
+        else ""
+    )
+
+    return (
+        "Most-used eleven from each club's last 6 matches, with FIFA overall ratings and "
+        "the team average. <b>Not a team sheet</b> — nobody has one until an hour before "
+        f"kick-off.{caveat}"
     )
 
 

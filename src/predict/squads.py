@@ -112,6 +112,66 @@ def most_used_eleven(
     return pd.concat([keepers, outfield], ignore_index=True)
 
 
+# FIFA's primary position -> the four lines. A promoted club has no appearance history to
+# read a shape from, so the fallback XI is built by position instead.
+FIFA_POSITION_LINES = {
+    "GK": "gk",
+    "CB": "def",
+    "LB": "def",
+    "RB": "def",
+    "CDM": "mid",
+    "CM": "mid",
+    "CAM": "mid",
+    "LM": "mid",
+    "RM": "mid",
+    "LW": "att",
+    "RW": "att",
+    "ST": "att",
+}
+
+# A plain 4-4-2. Any shape is a guess for a club we have never seen play in this division;
+# this one is the least surprising, and squad quality is a mean so the exact split matters
+# far less than which eleven players are in it.
+FALLBACK_SHAPE = {"gk": 1, "def": 4, "mid": 4, "att": 2}
+
+
+def ratings_eleven(fifa: pd.DataFrame, club: str, season: str) -> pd.DataFrame:
+    """The best-rated eleven a club has, taken from ratings rather than appearances.
+
+    For a promoted club there is no Premier League history to read a most-used eleven
+    from, and the alternative to this is what the pipeline did before: no squad quality
+    at all, silently filled with the training median, so a newly promoted side was
+    described to the model as an average Premier League squad.
+
+    This is a *different kind of guess* from the appearance-based XI and is labelled as
+    such by the caller. It says who a club's best players are, not who will start.
+    """
+    columns = ["player", "position", "line", "starts"]
+    if fifa.empty or "club_fd" not in fifa.columns:
+        return pd.DataFrame(columns=columns)
+
+    squad = fifa[(fifa["club_fd"] == club) & (fifa["season"] == season)].copy()
+    if squad.empty:
+        return pd.DataFrame(columns=columns)
+
+    squad["position"] = squad["positions"].astype(str).str.split(",").str[0].str.strip()
+    squad["line"] = squad["position"].map(FIFA_POSITION_LINES)
+    squad = squad.dropna(subset=["line", "overall"]).sort_values("overall", ascending=False)
+
+    picked = [squad[squad["line"] == line].head(count) for line, count in FALLBACK_SHAPE.items()]
+    eleven = pd.concat(picked, ignore_index=True) if picked else squad.head(0)
+
+    return pd.DataFrame(
+        {
+            "player": eleven["player_name"],
+            "position": eleven["position"],
+            "line": eleven["line"],
+            # Zero starts is honest: this club has started nobody in this division.
+            "starts": 0,
+        }
+    ).reset_index(drop=True)
+
+
 def apply_squad_changes(
     squad_players: pd.DataFrame, changes: pd.DataFrame, season: str
 ) -> pd.DataFrame:
@@ -202,6 +262,13 @@ def expected_squad_players(
 
     hand_flagged = load_unavailable()
 
+    # Scoped to the lookup season *and* the club, because that is exactly how the ratings
+    # join is keyed. A club relegated and promoted back has players all over the map from
+    # its earlier spell, and a global name check would see them and wrongly conclude the
+    # appearance-based XI can be rated.
+    for_lookup = player_map[player_map["season"] == lookup_season]
+    rated_pairs = set(zip(for_lookup["team"], for_lookup["understat_player"], strict=False))
+
     rows = []
     for fixture in fixtures.itertuples():
         for team in (fixture.home_team, fixture.away_team):
@@ -209,6 +276,20 @@ def expected_squad_players(
             # ratings are being borrowed - a card shown last May is served last May.
             out = unavailable_for(lineups, team, season, fixture.date, unavailable=hand_flagged)
             eleven = most_used_eleven(lineups, team, fixture.date, unavailable=out)
+
+            # A promoted club fails this two ways, and both end in the same place: no
+            # squad quality, quietly replaced downstream by the training median, so a
+            # newly promoted side is described to the model as an average Premier League
+            # squad. Either it has no history in this division at all, or it has history
+            # from an earlier spell whose players are absent from the current name map.
+            # Falling back to ratings is a worse guess than appearances and a much better
+            # one than nothing.
+            from_ratings = eleven.empty or not any(
+                (team, player) in rated_pairs for player in eleven["player"]
+            )
+            if from_ratings:
+                eleven = ratings_eleven(fifa, team, lookup_season)
+
             for player in eleven.itertuples():
                 rows.append(
                     {
@@ -219,6 +300,12 @@ def expected_squad_players(
                         "position": player.position,
                         "starts": int(player.starts),
                         "is_starter": True,
+                        # Recorded so the report can say which kind of guess this is,
+                        # rather than calling a ratings XI a most-used eleven.
+                        "xi_source": "ratings" if from_ratings else "appearances",
+                        # A ratings XI is already named as FIFA names players, so it
+                        # carries its own mapping and skips the Understat name map.
+                        "fifa_player_name": player.player if from_ratings else None,
                     }
                 )
 
@@ -279,6 +366,10 @@ def lineups_by_side(rated: pd.DataFrame, fixtures: pd.DataFrame) -> dict[str, di
                 "line": row.line,
                 "starts": int(row.starts) if pd.notna(row.starts) else 0,
                 "overall": int(row.overall) if pd.notna(row.overall) else None,
+                # Carried through so the report can say which kind of guess this is.
+                # Calling a ratings XI a most-used eleven would be a quiet lie about a
+                # promoted club, which is precisely the side a reader knows least about.
+                "source": getattr(row, "xi_source", "appearances"),
             }
             for row in group.sort_values(["order", "starts"], ascending=[True, False]).itertuples()
         ]

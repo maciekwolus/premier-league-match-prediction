@@ -17,6 +17,7 @@ DATA_DIR = PROJECT_ROOT / "data"
 RAW_MATCHES_DIR = DATA_DIR / "raw" / "matches"
 RAW_LINEUPS_DIR = DATA_DIR / "raw" / "lineups"
 RAW_FIFA_DIR = DATA_DIR / "raw" / "fifa"
+RAW_FPL_DIR = DATA_DIR / "raw" / "fpl"
 PROCESSED_DIR = DATA_DIR / "processed"
 FINAL_DIR = DATA_DIR / "final"
 MANUAL_DIR = DATA_DIR / "manual"  # hand-written override files, committed to git

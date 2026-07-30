@@ -12,6 +12,7 @@ import pandas as pd
 import requests
 
 from src.config import MANUAL_DIR, UPCOMING_SEASON
+from src.data.clean_fpl import FPL_FIXTURES_PARQUET
 
 FIXTURES_URL = "https://www.football-data.co.uk/fixtures.csv"
 MANUAL_FIXTURES_CSV = MANUAL_DIR / "upcoming_fixtures.csv"
@@ -75,15 +76,57 @@ def download_fixtures() -> pd.DataFrame:
     return fixtures.dropna(subset=["date"]).reset_index(drop=True)
 
 
+def next_fpl_gameweek(fixtures: pd.DataFrame, played_before: pd.Timestamp | None = None):
+    """The earliest gameweek in ``fixtures`` that has not kicked off yet.
+
+    A round is "next" when its *first* fixture is still ahead. Using the last fixture
+    instead would keep a round current while most of it had already been played.
+    """
+    if fixtures.empty:
+        return None
+
+    now = played_before or pd.Timestamp.now()
+    upcoming = fixtures[fixtures["date"] >= now]
+    return None if upcoming.empty else int(upcoming["gameweek"].min())
+
+
+def fpl_fixtures(gameweek: int | None = None) -> pd.DataFrame:
+    """One round from the stored FPL schedule, defaulting to the next one.
+
+    Returns an empty frame when the schedule has not been built, so the caller falls
+    through to its other sources rather than failing.
+    """
+    if not FPL_FIXTURES_PARQUET.exists():
+        return pd.DataFrame(columns=["date", "home_team", "away_team"])
+
+    fixtures = pd.read_parquet(FPL_FIXTURES_PARQUET)
+    gameweek = gameweek if gameweek is not None else next_fpl_gameweek(fixtures)
+    if gameweek is None:
+        return pd.DataFrame(columns=["date", "home_team", "away_team"])
+
+    return fixtures[fixtures["gameweek"] == gameweek].reset_index(drop=True)
+
+
 def upcoming_fixtures(allow_download: bool = True) -> tuple[pd.DataFrame, str]:
     """The fixtures to predict, and where they came from.
 
-    Returns (fixtures, source). The hand-written file wins when it has rows, because
-    naming the round you want is more useful than accepting whatever is next.
+    Returns (fixtures, source), in order of preference:
+
+    1. The hand-written file, when it has rows - naming the round you want beats
+       accepting whatever is next.
+    2. The stored Fantasy Premier League schedule, which covers a whole season and so
+       works in the summer, when football-data's rolling feed is empty. This is what
+       makes predicting the opening round possible at all.
+    3. football-data's rolling feed, which only ever covers the next few days.
     """
     manual = manual_fixtures()
     if not manual.empty:
         return manual, str(MANUAL_FIXTURES_CSV)
+
+    stored = fpl_fixtures()
+    if not stored.empty:
+        gameweek = int(stored["gameweek"].iloc[0])
+        return stored, f"FPL schedule, gameweek {gameweek}"
 
     if not allow_download:
         return manual, "manual (empty)"

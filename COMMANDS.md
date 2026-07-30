@@ -141,6 +141,15 @@ each depends on the last.
 .venv\Scripts\python.exe -m src.features.build
 ```
 
+For a season that has not started, two more stages supply the clubs and the schedule:
+
+```bash
+.venv\Scripts\python.exe -m src.data.fetch_fpl
+```
+```bash
+.venv\Scripts\python.exe -m src.data.clean_fpl
+```
+
 | Stage | What it does | Flags |
 |---|---|---|
 | `fetch_matches` | Download results and odds | `--season "2025/26"` (repeatable), `--force` |
@@ -150,6 +159,8 @@ each depends on the last.
 | `load_fifa` | Read the hand-placed ratings CSVs | `--allow-missing` |
 | `player_names` | Match Understat names to FIFA names | — |
 | `build` | Assemble `data/final/features.parquet` | — |
+| `fetch_fpl` | Download the Fantasy Premier League feed | `--force` |
+| `clean_fpl` | Validate and store the upcoming season's 380 fixtures | — |
 
 **`fetch_lineups` makes about 2,660 requests** and takes a while — run it in the background
 and leave it. Downloads are cached, so a re-run is cheap unless you pass `--force`.
@@ -202,7 +213,7 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 413 tests, about fifteen seconds |
+| `-m pytest` | All 435 tests, about fifteen seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |

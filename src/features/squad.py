@@ -68,12 +68,21 @@ def starting_ratings(
         starters["season"] = starters["match_id"].str.slice(0, 7).str.replace("_", "/", regex=False)
     starters["line"] = starters["position"].map(line_of)
 
+    # An XI built from ratings rather than appearances already names players as FIFA
+    # does, so it arrives with the mapping filled in. Keep it aside and restore it after
+    # the join, rather than letting the merge overwrite it with a null.
+    supplied = starters.pop("fifa_player_name") if "fifa_player_name" in starters else None
+
     linked = starters.merge(
         player_map[["season", "team", "understat_player", "fifa_player_name"]],
         left_on=["season", "team", "player"],
         right_on=["season", "team", "understat_player"],
         how="left",
     )
+    if supplied is not None:
+        linked["fifa_player_name"] = linked["fifa_player_name"].fillna(
+            supplied.reset_index(drop=True)
+        )
 
     ratings = fifa[["season", "player_name", *CORE_RATINGS, *OPTIONAL_RATINGS]]
     # A FIFA name can repeat across clubs within a season, so collapse to one row per
