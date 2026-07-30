@@ -5,7 +5,13 @@ looks perfectly fine on the page. These assert the parts are present and the tex
 escaped.
 """
 
-from src.report.render import LEGEND_ROWS, legend_html, match_card, summary_bar
+from src.report.render import (
+    LEGEND_ROWS,
+    empty_notice,
+    legend_html,
+    match_card,
+    summary_bar,
+)
 from tests.test_report import make_match
 
 
@@ -266,6 +272,38 @@ def test_legend_says_the_kits_are_not_badges():
 
 def test_legend_has_a_row_for_each_entry():
     assert legend_html().count("pl-legend-row") == len(LEGEND_ROWS)
+
+
+def test_the_empty_state_names_the_interpreter_not_bare_python():
+    """A bare `python` only resolves once the venv is activated, which is the step
+    people skip - and then the command in the error message fails too."""
+    notice = empty_notice()
+
+    assert ".venv\\Scripts\\python.exe -m src.predict.gameweek" in notice
+    assert "<code>python -m" not in notice
+
+
+def test_the_empty_state_says_where_to_run_it():
+    """Running from the wrong folder is the actual failure. PowerShell reports it as
+    "the module '.venv' could not be loaded", which names neither cause nor cure."""
+    notice = empty_notice(repo_root="C:\\somewhere\\project")
+
+    assert "cd C:\\somewhere\\project" in notice
+
+
+def test_the_empty_state_offers_the_command_that_works_out_of_season():
+    """Without --replay there is nothing to predict between June and August."""
+    assert "--replay" in empty_notice()
+
+
+def test_the_empty_state_covers_other_platforms():
+    assert ".venv/bin/python" in empty_notice()
+
+
+def test_the_empty_state_escapes_the_path():
+    """The path is interpolated into markup, so it goes through escape() like any
+    other value."""
+    assert "&lt;script&gt;" in empty_notice(repo_root="<script>")
 
 
 def test_stat_bar_carries_hover_explanations():

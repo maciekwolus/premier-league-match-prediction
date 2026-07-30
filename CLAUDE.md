@@ -210,6 +210,13 @@ reached the expander label, an icon that would have rendered as the word
 `keyboard_arrow_right`. `read_page` and `javascript_tool` for computed styles and
 bounding boxes.
 
+**Commands in user-facing text spell out `.venv\Scripts\python.exe` and lead with `cd`.**
+A bare `python` assumes an activated environment, which is the step people skip. Running
+from the wrong folder is the more common failure and PowerShell reports it as *"the module
+'.venv' could not be loaded"* — naming neither the directory nor the real cause. The
+report's empty state is the one message a stuck reader is guaranteed to reach, so it
+carries both, with the repo path derived at runtime rather than hardcoded.
+
 **The report states whether it is showing upcoming fixtures or a replay.** A replayed
 round otherwise reads as next week's matches, since the cards look identical either way.
 `predictions.json` carries a `mode` field for exactly this.

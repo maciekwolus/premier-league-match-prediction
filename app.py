@@ -1,10 +1,10 @@
 """Streamlit report: this round's fixtures with predicted scorelines.
 
-Run with:
-    streamlit run app.py
+Run with, from the project folder:
+    .venv\\Scripts\\python.exe -m streamlit run app.py
 
 Reads ``data/final/predictions.json``, so produce that first:
-    python -m src.predict.gameweek --replay
+    .venv\\Scripts\\python.exe -m src.predict.gameweek --replay
 
 Layout only. The shaping lives in ``src/report/view.py``, the card markup in
 ``render.py`` and the styling in ``theme.py``, so all three can be checked without a
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.report.render import legend_html, match_card, summary_bar
+from src.report.render import empty_notice, legend_html, match_card, summary_bar
 from src.report.theme import CSS
 from src.report.view import load_predictions, modal_scoreline_share, summarise
 
@@ -28,14 +28,7 @@ st.markdown(CSS, unsafe_allow_html=True)
 
 
 def render_empty() -> None:
-    st.markdown(
-        '<div class="pl-notice"><b>NO PREDICTIONS YET.</b><br><br>'
-        "Generate them with <code>python -m src.predict.gameweek</code>.<br>"
-        "Between seasons the fixture feed is empty, so use the last round that was "
-        "actually played: <code>python -m src.predict.gameweek --replay</code>."
-        "</div>",
-        unsafe_allow_html=True,
-    )
+    st.markdown(empty_notice(), unsafe_allow_html=True)
 
 
 def render_notices(summary: dict, repeated: float) -> None:
