@@ -7,12 +7,9 @@ longer sums to 100, or a disagreement with the market shown without its sign.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
-from src.config import FINAL_DIR
-
-PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
+from src.predict.archive import latest_round
 
 OUTCOMES = ("home", "draw", "away")
 
@@ -21,12 +18,14 @@ OUTCOMES = ("home", "draw", "away")
 NOTABLE_DISAGREEMENT = 0.10
 
 
-def load_predictions(path: Path | None = None) -> list[dict]:
-    """Read the prediction file, or return nothing if it has not been produced yet."""
-    path = path or PREDICTIONS_JSON
-    if not path.exists():
-        return []
-    return json.loads(path.read_text(encoding="utf-8"))
+def load_predictions(root: Path | None = None) -> list[dict]:
+    """The most recent stored round, or nothing if none has been predicted yet.
+
+    The archive is the only source: there is deliberately no "latest" file alongside it,
+    because two copies of the same round invite them to disagree, and the one that is
+    wrong is the one the page would show.
+    """
+    return latest_round(root)
 
 
 def as_percent(probability: float) -> str:

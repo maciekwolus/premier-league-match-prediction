@@ -14,15 +14,16 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
+from datetime import UTC, datetime
 
 import numpy as np
 import pandas as pd
 
-from src.config import FINAL_DIR, UPCOMING_SEASON
+from src.config import UPCOMING_SEASON
 from src.data.clean_lineups import LINEUPS_PARQUET, UNDERSTAT_MATCHES_PARQUET
 from src.data.clean_matches import MATCHES_PARQUET
+from src.data.gameweeks import assign_gameweeks
 from src.data.load_fifa import FIFA_PLAYERS_PARQUET
 from src.evaluate.metrics import implied_probabilities
 from src.features.build import FEATURES_PARQUET, NO_DIFFERENCE, TEAM_FEATURES
@@ -30,10 +31,14 @@ from src.features.form import build_team_matches
 from src.features.squad import aggregate_ratings
 from src.matching.player_names import PLAYER_MAP_PARQUET
 from src.models.score_matrix import outcome_probabilities, score_matrix, top_scorelines
+from src.predict.archive import (
+    ROUNDS_DIR,
+    RoundAlreadyStored,
+    group_by_gameweek,
+    save_round,
+)
 from src.predict.fixtures import as_matches, upcoming_fixtures
 from src.predict.squads import expected_squad_players, lineups_by_side
-
-PREDICTIONS_JSON = FINAL_DIR / "predictions.json"
 
 MODELS = {
     "poisson-glm": ("src.models.poisson_glm", "PoissonRegressionModel"),
@@ -127,6 +132,28 @@ def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str], dict]
     return rows.reset_index(), problems, lineups_by_side(rated, fixtures)
 
 
+def gameweeks_for(fixtures: pd.DataFrame) -> dict[str, int]:
+    """The gameweek each fixture belongs to, keyed by ``match_id``.
+
+    A fixture's round depends on how many matches its clubs have already played, so this
+    has to be computed against the season's full schedule rather than the handful being
+    predicted. Existing rows for these fixtures are dropped first for the same reason
+    ``features_for`` does it: with ``--replay`` the round is already in the table, and
+    counting it twice would put every later fixture a round out.
+    """
+    # Only the schedule matters here, so both sides are narrowed to those columns before
+    # concatenating. Reindexing the fixtures to the full match table would drag in all-NA
+    # result columns and the dtype-coercion warning that comes with them.
+    columns = ["match_id", "season", "date", "home_team", "away_team"]
+    matches = pd.read_parquet(MATCHES_PARQUET, columns=columns)
+    history = matches[~matches["match_id"].isin(fixtures["match_id"])]
+    combined = pd.concat([history, fixtures[columns]], ignore_index=True)
+
+    combined["gameweek"] = assign_gameweeks(combined)
+    predicted = combined[combined["match_id"].isin(fixtures["match_id"])]
+    return dict(zip(predicted["match_id"], predicted["gameweek"], strict=True))
+
+
 def predict(
     fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL, mode: str = "upcoming"
 ) -> list[dict]:
@@ -158,6 +185,12 @@ def predict(
     # says whether a prediction is worth anything.
     market = market_probabilities(fixtures)
 
+    # Which round each fixture belongs to, and when this was decided. Both go into every
+    # record because the archive is keyed on the first and only trustworthy with the
+    # second: a prediction without a timestamp cannot be shown to predate its result.
+    gameweeks = gameweeks_for(fixtures)
+    predicted_at = datetime.now(UTC).isoformat(timespec="seconds")
+
     report = []
     for index, fixture in enumerate(upcoming.itertuples()):
         matrix = score_matrix(lambda_home[index], lambda_away[index])
@@ -169,9 +202,12 @@ def predict(
                 "lineups": elevens.get(fixture.match_id, {}),
                 "match_id": fixture.match_id,
                 "date": str(pd.Timestamp(fixture.date).date()),
+                "season_slug": str(fixture.season).replace("/", "_"),
+                "gameweek": int(gameweeks[fixture.match_id]),
                 "home_team": fixture.home_team,
                 "away_team": fixture.away_team,
                 "model": model_name,
+                "predicted_at": predicted_at,
                 # Whether these are fixtures still to be played or a round being
                 # re-predicted. Without it the report cannot tell the reader which it is
                 # showing, and a replayed round reads as next week's matches.
@@ -277,6 +313,11 @@ def main(argv: list[str] | None = None) -> int:
         help="predict the last known round instead, as an end-to-end check",
     )
     parser.add_argument("--offline", action="store_true", help="never download fixtures")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="replace an already-stored round (by default storing one is a one-time act)",
+    )
     args = parser.parse_args(argv)
 
     if args.replay:
@@ -301,9 +342,14 @@ def main(argv: list[str] | None = None) -> int:
 
     print(format_report(report))
 
-    FINAL_DIR.mkdir(parents=True, exist_ok=True)
-    PREDICTIONS_JSON.write_text(json.dumps(report, indent=2), encoding="utf-8")
-    print(f"\nwritten to {PREDICTIONS_JSON}")
+    print()
+    for (season_slug, gameweek), round_predictions in sorted(group_by_gameweek(report).items()):
+        try:
+            path = save_round(round_predictions, season_slug, gameweek, force=args.force)
+        except RoundAlreadyStored as exc:
+            print(exc, file=sys.stderr)
+            return 1
+        print(f"stored {len(round_predictions)} fixture(s) as {path.relative_to(ROUNDS_DIR)}")
 
     if not args.replay and UPCOMING_SEASON.fifa_edition != "EA FC 27":
         print(

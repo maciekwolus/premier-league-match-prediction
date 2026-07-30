@@ -34,8 +34,9 @@ cd C:\repositories\premier-league-match-prediction
 
 Opens **http://localhost:8501**. `Ctrl+C` in that terminal stops it.
 
-That is the whole thing — the report reads `data/final/predictions.json`, which is already
-on disk, so nothing needs rebuilding first. To change what it shows:
+That is the whole thing — the report opens on the newest round stored under
+`data/final/rounds/`, which is already on disk, so nothing needs rebuilding first. To
+predict another round:
 
 ```bash
 .venv\Scripts\python.exe -m src.predict.gameweek --replay
@@ -58,7 +59,7 @@ Then reload the browser.
 .venv\Scripts\python.exe -m src.predict.gameweek
 ```
 
-Predicts the next round of fixtures and writes `data/final/predictions.json`, which is what
+Predicts the next round of fixtures and stores it under `data/final/rounds/`, which is what
 the report renders.
 
 | Flag | Effect |
@@ -66,6 +67,12 @@ the report renders.
 | `--replay` | Predict the last round that was actually **played**, so the output can be checked against reality |
 | `--model NAME` | `dixon-coles-squad` (default), `poisson-glm`, `dixon-coles`, `baseline-elo` |
 | `--offline` | Never download fixtures; use `data/manual/upcoming_fixtures.csv` only |
+| `--force` | Replace a round already stored. Without it, re-running a stored round exits 1 |
+
+**A stored round is not rewritten.** Predicting a gameweek that already has a file fails
+rather than overwriting it, because the archive exists to show what the model said *before*
+those matches were played — and a record that can be quietly replaced afterwards proves
+nothing. `--force` is there for when you genuinely mean it.
 
 **`--replay` is the only way to run this between seasons.** The Premier League fixture
 feed is empty from June to August, so without it there is nothing to predict. The report
@@ -190,7 +197,7 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 336 tests, about twenty seconds |
+| `-m pytest` | All 359 tests, about fifteen seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |
@@ -226,6 +233,6 @@ Run lint, format and the full suite before opening a PR.
 | `ImportError` for a function that exists | Streamlit did not reload the module. Restart the server |
 | `FileNotFoundError` on a parquet | That build stage has not run. See the order above |
 | `load_fifa` exits 1 | The Kaggle CSVs are not in `data/raw/fifa/` |
-| The report shows nothing | `data/final/predictions.json` is missing. Run `src.predict.gameweek --replay` |
+| The report shows nothing | No round is stored under `data/final/rounds/`. Run `src.predict.gameweek --replay` |
 | Most cards say 1-1 | Largely real — 1-1 tops about 60% of matches on the default model, and more than that in a small round. If it is *literally* every card, check `--model`: `poisson-glm` hedges to 74% |
 | The report shows last season | That is `--replay`, and the banner says so |
