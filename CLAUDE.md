@@ -16,7 +16,7 @@ COMMANDS.md, not in the README, which links to them instead.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
 read it before starting work. **All ten phases are complete** — the pipeline runs from raw
-downloads to a Streamlit report, and 387 tests cover it.
+downloads to a Streamlit report, and 413 tests cover it.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -239,6 +239,35 @@ round exactly once, so a postponed fixture played six weeks later still lands co
 midweek rounds do not merge into the weekend. **Do not assume 10 fixtures to a round** —
 measured on 2025/26, 36 of the 38 come out at exactly 10 and 2 split because a match
 crossed a round boundary. `gameweek_sizes` reports rather than validates for that reason.
+
+**Unavailable players are removed before the XI is picked, never after.** `most_used_eleven`
+filters suspended and hand-flagged players out of the pool, so the next-most-used player
+steps up and the side is still eleven. Dropping them afterwards fields ten and understates
+the squad, which is a larger error than the absence. A club whose recent history shows
+exactly eleven names has nobody to promote and genuinely yields ten — that is honest, and
+`rated_share` falls to say so.
+
+**Every red card is one match, deliberately.** The offence is not in the data — only 7 of
+318 reds carry a yellow on the same row, so a second yellow cannot be told from violent
+conduct. Guessing three matches would remove a player who is actually available, and that
+is the worse direction of error. Yellow accumulation uses the real tiers (5/10/15 within
+19/32/38 club matches); the third has never fired in seven seasons.
+
+**Suspensions are a small effect and were measured, not assumed.** On 2025/26 they touch
+8.3% of team-matches, and the median change in squad overall is **zero** — usually the
+player sent off was not in the expected XI anyway. Mean −0.084 against a column standard
+deviation of 3.4. Occasionally the change is positive, because the twelfth-most-used player
+can be rated above the eleventh. Do not oversell this feature on the strength of it being
+correct.
+
+**The Fantasy Premier League API is the best free source found for anything live.**
+`https://fantasy.premierleague.com/api/bootstrap-static/` gives 564 players with `status`,
+`chance_of_playing_next_round` and a `news` string; `/api/fixtures/` gives all 380 fixtures
+with kickoff times and *official* gameweek numbers. Free, no authentication, JSON, all 20
+clubs. **It is undocumented and can change without notice**, so treat a schema change as
+expected rather than exceptional. Club names need mapping like every other source
+(`Man Utd`, `Spurs`), and player names match Understat only 57–61% on exact normalisation,
+so reaching usable coverage means the Phase 4 cascade again, not a direct join.
 
 **Our score and the market's are always taken over the same fixtures.** `report/results.py`
 computes both RPS numbers over matches that were *both played and priced*, never ours over

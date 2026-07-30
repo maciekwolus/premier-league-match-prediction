@@ -20,23 +20,42 @@ ELEVEN = [
 ]
 
 
-def make_lineups(team="Arsenal", matches=6, players=None, start_date="2026-01-01"):
-    """Lineup rows for several matches, in the shape the XI picker expects."""
+def make_lineups(
+    team="Arsenal",
+    matches=6,
+    players=None,
+    start_date="2026-01-01",
+    season="2025/26",
+    cards=None,
+):
+    """Lineup rows for several matches, in the shape the XI picker expects.
+
+    Carries ``season`` and card columns because the real table does: suspensions are
+    counted against the club's matches within a season, so a fixture missing either would
+    be testing a shape that cannot occur.
+
+    ``cards`` maps a match index to {player: (yellows, reds)}.
+    """
     players = players or ELEVEN
+    cards = cards or {}
     rows = []
     date = pd.Timestamp(start_date)
 
     for match in range(matches):
         for name, position in players:
+            yellows, reds = cards.get(match, {}).get(name, (0, 0))
             rows.append(
                 {
                     "match_id": f"m{match}",
                     "date": date,
+                    "season": season,
                     "team": team,
                     "player": name,
                     "position": position,
                     "minutes": 90,
                     "is_starter": True,
+                    "yellow_cards": yellows,
+                    "red_cards": reds,
                 }
             )
         date += pd.Timedelta(days=7)
@@ -217,6 +236,25 @@ def make_fifa_ratings(season="2025/26", players=None, overall=78):
     )
 
 
+def squad_with_bench(team="Arsenal", season="2026/27", cards=None):
+    """A regular eleven plus two squad players who started once.
+
+    The reserves start rarely on purpose: with everyone on equal appearances the eleven
+    would be picked by an arbitrary tie-break, and a test resting on that proves nothing.
+    """
+    regulars = make_lineups(
+        team=team, start_date="2026-01-01", season=season, cards=cards, matches=6
+    )
+    bench = make_lineups(
+        team=team,
+        start_date="2026-01-01",
+        season=season,
+        matches=1,
+        players=[("Sub Att", "FW"), ("Sub Mid", "MC")],
+    )
+    return pd.concat([regulars, bench], ignore_index=True)
+
+
 def make_fixture(home="Arsenal", away="Chelsea", season="2026/27"):
     return pd.DataFrame(
         [
@@ -278,6 +316,58 @@ def test_a_stronger_squad_scores_higher(monkeypatch):
 
     assert by_team["Arsenal"] == pytest.approx(84)
     assert by_team["Chelsea"] == pytest.approx(71)
+
+
+def test_a_suspension_changes_the_expected_squad(monkeypatch):
+    """The check this project exists to make. A squad-quality feature that computes a
+    suspension correctly and then feeds an unchanged number to the model would pass every
+    other test here - the whole Phase 9 lesson was a mechanism that was never called.
+
+    The suspended player is one the club always starts, so his absence must be visible in
+    the XI, not merely in some intermediate set.
+    """
+    # A red card in the club's last match before the fixture being predicted.
+    sent_off = {5: {"Att 0": (0, 1)}}
+    lineups = squad_with_bench(cards=sent_off)
+
+    available, _ = squads.expected_squad_players(
+        make_fixture(), lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+    arsenal = available[available["team"] == "Arsenal"]
+
+    assert "Att 0" not in set(arsenal["player"])
+    # Still eleven strong: a squad player stepped up rather than a hole appearing.
+    assert len(arsenal) == 11
+    assert "Sub Att" in set(arsenal["player"])
+
+
+def test_a_clean_squad_keeps_everyone():
+    """The other half of the same check - without a card, nobody is dropped."""
+    available, _ = squads.expected_squad_players(
+        make_fixture(), squad_with_bench(), make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+    arsenal = available[available["team"] == "Arsenal"]
+
+    assert "Att 0" in set(arsenal["player"])
+    assert "Sub Att" not in set(arsenal["player"])
+
+
+def test_a_club_with_nobody_to_promote_fields_ten():
+    """Honest about the thin case rather than inventing a twelfth player.
+
+    A club whose recent history shows exactly eleven names has no replacement to promote,
+    so the expected XI is ten. The aggregations average over whoever is there, and
+    ``rated_share`` falls, which is the correct signal: we know less about this side.
+    """
+    lineups = make_lineups(
+        team="Arsenal", start_date="2026-01-01", season="2026/27", cards={5: {"Att 0": (0, 1)}}
+    )
+
+    available, _ = squads.expected_squad_players(
+        make_fixture(), lineups, make_player_map(), make_fifa_ratings(), "2025/26"
+    )
+
+    assert len(available[available["team"] == "Arsenal"]) == 10
 
 
 def test_a_transfer_is_reflected_in_the_squad(monkeypatch):
