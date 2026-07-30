@@ -5,10 +5,9 @@ the page looks authoritative either way. These check the claims the report makes
 than that it renders.
 """
 
-import json
-
 import pytest
 
+from src.predict.archive import save_round
 from src.report.view import (
     NOTABLE_DISAGREEMENT,
     as_percent,
@@ -202,18 +201,26 @@ def test_modal_scoreline_share_of_nothing_is_zero():
 # ----------------------------------------------------------------- loading
 
 
-def test_missing_prediction_file_yields_nothing(tmp_path):
+def test_an_empty_archive_yields_nothing(tmp_path):
     """A fresh clone has not run the predictor yet; the page must still open."""
-    assert load_predictions(tmp_path / "absent.json") == []
+    assert load_predictions(tmp_path / "no rounds here") == []
 
 
 def test_predictions_round_trip(tmp_path):
-    path = tmp_path / "predictions.json"
-    path.write_text(json.dumps([make_match()]), encoding="utf-8")
+    save_round([make_match()], "2026_27", 1, root=tmp_path)
 
-    loaded = load_predictions(path)
+    loaded = load_predictions(tmp_path)
     assert len(loaded) == 1
     assert loaded[0]["home_team"] == "Arsenal"
+
+
+def test_the_page_shows_the_most_recent_round(tmp_path):
+    """With a season of rounds stored, the report opens on the newest, not the first."""
+    save_round([make_match(home="Old")], "2026_27", 1, root=tmp_path)
+    save_round([make_match(home="Newest")], "2026_27", 12, root=tmp_path)
+    save_round([make_match(home="Middle")], "2026_27", 9, root=tmp_path)
+
+    assert load_predictions(tmp_path)[0]["home_team"] == "Newest"
 
 
 def test_as_percent_rounds_to_whole_numbers():

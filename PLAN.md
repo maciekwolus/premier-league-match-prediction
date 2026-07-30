@@ -3,7 +3,7 @@
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
 > a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 336 tests, none needing network or
+> predictions for fixtures that have not been played. 359 tests, none needing network or
 > data.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
@@ -14,10 +14,11 @@
 > what the plan expected against what happened is the more useful record. `CLAUDE.md`
 > describes the code as it now stands.
 >
-> **Stage two (Phases 11–15) is planned and not started** — preparing for the 2026/27
-> season: archived predictions, squads corrected against a ratings edition that will not
-> exist, a browsable gameweek history scored against reality, and suspensions. Phase 11
-> is first because it is the only one that cannot be done late.
+> **Stage two: Phase 11 is done, 12–15 remain.** Preparing for the 2026/27 season —
+> predictions are now archived per gameweek and never rewritten, which was the one piece
+> that could not be done late. Still to come: squads corrected against a ratings edition
+> that will not exist, a browsable gameweek history scored against reality, and
+> suspensions.
 
 ## Goal
 
@@ -408,9 +409,24 @@ breaking the first time a match is moved.
 
 | Deliverable | Test that it works |
 |---|---|
-| `gameweek_of(matches)` | A complete season yields gameweeks 1–38; the two split rounds are expected, not a failure |
-| Immutable round archive | Re-running a stored gameweek leaves the file byte-identical |
+| `assign_gameweeks(matches)` | A complete season yields gameweeks 1–38; the two split rounds are expected, not a failure |
+| Immutable round archive | Re-running a stored gameweek refuses and exits 1 |
 | Migration of the current file | The report reads the archive and renders exactly as before |
+
+**Done.** 23 new tests, 359 in total. Two things worth recording.
+
+**The archive nearly landed in an occupied directory.** The plan said
+`data/final/predictions/`, which `evaluate.compare --save` already owns for its per-model
+backtest tables. Nothing would have broken immediately — the glob is specific enough — but
+two unrelated things in one directory is how a glob quietly starts matching the wrong
+files later. It went to `data/final/rounds/` instead.
+
+**The gameweek derivation was checked against something it could not have fitted to.**
+`--replay` predicts the final round of 2025/26, and the derivation independently called it
+gameweek 38. That is the kind of agreement a wrong rule does not produce by accident.
+
+`predictions.json` is gone rather than kept as a convenience mirror. Two copies of one
+round invite them to disagree, and the page would show whichever was wrong.
 
 ## Phase 12 — Squads for 2026/27 *(~1–2 sessions)*
 
@@ -524,8 +540,13 @@ two agents early.
 That gets real data on disk within one session.~~ *Done, along with everything through
 Phase 9.*
 
-**Next action: Phase 11 — archive every prediction.** Not the most interesting phase, and
+~~**Next action: Phase 11 — archive every prediction.** Not the most interesting phase, and
 that is not the criterion. It is the only one whose cost grows while it waits: each round
 predicted without it is a round of track record that no later work can recover. Phases 12
 to 14 can be built in any order once it lands, though 12 gates predicting anything in
-2026/27 at all.
+2026/27 at all.~~ *Done.*
+
+**Next action: Phase 12 — squads for 2026/27.** It gates predicting anything in the new
+season at all, and it is blocked on two answers that cannot be guessed: the promoted and
+relegated clubs, and where a full-season fixture list comes from. Phases 13 and 14 can be
+built in either order after it.

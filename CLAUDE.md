@@ -16,7 +16,7 @@ COMMANDS.md, not in the README, which links to them instead.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
 read it before starting work. **All ten phases are complete** — the pipeline runs from raw
-downloads to a Streamlit report, and 336 tests cover it.
+downloads to a Streamlit report, and 359 tests cover it.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -105,7 +105,7 @@ stage can be rebuilt without redoing the ones before it:
 ```
 data/raw/        as downloaded, never modified in place
 data/processed/  cleaned and joined, one parquet per source
-data/final/      the model-ready feature table
+data/final/      the model-ready feature table, and rounds/ - the prediction archive
 data/manual/     hand-written override files (the only committed data)
 ```
 
@@ -223,9 +223,26 @@ from the wrong folder is the more common failure and PowerShell reports it as *"
 report's empty state is the one message a stuck reader is guaranteed to reach, so it
 carries both, with the repo path derived at runtime rather than hardcoded.
 
+**A stored round is never rewritten, and that refusal is the feature.**
+`predict.archive.save_round` raises `RoundAlreadyStored` unless passed `force=True`; the
+CLI exits 1. The archive answers one question — what did the model say *before* those
+matches were played — and a file that can be silently replaced after the result is known
+answers nothing. It also cannot be reconstructed: re-running a past round predicts it with
+today's model and today's data, and that output is indistinguishable from the original.
+Written at the time or not at all. The report reads the newest stored round and there is
+deliberately no "latest" file beside the archive, because two copies of one round invite
+them to disagree and the page would show whichever is wrong.
+
+**Gameweeks are derived, because no upstream source publishes them.** `data/gameweeks.py`
+counts each club's matches within a season rather than clustering dates: a club plays each
+round exactly once, so a postponed fixture played six weeks later still lands correctly and
+midweek rounds do not merge into the weekend. **Do not assume 10 fixtures to a round** —
+measured on 2025/26, 36 of the 38 come out at exactly 10 and 2 split because a match
+crossed a round boundary. `gameweek_sizes` reports rather than validates for that reason.
+
 **The report states whether it is showing upcoming fixtures or a replay.** A replayed
 round otherwise reads as next week's matches, since the cards look identical either way.
-`predictions.json` carries a `mode` field for exactly this.
+Every stored prediction carries a `mode` field for exactly this.
 
 ## Rules that matter
 

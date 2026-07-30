@@ -337,7 +337,7 @@ python -m src.predict.gameweek
 ```
 
 Trains on everything known, then predicts fixtures that have not been played, writing
-`data/final/predictions.json`. Uses `dixon-coles-squad` by default — see
+a new file under `data/final/rounds/`, one per gameweek. Uses `dixon-coles-squad` by default — see
 [why the report does not use the best model](#why-the-report-does-not-use-the-best-model)
 — and `--model poisson-glm` switches to the more accurate outcome predictor:
 
@@ -449,7 +449,7 @@ Five tables in `data/processed/`, then the feature table and the predictions in
 | `processed/fifa_players.parquet` | 127,930 | Player ratings per season; `in_premier_league` flags the season's 20 clubs |
 | `processed/player_map.parquet` | 3,874 | Each Understat player linked to their FIFA entry |
 | `final/features.parquet` | 2,660 | The model-ready table — one row per match, 99 columns |
-| `final/predictions.json` | one round | Scorelines and outcome probabilities for the fixtures predicted |
+| `final/rounds/<season>/gwNN.json` | one round each | Scorelines and outcome probabilities, stored permanently as predicted |
 
 Every stage validates before writing and raises rather than emitting a suspect table:
 380 matches per season, 20 teams, 19 home and 19 away each, 11 starters per side, both

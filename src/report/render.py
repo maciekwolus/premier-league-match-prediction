@@ -346,8 +346,8 @@ def empty_notice(repo_root: str = REPO_ROOT_HINT) -> str:
     """
     return (
         '<div class="pl-notice"><b>NO PREDICTIONS YET.</b><br><br>'
-        "The report reads <code>data/final/predictions.json</code> and there is none. "
-        "Generate it — from the project folder, in a terminal:<br><br>"
+        "The report reads <code>data/final/rounds/</code> and no round has been "
+        "stored yet. Predict one — from the project folder, in a terminal:<br><br>"
         f"<code>cd {escape(repo_root)}</code><br>"
         "<code>.venv\\Scripts\\python.exe -m src.predict.gameweek --replay</code>"
         "<br><br>Then reload this page. <code>--replay</code> predicts the last round "
