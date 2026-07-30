@@ -364,5 +364,41 @@ h1 {{
 }}
 .pl-notice b {{ color: {ACCENT_2}; }}
 .pl-notice code {{ color: {ACCENT_2}; background: rgba(0,0,0,0.35); padding: 0 0.25rem; }}
+
+/* A caveat, not an alert. Same shape as a notice but muted, so the warning about a
+   small sample does not shout louder than the numbers it is qualifying. */
+.pl-notice-quiet {{
+  border-color: {MUTED}; background: rgba(124,135,152,0.07);
+  color: {MUTED};
+}}
+.pl-notice-quiet b {{ color: {INK}; }}
+
+/* --------------------------------------------------------- results and scorecard */
+
+/* The result of a match that has been played, on its own card. */
+.pl-result {{
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.4rem 0.55rem; margin-bottom: 0.5rem;
+  border: 2px solid {MUTED};
+  font-family: ui-monospace, monospace; font-size: 0.68rem;
+}}
+.pl-result-key {{ color: {MUTED}; letter-spacing: 0.1em; }}
+.pl-result-score {{
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 0.8rem; color: {INK};
+}}
+/* An exact scoreline is rare enough to be worth colouring; the outcome alone is not. */
+.pl-hit {{ margin-left: auto; color: {UP}; letter-spacing: 0.08em; }}
+.pl-hit-soft {{ color: {MUTED}; }}
+.pl-miss {{ margin-left: auto; color: {MUTED}; letter-spacing: 0.08em; }}
+/* When both appear together the second must not be pushed to the right as well, or the
+   pair splits across the row and reads as two unrelated labels. */
+.pl-hit + .pl-miss {{ margin-left: 0.4rem; }}
+
+.pl-scorecard {{ border-color: {ACCENT_2}; }}
+/* Five cells, not the four the summary bar carries, so they need a fifth of the width
+   each - left at 25% the last one wraps onto a row of its own and reads as an
+   afterthought rather than the point. */
+.pl-scorecard .pl-stat {{ flex-basis: 20%; border-right-color: {ACCENT_2}; }}
 </style>
 """

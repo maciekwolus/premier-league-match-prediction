@@ -16,7 +16,7 @@ COMMANDS.md, not in the README, which links to them instead.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
 read it before starting work. **All ten phases are complete** — the pipeline runs from raw
-downloads to a Streamlit report, and 359 tests cover it.
+downloads to a Streamlit report, and 387 tests cover it.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -239,6 +239,24 @@ round exactly once, so a postponed fixture played six weeks later still lands co
 midweek rounds do not merge into the weekend. **Do not assume 10 fixtures to a round** —
 measured on 2025/26, 36 of the 38 come out at exactly 10 and 2 split because a match
 crossed a round boundary. `gameweek_sizes` reports rather than validates for that reason.
+
+**Our score and the market's are always taken over the same fixtures.** `report/results.py`
+computes both RPS numbers over matches that were *both played and priced*, never ours over
+everything and the bookmaker's over the subset it quoted. Scoring two models on different
+match sets produces a flattering number that looks entirely ordinary, and this is the one
+page element with a motive to be wrong.
+
+**A card admits both halves of a split result.** An exact scoreline can come with the wrong
+call: 1-1 leads the scorelines on a card whose headline verdict is HOME WIN, because the
+draw is the most likely single score while the home win is the most likely outcome. When
+such a match finishes 1-1 the card says `EXACT SCORE` *and* `WRONG CALL` — showing only the
+green half was the first version and it was advertising. Both of gameweek 38's exact hits
+are this case, so it is the normal one, not an edge case.
+
+**Small samples are labelled on the page, and a lucky one is contradicted.** Under 30
+scored matches the scorecard carries a caveat, and if that sample happens to beat the
+closing line the caveat says so explicitly and points at the 2,280-match backtest. Ten
+fixtures is a round, not evidence.
 
 **The report states whether it is showing upcoming fixtures or a replay.** A replayed
 round otherwise reads as next week's matches, since the cards look identical either way.

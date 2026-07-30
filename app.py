@@ -3,7 +3,7 @@
 Run with, from the project folder:
     .venv\\Scripts\\python.exe -m streamlit run app.py
 
-Reads ``data/final/predictions.json``, so produce that first:
+Reads the stored rounds under ``data/final/rounds/``, so produce one first:
     .venv\\Scripts\\python.exe -m src.predict.gameweek --replay
 
 Layout only. The shaping lives in ``src/report/view.py``, the card markup in
@@ -15,9 +15,21 @@ from __future__ import annotations
 
 import streamlit as st
 
-from src.report.render import empty_notice, legend_html, match_card, summary_bar
+from src.report.render import (
+    empty_notice,
+    legend_html,
+    match_card,
+    scorecard_bar,
+    summary_bar,
+)
 from src.report.theme import CSS
-from src.report.view import load_predictions, modal_scoreline_share, summarise
+from src.report.view import (
+    load_round_predictions,
+    modal_scoreline_share,
+    round_options,
+    season_scorecard,
+    summarise,
+)
 
 # Three across is what the card was sized for. Streamlit stacks columns on narrow
 # screens by itself, so no media query is needed.
@@ -63,14 +75,35 @@ def render_grid(predictions: list[dict]) -> None:
                 st.markdown(match_card(match), unsafe_allow_html=True)
 
 
+def choose_round(options: list[dict]) -> dict:
+    """The gameweek selector.
+
+    A page-level Streamlit widget, which is fine: the rule that interactivity must be CSS
+    applies to a *card*, because a card is one block of markup and a rerun would reflow
+    the grid. Rerunning to change which round is displayed is exactly what should happen.
+
+    Hidden entirely when only one round is stored - a dropdown with a single choice is
+    furniture, not a control.
+    """
+    if len(options) == 1:
+        return options[0]
+
+    labels = [option["label"] for option in options]
+    chosen = st.selectbox("GAMEWEEK", labels, index=0, label_visibility="collapsed")
+    return options[labels.index(chosen)]
+
+
 def main() -> None:
     st.markdown("# PREMIER LEAGUE ⚽ PREDICTIONS")
 
-    predictions = load_predictions()
-    if not predictions:
+    options = round_options()
+    if not options:
         st.markdown('<div class="pl-sub">no round loaded</div>', unsafe_allow_html=True)
         render_empty()
         return
+
+    selected = choose_round(options)
+    predictions = load_round_predictions(selected["season_slug"], selected["gameweek"])
 
     summary = summarise(predictions)
     repeated = modal_scoreline_share(predictions)
@@ -89,6 +122,16 @@ def main() -> None:
         st.markdown(legend_html(), unsafe_allow_html=True)
 
     st.markdown(summary_bar(summary, repeated), unsafe_allow_html=True)
+
+    # The record comes before the fixtures deliberately. A page that shows predictions
+    # and hides how they turned out is marketing; this is the number that qualifies
+    # everything below it.
+    card = season_scorecard(selected["season_slug"])
+    st.markdown(
+        scorecard_bar(card, selected["season_slug"].replace("_", "/")),
+        unsafe_allow_html=True,
+    )
+
     render_grid(predictions)
 
 

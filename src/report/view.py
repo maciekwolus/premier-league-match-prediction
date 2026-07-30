@@ -9,13 +9,61 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.predict.archive import latest_round
+from src.predict.archive import available_rounds, latest_round, load_round
+from src.report.results import attach_results, scorecard
 
 OUTCOMES = ("home", "draw", "away")
 
 # Below this the model and the market are saying the same thing, given that neither is
 # precise to a percentage point. Above it, the disagreement is worth pointing at.
 NOTABLE_DISAGREEMENT = 0.10
+
+
+def round_options(root: Path | None = None) -> list[dict]:
+    """Every stored round, newest first, as the selector needs it.
+
+    Newest first because the round you want is almost always the most recent one, and a
+    selector that opens on gameweek 1 in April makes you scroll past the whole season.
+    """
+    options = []
+    for season_slug, gameweek in reversed(available_rounds(root)):
+        options.append(
+            {
+                "season_slug": season_slug,
+                "gameweek": gameweek,
+                "label": f"{season_slug.replace('_', '/')}  ·  GW {gameweek}",
+            }
+        )
+    return options
+
+
+def load_round_predictions(
+    season_slug: str,
+    gameweek: int,
+    root: Path | None = None,
+    results: dict[str, dict] | None = None,
+) -> list[dict]:
+    """One stored round, with actual results attached where the matches were played.
+
+    ``results`` is injectable so this can be exercised without reading ``data/`` - the
+    tests build synthetic seasons and must stay meaningful when the real table changes.
+    """
+    return attach_results(load_round(season_slug, gameweek, root), results)
+
+
+def season_scorecard(
+    season_slug: str, root: Path | None = None, results: dict[str, dict] | None = None
+) -> dict:
+    """How every stored round of one season has fared, taken together.
+
+    Season-to-date rather than per-round, because a round is ten matches and the honest
+    reading of ten matches is that it says almost nothing.
+    """
+    matches: list[dict] = []
+    for stored_season, gameweek in available_rounds(root):
+        if stored_season == season_slug:
+            matches.extend(load_round(stored_season, gameweek, root))
+    return scorecard(attach_results(matches, results))
 
 
 def load_predictions(root: Path | None = None) -> list[dict]:
