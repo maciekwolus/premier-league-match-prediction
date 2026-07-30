@@ -586,6 +586,133 @@ need mapping (`Man Utd`, `Spurs`), exactly as every other source has.
 stable just freezes a guess. This also closes the one item from the original learning list
 never delivered — custom skills were promised after Phases 4 and 7 and never built.
 
+## Phase 16 — FPL player form as a weekly-updating quality signal *(~1–2 sessions)*
+
+The Fantasy Premier League API is already in this project's vocabulary: Phase 14's injury
+spike found it, and Phase 12 takes the club list and all 380 fixtures from it. The same
+`bootstrap-static/` payload carries a per-player scoring record — 564 players, each with
+`total_points`, `form`, `points_per_game`, `bonus`, `bps`, `influence`, `creativity`,
+`threat`, `ict_index`, `now_cost`, `cost_change_start`, `selected_by_percent` and `ep_next`.
+This phase asks whether any of it predicts goals. **It is written as an experiment with a
+kill criterion, not as a feature to be delivered.**
+
+**The likely answer, stated first: the obvious version is redundant.** FPL points are a
+re-encoding of goals, assists, clean sheets, minutes and cards, and `lineups.parquet`
+already carries goals, assists, xG, xA, minutes and cards per player per match, with
+rolling form features built over them. A rolling mean of a player's FPL points is a rolling
+mean of things the feature table already knows, passed through a scoring rulebook that
+discards information rather than adding it — a 25-yard screamer and a tap-in are both four
+points. If this phase is built as "add rolling FPL points as a feature", the honest
+expectation is that it moves nothing, and it should not be built that way.
+
+**The version that could actually pay makes a different claim: a player-quality signal that
+updates weekly.** Squad quality currently comes from FIFA ratings — an annual September
+snapshot — and Phase 12 already records the cost of that: by May 2027 the ratings are
+twenty months old, and a player who improved sharply during 2026/27 is rated as he was
+before it started. `form`, `ict_index`, `now_cost` and `selected_by_percent` move every
+gameweek. Two of those are not performance measures at all. Price and ownership are crowd
+judgement, aggregated over millions of managers, and that is a *different kind* of
+information from a rating — closer in character to the odds than to FIFA. It is also the
+one thing the FIFA pipeline cannot supply at any refresh rate, which is the whole reason
+this phase is worth an experiment rather than a shrug.
+
+Candidates, aggregated over the expected XI and entering the table as `home_`/`away_`/
+`diff_` like every other per-team feature:
+
+| Candidate | Source field | What it is |
+|---|---|---|
+| `squad_fpl_form` | `form` | Mean FPL points per match over the player's recent matches — FPL's own rolling form number |
+| `squad_fpl_ict` | `ict_index` | Composite of influence, creativity and threat: FPL's per-player contribution score, not a points total |
+| `squad_fpl_price` | `now_cost` | Current price. Moved by transfers in and out — crowd judgement about a player, updated daily |
+| `squad_fpl_price_change` | `cost_change_start` | Price movement since the season opened: who the crowd has *re-rated* during this season |
+| `squad_fpl_ownership` | `selected_by_percent` | Share of managers owning the player |
+| `squad_fpl_ep_next` | `ep_next` | FPL's own expected points for the coming gameweek — an external forecast, and the only field here that is itself somebody's model |
+
+`ict_index`, `now_cost`, `cost_change_start` and `selected_by_percent` are the block worth
+testing. The rest are there as the control: if the points-derived fields carry the result
+and the judgement-derived fields do not, that is the redundancy hypothesis confirmed, and
+the phase ends.
+
+### Leakage is the sharp edge here, sharper than in any previous phase
+
+**Clean-sheet points and goals-conceded points *are* the match result**, re-expressed. So
+are goal and assist points. As rolling features over *previous* matches they are entirely
+legitimate — that is the same argument that keeps shots and cards in `matches.parquet`. If
+the match being predicted falls inside the window, the model is reading the scoreline it is
+being asked to predict, and it will backtest beautifully.
+
+The project rule applies unchanged: `.shift(1).rolling(n)`, never `.rolling(n)`. And
+`FORBIDDEN` will not catch this one, because `squad_fpl_form` is an innocent-looking name
+for a column that can contain Saturday's clean sheet. The check that matters is the one
+`tests/test_form.py` already performs — **change a match's score, assert that match's own
+features do not move**, with the mirror test that later matches' features *do*. Every
+feature in the table above belongs under both, and a feature that cannot be put under them
+does not get built.
+
+**A second, quieter leak: the API serves current values only.** There is no as-of query.
+`form` fetched today is today's form, so joining it onto a match played in March silently
+attaches information from after that match. Historical values must come from a stored
+snapshot, and live values must be captured *before* each round and archived, the way
+Phase 11 archives predictions. Fetching at prediction time and again at scoring time would
+produce two different feature tables for one fixture.
+
+### The blocker is historical coverage, and it is real
+
+`element-summary/{player_id}/` gives `history` — per-gameweek rows — for the **current
+season only**. `history_past` gives previous seasons as **season totals**, one row per
+season, which cannot be shifted into a rolling pre-match window and is therefore useless
+for training. Walk-forward backtesting needs per-gameweek history across all seven seasons,
+so the official API alone cannot support this phase at all.
+
+The widely used third-party archive is the `vaastav/Fantasy-Premier-League` GitHub
+repository, which is understood to publish per-gameweek CSVs going back to 2016/17. **That
+is hearsay until checked** — the first task of this phase is a timeboxed verification: does
+it cover 2019/20 onwards, are the per-gameweek rows genuinely per-match, do the field names
+survive across seasons the way `load_fifa.COLUMN_ALIASES` had to handle, and does its
+licence permit the use. If the archive does not cover the seasons, the phase is dead on
+arrival and should be recorded as such rather than half-built against one season.
+
+**Name matching is the other cost, and it is Phase 4 again.** FPL names match Understat
+names on exact normalisation **57%** of the time, **61%** counting the short `web_name`
+form — the number Phase 14 already measured. That needs the club-and-season-scoped fuzzy
+cascade, not a fresh one, plus an overrides file in the established shape. Club names need
+mapping too (`Man Utd`, `Spurs`), exactly as every other source has. Budget this as work,
+not as a line.
+
+### Acceptance criteria
+
+| Gate | The number |
+|---|---|
+| Beats the baselines | RPS below `baseline-elo`'s **0.2051**. Plain Elo already beats AutoGluon on 85 features; that is the bar any new signal clears before it has earned its complexity |
+| Beats the model it extends | RPS below `dixon-coles-squad`'s **0.2087**, since that is the model that consumes squad quality and the only fair comparison |
+| Not leaking | Correlation with goal difference around **0.43**, which is what squad-quality difference and the closing odds both manage. Materially higher is leaking, not clever |
+| Leakage tests | Every new column under both `test_form.py` patterns — own match unmoved, later matches moved |
+| Coverage | Share of expected-XI minutes carrying an FPL match, reported per season like Phase 4's gate. A feature that is mostly nulls is a feature that does nothing, quietly |
+| Actually connected | Per the Phase 9 lesson: assert the predictions *move*. A squad-quality column that loads cleanly and changes no output is this project's signature failure |
+
+**Kill criterion, stated in advance so it cannot be negotiated afterwards.** One honest
+walk-forward run against `dixon-coles-squad`. If the full block does not beat 0.2087, and
+does not beat it in a majority of the season folds, **the phase is abandoned** — not tuned,
+not extended with more fields, not rescued by dropping the redundant control features and
+re-running until something clears. A few thousandths of RPS over 2,660 matches is inside
+the noise, so "slightly better overall, worse in three folds of six" counts as a failure,
+not a marginal pass. The deliverable in that case is a paragraph in this document saying it
+was tried and did not work, which is worth more than a feature nobody trusts.
+
+### What would make this fail
+
+- **The archive does not go back far enough**, or its per-gameweek rows are not per-match.
+  No training data, no phase.
+- **Name matching lands well below Phase 4's 98.6%** and the aggregates are computed over
+  half an XI, which makes the feature noise dressed as information.
+- **The block is redundant**, which is the base case: FPL points describe goals and assists,
+  and the feature table has those already at higher resolution.
+- **The API changes without notice.** It is undocumented — this is already recorded in
+  Phase 14 — so a field can be renamed or removed between gameweeks. A feature the live
+  prediction path depends on must degrade to a null and a warning, not a crash.
+- **We talk ourselves past the kill criterion.** The most likely failure of all, and the
+  reason the number is written down here before any code exists.
+
 ## Open questions blocking stage two
 
 | Question | Why it cannot be guessed |
