@@ -63,6 +63,11 @@ home/draw/away split, and where the model **disagrees with the market by more th
 points** — the only genuinely interesting thing a model can offer once a market exists.
 Club crests are trademarked, so each side gets a pixel kit instead, generated as inline SVG.
 
+Once a round has been played the cards show the final score and whether the call stood up,
+with a season-to-date scorecard putting our RPS next to the bookmaker's over the same
+fixtures. Under thirty scored matches it says plainly that this is not a sample — and if
+that small sample happens to beat the market, it says not to believe it.
+
 Every card opens an **expected XI** — both sides on a pitch, attackers meeting at the
 halfway line, with each player's FIFA rating and the team average. This is where the
 squad-quality signal stops being a number in a table:
@@ -124,7 +129,7 @@ src/evaluate/     scoring, walk-forward backtesting, the bookmaker benchmark
 src/predict/      fixtures, expected XIs, and predictions for unplayed matches
 src/report/       shaping predictions for display
 app.py            the Streamlit report
-tests/            359 tests, no network access and no reading of data/
+tests/            387 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, squad changes, fixtures (committed)
 ```
 

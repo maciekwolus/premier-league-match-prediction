@@ -3,7 +3,7 @@
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
 > a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 359 tests, none needing network or
+> predictions for fixtures that have not been played. 387 tests, none needing network or
 > data.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
@@ -14,11 +14,11 @@
 > what the plan expected against what happened is the more useful record. `CLAUDE.md`
 > describes the code as it now stands.
 >
-> **Stage two: Phase 11 is done, 12–15 remain.** Preparing for the 2026/27 season —
-> predictions are now archived per gameweek and never rewritten, which was the one piece
-> that could not be done late. Still to come: squads corrected against a ratings edition
-> that will not exist, a browsable gameweek history scored against reality, and
-> suspensions.
+> **Stage two: Phases 11 and 13 are done; 12, 14 and 15 remain.** Predictions are archived
+> per gameweek and never rewritten, and the report browses stored rounds and scores them
+> against what happened. Still to come: squads corrected against a ratings edition that
+> will not exist, suspensions, and the skills. Phase 12 is blocked on two answers that
+> cannot be guessed.
 
 ## Goal
 
@@ -469,6 +469,29 @@ overlay.
 **Open dependency:** football-data's `fixtures.csv` covers only the next few days, so a
 selector spanning a whole season needs the 2026/27 schedule from another source.
 
+**Done.** 30 new tests, 387 in total. Three things worth recording.
+
+**The card was quietly flattering itself, and only the rendered page showed it.** An exact
+scoreline can arrive with the wrong call — 1-1 leads the scorelines on a card whose headline
+verdict is HOME WIN, since the draw is the likeliest single score while the home win is the
+likeliest outcome. The first version showed a green `EXACT SCORE CALLED` and dropped the
+fact that the call above it was wrong. Both of gameweek 38's exact hits are this case, so
+it is the normal one. Cards now say `EXACT SCORE` *and* `WRONG CALL`.
+
+**The archived round beats the market, which is exactly the trap.** RPS 0.2407 against the
+bookmaker's 0.2503 over ten fixtures. That is noise — the 2,280-match backtest has the
+closing line winning clearly — so the small-sample caveat detects the case and contradicts
+it in as many words rather than letting a good week read as skill.
+
+**Both RPS numbers are computed over the same fixtures**, only those played *and* priced.
+Scoring ourselves on everything and the bookmaker on the subset it quoted would produce a
+flattering number that looks entirely ordinary, and there is a test whose only job is to
+stop that.
+
+The selector stays hidden while one round is stored, since a dropdown with a single choice
+is furniture. It appears from the second round on; the multi-round behaviour is covered by
+tests rather than waiting for a season to prove it.
+
 ## Phase 14 — Availability: suspensions, then injuries *(~1–2 sessions)*
 
 **Suspensions come free from data already on disk.** `lineups.parquet` carries per-player
@@ -546,7 +569,10 @@ predicted without it is a round of track record that no later work can recover. 
 to 14 can be built in any order once it lands, though 12 gates predicting anything in
 2026/27 at all.~~ *Done.*
 
-**Next action: Phase 12 — squads for 2026/27.** It gates predicting anything in the new
-season at all, and it is blocked on two answers that cannot be guessed: the promoted and
-relegated clubs, and where a full-season fixture list comes from. Phases 13 and 14 can be
-built in either order after it.
+~~**Next action: Phase 12 — squads for 2026/27.**~~ *Phase 13 was taken first, since 12 is
+blocked and 13 was not.*
+
+**Next action: Phase 14 — suspensions**, which is unblocked and needs nothing from
+outside: red cards and yellow accumulation both come from `lineups.parquet`. Phase 12 still
+gates predicting anything in 2026/27 and still needs two answers that cannot be guessed —
+the promoted and relegated clubs, and where a full-season fixture list comes from.

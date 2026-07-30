@@ -13,6 +13,7 @@ from html import escape
 from pathlib import Path
 
 from src.report.badges import badge_data_uri
+from src.report.results import verdict
 from src.report.view import (
     as_percent,
     disagreement,
@@ -205,10 +206,45 @@ def _lineups(match: dict) -> str:
     )
 
 
+def _result_row(match: dict) -> str:
+    """What actually happened, on a card for a match that has been played.
+
+    Both claims are shown and they are not the same size. Getting the outcome right is
+    ordinary - the favourite wins most weeks. Getting the exact scoreline right is a
+    one-in-eight shot at best, so it is marked when it lands and passed over quietly when
+    it does not, rather than displayed as a failure.
+    """
+    result = verdict(match)
+    if not result:
+        return ""
+
+    if result["exact"] and result["outcome"]:
+        note = '<span class="pl-hit">EXACT SCORE CALLED</span>'
+    elif result["exact"]:
+        # Both facts, because they disagree and the flattering one is not the whole
+        # story. A 1-1 leading scoreline sits happily on a card whose headline verdict is
+        # HOME WIN - the draw is the most likely single score while the home win is the
+        # most likely outcome - so an exact hit here came with the wrong call above it.
+        # Showing only the green half would be advertising.
+        note = '<span class="pl-hit">EXACT SCORE</span><span class="pl-miss">WRONG CALL</span>'
+    elif result["outcome"]:
+        note = '<span class="pl-hit pl-hit-soft">OUTCOME RIGHT</span>'
+    else:
+        note = '<span class="pl-miss">MISSED</span>'
+
+    return (
+        f'<div class="pl-result">'
+        f'<span class="pl-result-key">FINAL</span>'
+        f'<span class="pl-result-score">{escape(result["score"])}</span>'
+        f"{note}"
+        f"</div>"
+    )
+
+
 def match_card(match: dict) -> str:
     """One fixture as a self-contained block of HTML."""
     home, away = escape(match["home_team"]), escape(match["away_team"])
-    verdict = most_likely_outcome(match).upper()
+    most_likely = most_likely_outcome(match).upper()
     expected = match.get("expected_goals", {})
     goals = (
         f'<span class="pl-xg">xG {expected.get("home", 0):.2f} - '
@@ -227,7 +263,8 @@ def match_card(match: dict) -> str:
         f'<div class="pl-team">{_badge(match["away_team"])}'
         f'<span class="pl-name">{away}</span></div>'
         "</div>"
-        f'<div class="pl-verdict">{verdict}</div>'
+        f'<div class="pl-verdict">{most_likely}</div>'
+        f"{_result_row(match)}"
         f'<div class="pl-scores">{_scoreline_bars(match)}</div>'
         f"{_outcome_grid(match)}"
         f"{_market_row(match)}"
@@ -241,6 +278,22 @@ def match_card(match: dict) -> str:
 # markup rather than describing it means the legend cannot drift out of step with the
 # cards: both are built from the same CSS classes.
 LEGEND_ROWS: tuple[tuple[str, str, str], ...] = (
+    (
+        "FINAL",
+        '<div class="pl-result">'
+        '<span class="pl-result-key">FINAL</span>'
+        '<span class="pl-result-score">2-1</span>'
+        '<span class="pl-hit">EXACT SCORE CALLED</span></div>'
+        '<div class="pl-result">'
+        '<span class="pl-result-key">FINAL</span>'
+        '<span class="pl-result-score">0-3</span>'
+        '<span class="pl-miss">MISSED</span></div>',
+        "On a round that has been played, what actually happened — and whether the "
+        "prediction stood up. <b>EXACT SCORE CALLED</b> is the leading scoreline landing, "
+        "which is roughly a one-in-eight shot. <b>OUTCOME RIGHT</b> is the weaker claim "
+        "that the most likely of home/draw/away happened, which the favourite manages "
+        "about half the time anyway.",
+    ),
     (
         "SCORELINES",
         '<div class="pl-score-row">'
@@ -356,6 +409,82 @@ def empty_notice(repo_root: str = REPO_ROOT_HINT) -> str:
         "<code>.venv/bin/python</code>."
         "</div>"
     )
+
+
+def scorecard_bar(card: dict, season_label: str) -> str:
+    """How the stored predictions have actually done, season to date.
+
+    Deliberately leads with the comparison rather than the hit count. "6 of 10 outcomes
+    right" sounds like a result and is not one - the favourite wins about that often.
+    Our RPS beside the bookmaker's over the same fixtures is the only line here that
+    carries information, and when the sample is too small to read, the bar says so
+    instead of letting a good week look like skill.
+    """
+    if not card["played"]:
+        return ""
+
+    cells = [
+        ("SEASON", escape(season_label), "Which season these stored predictions cover."),
+        (
+            "SCORED",
+            f"{card['played']}",
+            "Matches predicted before kick-off that have since been played.",
+        ),
+        (
+            "OUTCOME RIGHT",
+            f"{card['outcome']}/{card['played']}",
+            "How often the most likely of home/draw/away happened. The favourite wins "
+            "roughly half the time, so this is a floor to beat, not an achievement.",
+        ),
+        (
+            "EXACT SCORE",
+            f"{card['exact']}/{card['played']}",
+            "How often the leading scoreline was the final score. One in eight is about "
+            "the ceiling for anyone.",
+        ),
+    ]
+
+    if card["market_rps"] is not None:
+        gap = card["rps"] - card["market_rps"]
+        verdict_text = "ahead" if gap < 0 else "behind"
+        cells.append(
+            (
+                "RPS vs MARKET",
+                f"{card['rps']:.4f} / {card['market_rps']:.4f}",
+                f"Ranked Probability Score, ours then the bookmaker's, over the "
+                f"{card['compared']} fixtures both of us priced. Lower is better, so we "
+                f"are {verdict_text} by {abs(gap):.4f}.",
+            )
+        )
+
+    rendered = "".join(
+        f'<div class="pl-stat" title="{escape(hint)}">'
+        f'<span class="pl-stat-key">{key}</span>'
+        f'<span class="pl-stat-val">{value}</span></div>'
+        for key, value, hint in cells
+    )
+
+    caveat = ""
+    if card["small_sample"]:
+        ahead = card["market_rps"] is not None and card["rps"] < card["market_rps"]
+        beating = (
+            " <b>This sample currently shows us ahead of the market — do not believe it.</b> "
+            "The walk-forward backtest over 2,280 matches has the closing line winning by "
+            "a clear margin, and a run of fixtures that says otherwise is the noise, not "
+            "the signal."
+            if ahead
+            else ""
+        )
+        caveat = (
+            '<div class="pl-notice pl-notice-quiet">'
+            f"<b>{card['played']} matches is not a sample.</b> These numbers are here "
+            "because the record should be visible from the first round, not because a "
+            "round proves anything — over ten fixtures the gap between a good model and "
+            f"a bad one is mostly luck.{beating}"
+            "</div>"
+        )
+
+    return f'<div class="pl-statbar pl-scorecard">{rendered}</div>{caveat}'
 
 
 def summary_bar(summary: dict, repeated: float) -> str:

@@ -241,7 +241,7 @@ def test_legend_explains_every_part_of_a_card():
     """Anything on a card that a newcomer cannot decode needs a row here."""
     legend = legend_html()
 
-    for key in ("SCORELINES", "H / D / A", "BOOKMAKER", "DISAGREEMENT", "xG", "KITS"):
+    for key in ("FINAL", "SCORELINES", "H / D / A", "BOOKMAKER", "DISAGREEMENT", "xG", "KITS"):
         assert key in legend
 
 
