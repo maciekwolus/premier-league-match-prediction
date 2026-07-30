@@ -2,7 +2,7 @@
 
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
-> a 99-column feature table, eight models benchmarked against the closing line, and
+> a 99-column feature table, nine models benchmarked against the closing line, and
 > predictions for fixtures that have not been played. 336 tests, none needing network or
 > data.
 >
@@ -13,6 +13,11 @@
 > This document is kept as written, including the estimates that turned out wrong, since
 > what the plan expected against what happened is the more useful record. `CLAUDE.md`
 > describes the code as it now stands.
+>
+> **Stage two (Phases 11–15) is planned and not started** — preparing for the 2026/27
+> season: archived predictions, squads corrected against a ratings edition that will not
+> exist, a browsable gameweek history scored against reality, and suspensions. Phase 11
+> is first because it is the only one that cannot be done late.
 
 ## Goal
 
@@ -368,6 +373,131 @@ pipeline do not prove a feature is connected to anything.** Ask what calls it.
 
 ---
 
+# Stage two — ready for 2026/27
+
+The first ten phases were Phases 0–9; the numbering resumes at 11 so the two stages stay
+visually distinct. Stage one built a pipeline that predicts *a* round. Stage two makes it
+survive a live season: correct squads for a season whose ratings edition does not exist,
+a browsable history with scores against it, and a model that knows who is unavailable.
+
+**These four phases have a hard ordering constraint, and it is not the usual one.**
+Phase 11 is not the most interesting work, but it is the only piece that cannot be done
+late. Every other phase can be built whenever. A track record can only be built forwards.
+
+## Phase 11 — Archive every prediction *(~1 session)*
+
+Today `data/final/predictions.json` is a flat list, rewritten from scratch on every run.
+Last week's prediction does not exist the moment this week's is made.
+
+Becomes an append-only store, one file per round:
+
+```
+data/final/predictions/2026-27/gw01.json
+```
+
+**Written once, and refuses to overwrite without an explicit flag.** That refusal is the
+feature rather than a safety rail: an archive that can be quietly rewritten is not
+evidence of anything, and the whole point of Phase 13 is to show what we said *before*
+kickoff.
+
+This phase also introduces the gameweek, which does not currently exist anywhere — no
+upstream source gives a round number, only a date. The rule is each team's Nth match.
+Verified against 2025/26: **36 of 38 gameweeks come out at exactly 10 fixtures**, the
+remaining 2 split by rescheduling. Tests encode that, rather than asserting a clean 10 and
+breaking the first time a match is moved.
+
+| Deliverable | Test that it works |
+|---|---|
+| `gameweek_of(matches)` | A complete season yields gameweeks 1–38; the two split rounds are expected, not a failure |
+| Immutable round archive | Re-running a stored gameweek leaves the file byte-identical |
+| Migration of the current file | The report reads the archive and renders exactly as before |
+
+## Phase 12 — Squads for 2026/27 *(~1–2 sessions)*
+
+`UPCOMING_SEASON` already points at `EA FC 26`, so ratings carry forward as designed. What
+is missing is everything that makes those ratings describe *this* season's clubs.
+
+- **The twenty clubs.** `season_clubs()` reads participants from `matches.parquet`, which
+  is empty for a season that has not started. Needs the promoted and relegated three.
+- **Transfers.** One line per move in `data/manual/squad_changes.csv` — the file and its
+  loader already exist and already run before the matching cascade.
+- **Players with no FC 26 entry** — arrivals from other leagues, promoted-club squads —
+  go in `data/manual/player_ratings_manual.csv`.
+
+**Acceptance test, taken from CLAUDE.md's own rule: adding one transfer is one line plus a
+rebuild.** If it is ever two, the design is wrong.
+
+And per the Phase 9 lesson, the refresh **asserts the ratings actually moved** — a diff of
+squad-quality columns before and after, with a named player checked by hand. A squad file
+that loads cleanly and changes nothing is exactly the failure this project has already had
+once.
+
+Known limitation worth writing down now: by May 2027 these ratings are twenty months old.
+A player who improved sharply over 2026/27 is rated as he was in September 2025. That is
+a real cost of the carry-forward and it is not fixable without an edition that does not
+exist.
+
+## Phase 13 — Gameweek browser and the running scorecard *(~1–2 sessions)*
+
+A selector for any gameweek, played or not. Played rounds show the prediction against the
+actual score, and a season-to-date scorecard: our RPS beside the bookmaker's.
+
+That framing matters. The interesting claim is not "we called it" — it is **our hit rate
+next to theirs**, which is the same honesty the report already applies to a single fixture
+and the reason nothing here has ever claimed to beat the market.
+
+The gameweek selector is page-level, so an ordinary Streamlit widget is fine. The rule that
+interactivity inside a *card* must be CSS still holds, and still applies to the expected-XI
+overlay.
+
+**Open dependency:** football-data's `fixtures.csv` covers only the next few days, so a
+selector spanning a whole season needs the 2026/27 schedule from another source.
+
+## Phase 14 — Availability: suspensions, then injuries *(~1–2 sessions)*
+
+**Suspensions come free from data already on disk.** `lineups.parquet` carries per-player
+`yellow_cards` and `red_cards` — 318 reds and 9,575 yellows across seven seasons, about 45
+reds a season.
+
+| Rule | Source |
+|---|---|
+| Red card → out of the next match | Derived from `lineups.parquet` |
+| Yellow accumulation at 5 / 10 / 15 → 1 / 2 / 3 matches | Premier League rules, encoded in config |
+
+**The gap to state plainly: we cannot see the offence type.** A three-match violent-conduct
+ban will look like a one-match ban. Better to record that limit than to model it wrongly.
+
+Unavailable players drop out of the expected XI and the next-most-used player steps up.
+This changes the squad-quality *deviation* — which `dixon-coles-squad` already consumes —
+so **no model changes at all**. The feature plugs into a socket that already exists.
+
+Effect size must be measured rather than assumed: removing one starter moves a squad mean
+by roughly (player − replacement) ÷ 11. The test asserts the prediction actually moves,
+because a correct-looking feature that changes nothing is this project's signature failure.
+
+**Injuries begin with a spike, timeboxed, with a written go/no-go.** Usable means: free,
+no authentication, machine-readable, Premier League coverage, updated before gameweeks,
+and terms that permit the use. My honest expectation is that it returns nothing, in which
+case a manual override file is the answer — and we will have paid a little to know that
+rather than having assumed it.
+
+## Phase 15 — Skills *(~1 session)*
+
+`refresh-squads`, `refresh-gameweek`, and predicting the opening round.
+
+**Deliberately last.** A skill encodes a workflow; encoding one before the workflow is
+stable just freezes a guess. This also closes the one item from the original learning list
+never delivered — custom skills were promised after Phases 4 and 7 and never built.
+
+## Open questions blocking stage two
+
+| Question | Why it cannot be guessed |
+|---|---|
+| The three promoted and three relegated clubs for 2026/27 | The knowledge cutoff sits at the end of 2025/26. A wrong club list produces a report that looks authoritative and is wrong throughout |
+| Where the full 2026/27 fixture list comes from | The existing feed covers days, not seasons — Phase 13 cannot span a season without it |
+
+---
+
 ## Learning track with Claude
 
 | When | What | How to trigger |
@@ -376,8 +506,9 @@ pipeline do not prove a feature is connected to anything.** Ask what calls it.
 | Every phase | Commit per phase, branch per feature | "commit this" / "open a PR" |
 | Phase 2, 3 | Background tasks for long scrapes | happens automatically |
 | **Phase 4, 6** | **Parallel subagents** | *"use subagents for this"* |
-| After Phase 4 | **Custom skill** — `/refresh-data` re-runs the whole pipeline | "make this a skill" |
-| After Phase 7 | **Custom skill** — `/predict-gameweek` | "make this a skill" |
+| ~~After Phase 4~~ | ~~**Custom skill** — `/refresh-data`~~ — not built; moved to Phase 15 | "make this a skill" |
+| ~~After Phase 7~~ | ~~**Custom skill** — `/predict-gameweek`~~ — not built; moved to Phase 15 | "make this a skill" |
+| **Phase 15** | **Custom skills** — `refresh-squads`, `refresh-gameweek`, predict the opening round | *"build the skills"* |
 | Anytime | `/code-review` before merging | you run it |
 | Phase 0 | Hooks — auto-lint on edit | "set up a lint hook" |
 
@@ -389,5 +520,12 @@ Phases are sequential up to 5, because each feeds the next. Phase 3 (FIFA) is
 independent of Phase 2 (lineups), so those two can run in parallel if you want to try
 two agents early.
 
-**Next action:** Phase 0 + Phase 1 — skeleton and the match-results downloader.
-That gets real data on disk within one session.
+~~**Next action:** Phase 0 + Phase 1 — skeleton and the match-results downloader.
+That gets real data on disk within one session.~~ *Done, along with everything through
+Phase 9.*
+
+**Next action: Phase 11 — archive every prediction.** Not the most interesting phase, and
+that is not the criterion. It is the only one whose cost grows while it waits: each round
+predicted without it is a round of track record that no later work can recover. Phases 12
+to 14 can be built in any order once it lands, though 12 gates predicting anything in
+2026/27 at all.
