@@ -190,12 +190,24 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 331 tests, about six seconds |
+| `-m pytest` | All 336 tests, about twenty seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |
 | `-m ruff check .` | Lint |
 | `-m ruff format .` | Format |
+
+### Refresh the README screenshots
+
+With the report already running in another terminal:
+
+```bash
+.venv\Scripts\python.exe tools/screenshots.py docs/screenshots
+```
+
+Drives the Chrome already installed on the machine over the DevTools Protocol and rewrites
+both images in `docs/screenshots/`. Run it after any change to the report's look — the
+alternative is screenshots that quietly stop matching the page.
 
 **The tests never touch the network and never read `data/`** — they build synthetic
 seasons. So they stay meaningful when an upstream source changes, and a green run on a

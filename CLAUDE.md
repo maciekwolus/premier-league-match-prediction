@@ -8,9 +8,15 @@ Predicts Premier League **scorelines with probabilities** (`1-1 (11%) · 2-1 (9%
 just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → per-match
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
+**Four docs, four jobs — put a change in the right one.** `README.md` is the shop window:
+what this is, why it exists, screenshots, results. `SETUP.md` is the end-to-end install and
+run guide. `COMMANDS.md` is the flag-by-flag reference and the error-message table. This
+file is the operating manual for working *on* it. A run command belongs in SETUP.md and
+COMMANDS.md, not in the README, which links to them instead.
+
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
 read it before starting work. **All ten phases are complete** — the pipeline runs from raw
-downloads to a Streamlit report, and 247 tests cover it.
+downloads to a Streamlit report, and 336 tests cover it.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
