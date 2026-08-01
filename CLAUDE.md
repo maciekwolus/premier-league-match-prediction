@@ -300,6 +300,13 @@ fixtures is a round, not evidence.
 round otherwise reads as next week's matches, since the cards look identical either way.
 Every stored prediction carries a `mode` field for exactly this.
 
+**Three project skills live in `.claude/skills/`**, auto-discovered and committed, so they
+work for anyone who clones this. `refresh-squads` covers transfers and injuries and the
+verification that the change reached the model; `predict-round` covers predicting and
+archiving a gameweek, including why the archive refuses to overwrite; `check-report`
+covers verifying the page by measuring the DOM. They encode the *why* and the traps, not
+the command list — `COMMANDS.md` is the command list.
+
 ## Rules that matter
 
 **No data leakage.** Features may only use information available *before* kickoff. Shots,

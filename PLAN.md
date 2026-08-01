@@ -14,11 +14,12 @@
 > what the plan expected against what happened is the more useful record. `CLAUDE.md`
 > describes the code as it now stands.
 >
-> **Stage two: Phases 11–14 are done; only 15 remains.** **Gameweek 1 of 2026/27 is
-> predicted and archived** — the point of the whole stage. Predictions are stored per
-> gameweek and never rewritten, the report browses them and scores them against what
-> happened, suspensions come out of the cards already on disk, and the twenty clubs and
-> 380 fixtures of the new season come from the Fantasy Premier League API.
+> **Stage two is complete: Phases 11–15 all done.** **Gameweek 1 of 2026/27 is predicted
+> and archived** — the point of the whole stage. Predictions are stored per gameweek and
+> never rewritten, the report browses them and scores them against what happened,
+> suspensions come out of the cards already on disk, the twenty clubs and 380 fixtures of
+> the new season come from the Fantasy Premier League API, and three skills encode the
+> recurring workflows. Phase 16 remains as an optional experiment.
 
 ## Goal
 
@@ -614,6 +615,29 @@ need mapping (`Man Utd`, `Spurs`), exactly as every other source has.
 stable just freezes a guess. This also closes the one item from the original learning list
 never delivered — custom skills were promised after Phases 4 and 7 and never built.
 
+**Done.** Three skills in `.claude/skills/`, auto-discovered by Claude Code and committed
+so they work for anyone who clones the repo:
+
+| Skill | Covers |
+|---|---|
+| `refresh-squads` | Transfers, signings and injuries — and confirming the edit reached the model |
+| `predict-round` | Predicting and archiving a gameweek, and a new season's schedule |
+| `check-report` | Verifying the page by measuring the DOM rather than reading the code |
+
+The names ended up as `predict-round` and `check-report` rather than the planned
+`refresh-gameweek`, because both do more than refresh: one writes a permanent record, the
+other proves a change works.
+
+**What makes them worth more than COMMANDS.md is that they carry the reasoning and the
+traps.** A squad edit that loads cleanly may still change nothing — that has happened here.
+The archive refusing to overwrite is the feature working, not an error to route around. A
+front-end bug in this project is invisible in the source and obvious in the DOM. Each skill
+also says what a *correct* result looks like, including that a real squad change often
+moves the prediction barely at all, so nobody goes hunting for a bug that is not there.
+
+Every command and snippet in them was run verbatim before committing, and the archive's
+refusal message is quoted from the actual output rather than paraphrased.
+
 ## Phase 16 — FPL player form as a weekly-updating quality signal *(~1–2 sessions)*
 
 The Fantasy Premier League API is already in this project's vocabulary: Phase 14's injury
@@ -790,8 +814,10 @@ outside.~~ *Done.*
 
 ~~**Next action: Phase 12 — squads for 2026/27**, now unblocked.~~ *Done.*
 
-**Next action: Phase 15 — the skills**, which is the last of stage two and the one item
-from the original learning list never delivered. The workflows they should encode are now
-stable: refresh the squads, predict and archive a round, refresh the report.
+~~**Next action: Phase 15 — the skills.**~~ *Done.*
 
-Phase 16 is optional and deliberately framed as an experiment with a kill criterion.
+**Nothing is queued.** Stage two is finished and the pipeline runs end to end for a season
+that has not started. Phase 16 is on the table as an optional experiment, deliberately
+framed with a kill criterion — and its honest expectation is that the obvious version adds
+nothing. The other standing job is the seasonal one: as 2026/27 is played, keep predicting
+each round *before* it happens, because that record cannot be reconstructed afterwards.

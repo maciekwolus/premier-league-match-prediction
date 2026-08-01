@@ -240,6 +240,22 @@ Run lint, format and the full suite before opening a PR.
 
 ---
 
+## Skills
+
+Three skills under `.claude/skills/` cover the recurring workflows, and Claude Code picks
+them up automatically:
+
+| Skill | Covers |
+|---|---|
+| `refresh-squads` | A transfer, a new signing or an injury — and confirming the change actually reached the model |
+| `predict-round` | Predicting and archiving a gameweek, including a new season's schedule |
+| `check-report` | Verifying the page renders, by measuring it rather than reading the code |
+
+They exist because the commands are the easy half. What they carry is the reasoning and
+the traps — that a squad edit which loads cleanly may still change nothing, that the
+archive refusing to overwrite is the feature working, that a front-end bug here is
+invisible in the source.
+
 ## Getting unstuck
 
 | Symptom | Cause |
