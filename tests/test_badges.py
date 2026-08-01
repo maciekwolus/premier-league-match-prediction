@@ -124,3 +124,12 @@ def test_data_uri_is_self_contained():
 
 def test_badges_are_deterministic():
     assert badge_svg("Everton") == badge_svg("Everton")
+
+
+def test_every_club_of_the_upcoming_season_has_a_kit():
+    """A promoted club falls back to grey, which is correct as a default and wrong as a
+    permanent state once it is actually in the division - two of the three promoted for
+    2026/27 were rendering identically on the pitch view."""
+    for club in ("Coventry", "Hull", "Ipswich"):
+        assert club in CLUB_KITS
+        assert CLUB_KITS[club] != DEFAULT_KIT
