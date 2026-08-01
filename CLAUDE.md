@@ -14,9 +14,19 @@ run guide. `COMMANDS.md` is the flag-by-flag reference and the error-message tab
 file is the operating manual for working *on* it. A run command belongs in SETUP.md and
 COMMANDS.md, not in the README, which links to them instead.
 
-`PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
-read it before starting work. **All ten phases are complete** — the pipeline runs from raw
-downloads to a Streamlit report, and 435 tests cover it.
+`PLAN.md` is the source of truth for scope and what comes next; read it before starting
+work. It runs in two stages. **Stage one (Phases 0–9) built the pipeline** from raw
+downloads to a Streamlit report. **Stage two (Phases 11–15) made it survive a live
+season**: predictions archived per gameweek and never rewritten, a browsable history
+scored against reality, suspensions derived from cards already on disk, squads for a
+season whose ratings edition does not exist yet, and the skills. Both are complete and
+435 tests cover them. Phase 16 is planned and deliberately optional. There is no Phase 10
+— the numbering skips it so the two stages stay visually distinct.
+
+**The project now predicts a season it has no results for.** Training runs on 2019/20
+through 2025/26; the live target is 2026/27, whose twenty clubs and 380 fixtures come from
+the Fantasy Premier League API rather than from `matches.parquet`, which is empty for a
+season nobody has played.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -47,9 +57,10 @@ What exists in `data/processed/` after a full build:
 | `lineups.parquet` | 77,278 | player appearances: position, minutes, xG, xA, cards |
 | `fifa_players.parquet` | 127,930 | player ratings per season, every club, `in_premier_league` flags the season's 20 |
 | `player_map.parquet` | 3,874 | Understat player-season → FIFA player, with the rule that matched it |
+| `fpl_fixtures.parquet` | 380 | the upcoming season's schedule with *official* gameweek numbers |
 
-And `data/final/features.parquet`: 2,660 rows, 99 columns — one per match, nothing
-post-kickoff.
+And in `data/final/`: `features.parquet` — 2,660 rows, 99 columns, one per match and
+nothing post-kickoff — plus `rounds/<season>/gwNN.json`, the prediction archive.
 
 ## Commands
 
@@ -74,6 +85,8 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.data.load_fifa       # needs hand-placed CSVs, see below
 .venv/Scripts/python.exe -m src.matching.player_names
 .venv/Scripts/python.exe -m src.features.build
+.venv/Scripts/python.exe -m src.data.fetch_fpl            # clubs, fixtures, availability
+.venv/Scripts/python.exe -m src.data.clean_fpl            # the upcoming season's 380 fixtures
 .venv/Scripts/python.exe -m src.evaluate.compare          # all models, ~15 min
 .venv/Scripts/python.exe -m src.evaluate.compare --fast   # skips AutoGluon, seconds
 .venv/Scripts/python.exe -m src.predict.gameweek          # next round

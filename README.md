@@ -21,7 +21,9 @@ What that turned into, concretely:
 
 - **A written plan as the contract.** [PLAN.md](PLAN.md) defined ten phases up front, and
   every session started by reading it. An agent with a plan argues with you about scope;
-  an agent without one agrees with everything and drifts.
+  an agent without one agrees with everything and drifts. It later grew a second stage,
+  and the original estimates were left in place where they turned out wrong — what the
+  plan expected against what happened is the more useful record.
 - **Persistent instructions that outlive the conversation.** [CLAUDE.md](CLAUDE.md) is the
   project's operating memory — the leakage rules, the join contracts, the data quirks that
   cost hours to discover. It exists because the *interesting* failures were never syntax
@@ -52,7 +54,14 @@ fixture, which become a full scoreline probability matrix.
 | Lineups and expected goals | [Understat](https://understat.com) |
 | Player ratings | FIFA 20–23 / EA Sports FC 24–26 |
 
-**2019/20 through 2025/26 — 2,660 matches, 99 features, 9 models benchmarked.**
+**Trained on 2019/20 through 2025/26 — 2,660 matches, 99 features, 9 models benchmarked.**
+It predicts **2026/27**, a season with no results yet: the twenty clubs and all 380
+fixtures come from the Fantasy Premier League API, and clubs promoted into the division
+get an eleven built from ratings, since there is no history here to read one from.
+
+Every prediction is **archived the moment it is made and never rewritten**, because the
+only interesting question about a forecast is what it said *before* the match — and that
+cannot be reconstructed afterwards.
 
 ## The report
 
@@ -134,5 +143,6 @@ tests/            435 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, squad changes, fixtures (committed)
 ```
 
-**Status: complete.** All ten phases, raw downloads through to the report.
-Almost no data is committed — it is gitignored and rebuilt from source.
+**Status: complete.** Stage one built the pipeline; stage two made it survive a live
+season — archived predictions, a scored history, suspensions, and squads for clubs the
+data has never seen. Almost no data is committed: it is gitignored and rebuilt from source.
