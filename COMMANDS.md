@@ -175,7 +175,7 @@ useful for a partial check but produces a feature table with holes.
 
 ## Keep the squads current
 
-Four hand-edited files under `data/manual/`. They are the only committed data, because each
+Five hand-edited files under `data/manual/`. They are the only committed data, because each
 one records a **decision** rather than a fact that could be re-derived.
 
 **Each records a *change*, never whole state.** A file that restates twenty squads to move
@@ -185,7 +185,7 @@ Adding a transfer should be one line plus a rebuild.
 | File | Columns | Use it when |
 |---|---|---|
 | `upcoming_fixtures.csv` | `date,home_team,away_team` | The fixture feed has nothing (between seasons) and you want to predict specific matches |
-| `squad_changes.csv` | `season,fifa_player_name,team,note` | A player transferred and the ratings file still lists their old club |
+| `squad_changes.csv` | `season,fifa_player_name,team,note` | **Currently inert** — it only reports unrecognised names. Departures are detected from the FPL squad lists instead |
 | `player_ratings_manual.csv` | `season,fifa_player_name,overall,age,position,note` | A player has no FIFA entry at all — a new signing from another league |
 | `player_name_overrides.csv` | `season,understat_player,fifa_player_name,confidence,reason` | The name matcher missed a pair, e.g. `Chicharito` → `J. Hernández` |
 | `unavailable.csv` | `season,team,player,from_date,until_date,reason,note` | A player is out injured. Suspensions are derived automatically and need no row. A blank `until_date` means open-ended |

@@ -59,29 +59,42 @@ It predicts **2026/27**, a season with no results yet: the twenty clubs and all 
 fixtures come from the Fantasy Premier League API, and clubs promoted into the division
 get an eleven built from ratings, since there is no history here to read one from.
 
+Squads are kept honest against reality rather than against last season. Expected XIs come
+from who a club has actually been starting, then anyone the **Fantasy Premier League squad
+lists** no longer show at that club is dropped — Casemiro played all of 2025/26 for Man
+United and was still being picked a year after leaving. Suspensions come out of cards
+already on disk. Signings are reported but never selected, because a player with no
+appearances cannot be ranked against the players who have them.
+
 Every prediction is **archived the moment it is made and never rewritten**, because the
 only interesting question about a forecast is what it said *before* the match — and that
 cannot be reconstructed afterwards.
 
 ## The report
 
-![The report — three fixtures to a row, scoreline bars, and the bookmaker's line beneath each card](docs/screenshots/report.png)
+![The report — the opening round of 2026/27, three fixtures to a row, with scoreline bars and the model's home/draw/away split on each card](docs/screenshots/report.png)
 
 Styled after a teletext results page. Each card gives the most likely scorelines, the
 home/draw/away split, and where the model **disagrees with the market by more than ten
 points** — the only genuinely interesting thing a model can offer once a market exists.
 Club crests are trademarked, so each side gets a pixel kit instead, generated as inline SVG.
 
-Once a round has been played the cards show the final score and whether the call stood up,
-with a season-to-date scorecard putting our RPS next to the bookmaker's over the same
-fixtures. Under thirty scored matches it says plainly that this is not a sample — and if
-that small sample happens to beat the market, it says not to believe it.
+Once more than one round is stored a **gameweek selector** appears, and any round that has
+been played shows the final score on each card with a verdict — including `EXACT SCORE`
+alongside `WRONG CALL` when the scoreline landed but the headline call did not, which is
+the normal case rather than an edge one.
+
+Played rounds also carry a season-to-date scorecard putting our RPS next to the
+bookmaker's **over the same fixtures**. Under thirty scored matches it says plainly that
+this is not a sample — and if that small sample happens to beat the market, it says not to
+believe it and points at the 2,280-match backtest instead. (The screenshot above is the
+opening round of 2026/27, which nobody has played yet, so it carries neither.)
 
 Every card opens an **expected XI** — both sides on a pitch, attackers meeting at the
 halfway line, with each player's FIFA rating and the team average. This is where the
 squad-quality signal stops being a number in a table:
 
-![The expected XI overlay — Burnley and Wolves laid out in formation with FIFA ratings per player](docs/screenshots/expected-xi.png)
+![The expected XI overlay — Arsenal and Coventry laid out in formation, with a FIFA rating on every player](docs/screenshots/expected-xi.png)
 
 ## Does it beat the bookmaker?
 
@@ -136,7 +149,7 @@ src/matching/     name reconciliation between sources
 src/features/     squad quality, form, Elo, and the feature table
 src/models/       goals models and the scoreline matrix
 src/evaluate/     scoring, walk-forward backtesting, the bookmaker benchmark
-src/predict/      fixtures, expected XIs, and predictions for unplayed matches
+src/predict/      fixtures, expected XIs, squad currency, and the prediction archive
 src/report/       shaping predictions for display
 app.py            the Streamlit report
 tests/            452 tests, no network access and no reading of data/
