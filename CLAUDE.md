@@ -335,6 +335,14 @@ work for anyone who clones this, and indexed in `SKILLS.md`: `refresh-squads`,
 `audit-squads`, `predict-round`, `check-report`. They encode the *why* and the traps, not
 the command list — `COMMANDS.md` is the command list.
 
+**`apply_squad_changes` is dead code and `squad_changes.csv` does not move anybody.** The
+function is defined in `predict/squads.py`, has four passing tests, and is called by
+nothing; the file's only live effect is reporting names the ratings do not recognise. It
+also keys on *FIFA* names while the expected XI is built from *Understat* appearances, so
+the two never meet. Departures are now handled by the FPL diff below, which supersedes it —
+decide whether to delete the function or wire it, but do not assume a row in that file
+changes a prediction, because today it does not.
+
 **Squad membership comes from FPL, and only departures are acted on.** Appearances are last
 season's, so a departed regular keeps his place forever otherwise — Casemiro was still being
 picked for Man United a year after leaving. `predict.transfers` diffs each club's recent
