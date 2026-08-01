@@ -16,7 +16,7 @@ COMMANDS.md, not in the README, which links to them instead.
 
 `PLAN.md` is the source of truth for scope and what comes next. It defines ten phases;
 read it before starting work. **All ten phases are complete** — the pipeline runs from raw
-downloads to a Streamlit report, and 413 tests cover it.
+downloads to a Streamlit report, and 435 tests cover it.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -104,7 +104,7 @@ stage can be rebuilt without redoing the ones before it:
 
 ```
 data/raw/        as downloaded, never modified in place
-data/processed/  cleaned and joined, one parquet per source
+data/processed/  cleaned and joined, one parquet per source (incl. fpl_fixtures.parquet)
 data/final/      the model-ready feature table, and rounds/ - the prediction archive
 data/manual/     hand-written override files (the only committed data)
 ```
@@ -259,6 +259,15 @@ player sent off was not in the expected XI anyway. Mean −0.084 against a colum
 deviation of 3.4. Occasionally the change is positive, because the twelfth-most-used player
 can be rated above the eleventh. Do not oversell this feature on the strength of it being
 correct.
+
+**A promoted club's XI comes from ratings, not appearances, and says so.** It has no
+history in this division, so `most_used_eleven` returns nothing and every squad-quality
+column lands null — which downstream becomes the training median, describing a newly
+promoted side to the model as an average Premier League squad. That is the Phase 9 bug one
+division down. `squads.ratings_eleven` picks the best-rated eleven by position instead, and
+the fallback also fires when a club's history exists but sits outside the lookup season's
+name map (a club relegated and promoted back). Every row carries `xi_source`, and the
+report's overlay changes its wording rather than calling a ratings XI a most-used eleven.
 
 **The Fantasy Premier League API is the best free source found for anything live.**
 `https://fantasy.premierleague.com/api/bootstrap-static/` gives 564 players with `status`,

@@ -3,7 +3,7 @@
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
 > a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 413 tests, none needing network or
+> predictions for fixtures that have not been played. 435 tests, none needing network or
 > data.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
@@ -14,11 +14,11 @@
 > what the plan expected against what happened is the more useful record. `CLAUDE.md`
 > describes the code as it now stands.
 >
-> **Stage two: Phases 11, 13 and 14 are done; 12 and 15 remain.** Predictions are archived
-> per gameweek and never rewritten, the report browses stored rounds and scores them against
-> what happened, and suspensions come out of the cards already on disk. **Phase 12 is no
-> longer blocked** — the official Fantasy Premier League API supplies the 2026/27 club list
-> and all 380 fixtures, found while spiking for injury data.
+> **Stage two: Phases 11–14 are done; only 15 remains.** **Gameweek 1 of 2026/27 is
+> predicted and archived** — the point of the whole stage. Predictions are stored per
+> gameweek and never rewritten, the report browses them and scores them against what
+> happened, suspensions come out of the cards already on disk, and the twenty clubs and
+> 380 fixtures of the new season come from the Fantasy Premier League API.
 
 ## Goal
 
@@ -453,6 +453,34 @@ A player who improved sharply over 2026/27 is rated as he was in September 2025.
 a real cost of the carry-forward and it is not fixable without an edition that does not
 exist.
 
+**Done.** 22 new tests, 435 in total. **Gameweek 1 of 2026/27 is predicted and archived**,
+which was the point of the whole stage.
+
+The blocking questions were answered by the Fantasy Premier League API, found while spiking
+for injuries in Phase 14: 380 fixtures with official gameweek numbers, and the club list.
+`fetch_fpl` and `clean_fpl` cache and validate it on the same contract as every other
+source — exactly 20 clubs, 380 fixtures, 19 home and 19 away each, raising rather than
+writing a suspect table.
+
+**And it found the Phase 9 bug again, one division down.** A promoted club has no history
+here, so its expected XI was empty, so every squad-quality column was null — and null
+becomes the training median downstream, which described Coventry and Hull to the model as
+average Premier League squads. Ipswich failed a second way: it *had* an XI from 2024/25,
+but none of those players sit in the lookup season's name map, so the join produced nulls
+anyway and a global name check would not have noticed.
+
+The fix is `ratings_eleven` — the best-rated eleven by position, from ratings that cover
+every club in the world and were simply never mapped for these three. What it changed:
+
+| Fixture | Before | After |
+|---|---|---|
+| Arsenal v Coventry | 74% home, xG 2.29–0.65 | **85% home**, xG 2.93–0.53 |
+| Hull v Man United | 43% away, xG 1.30–1.56 | **60% away**, xG 1.04–2.03 |
+
+**A ratings XI is a different kind of guess and the report says so.** Every row carries
+`xi_source`, and the overlay stops calling it a most-used eleven — which would have been a
+quiet lie about precisely the club a reader knows least about.
+
 ## Phase 13 — Gameweek browser and the running scorecard *(~1–2 sessions)*
 
 A selector for any gameweek, played or not. Played rounds show the prediction against the
@@ -633,8 +661,10 @@ blocked and 13 was not.*
 ~~**Next action: Phase 14 — suspensions**, which is unblocked and needs nothing from
 outside.~~ *Done.*
 
-**Next action: Phase 12 — squads for 2026/27**, now unblocked. The Fantasy Premier League
-API supplies the club list (Coventry City, Hull City and Ipswich Town up; Burnley, West Ham
-and Wolves down) and all 380 fixtures with official gameweek numbers. The work left is a
-club-name mapping, the transfer file, and a name-matching cascade for FPL players — which
-is Phase 4's problem again and should reuse its cascade rather than a fresh one.
+~~**Next action: Phase 12 — squads for 2026/27**, now unblocked.~~ *Done.*
+
+**Next action: Phase 15 — the skills**, which is the last of stage two and the one item
+from the original learning list never delivered. The workflows they should encode are now
+stable: refresh the squads, predict and archive a round, refresh the report.
+
+Phase 16 is optional and deliberately framed as an experiment with a kill criterion.

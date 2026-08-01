@@ -213,6 +213,28 @@ def make_player_map(team="Arsenal", season="2025/26", players=None):
     )
 
 
+def promoted_ratings(club, season="2025/26", overall=72):
+    """A rated squad for a club with no Premier League history.
+
+    Carries ``club_fd`` and ``positions``, which is how the ratings actually arrive - the
+    fallback XI reads a shape out of them rather than out of appearances.
+    """
+    positions = ["GK", "CB", "CB", "LB", "RB", "CDM", "CM", "CM", "CAM", "ST", "LW", "RW", "CB"]
+    return pd.DataFrame(
+        [
+            {
+                "season": season,
+                "club_fd": club,
+                "player_name": f"{club} Player {index:02d}",
+                "positions": position,
+                "overall": overall - index,
+                "age": 25,
+            }
+            for index, position in enumerate(positions)
+        ]
+    )
+
+
 def make_fifa_ratings(season="2025/26", players=None, overall=78):
     players = players or [name for name, _ in ELEVEN]
     return pd.DataFrame(
@@ -368,6 +390,65 @@ def test_a_club_with_nobody_to_promote_fields_ten():
     )
 
     assert len(available[available["team"] == "Arsenal"]) == 10
+
+
+def test_a_promoted_club_gets_real_squad_quality_not_a_median(monkeypatch):
+    """The Phase 9 failure, one division down.
+
+    A club promoted into the league has no history here, so its expected XI was empty,
+    so its squad-quality columns were null - and null becomes the training median
+    downstream, which describes a newly promoted side to the model as an average Premier
+    League squad. The ratings know who these players are; the fallback uses them.
+    """
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    fixture = make_fixture(home="Arsenal", away="Coventry")
+    # Arsenal have history; Coventry have none at all, as a promoted club does not.
+    lineups = make_lineups(team="Arsenal", start_date="2026-01-01", season="2026/27")
+
+    fifa = pd.concat([make_fifa_ratings(), promoted_ratings("Coventry")], ignore_index=True)
+    rated, _ = squads.expected_squad_players(fixture, lineups, make_player_map(), fifa, "2025/26")
+
+    coventry = rated[rated["team"] == "Coventry"]
+    assert len(coventry) == 11
+    assert coventry["overall"].notna().all()
+    assert (coventry["xi_source"] == "ratings").all()
+
+
+def test_a_club_with_history_still_uses_its_appearances(monkeypatch):
+    """The fallback must not take over from a club we can actually observe."""
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    rated, _ = squads.expected_squad_players(
+        make_fixture(),
+        make_lineups(team="Arsenal", start_date="2026-01-01", season="2026/27"),
+        make_player_map(),
+        make_fifa_ratings(),
+        "2025/26",
+    )
+
+    arsenal = rated[rated["team"] == "Arsenal"]
+    assert (arsenal["xi_source"] == "appearances").all()
+
+
+def test_an_old_spell_in_the_league_does_not_fool_the_fallback(monkeypatch):
+    """A club relegated and promoted back has players in the map from its earlier spell,
+    but not for the season whose ratings we are borrowing. Checking names globally would
+    see them, conclude the appearance XI can be rated, and produce nulls anyway."""
+    monkeypatch.setattr(squads, "load_squad_changes", lambda: pd.DataFrame())
+
+    lineups = make_lineups(team="Ipswich", start_date="2025-01-01", season="2024/25")
+    # The map knows these players, but only under the older season.
+    stale_map = make_player_map(team="Ipswich").assign(season="2024/25")
+
+    fifa = pd.concat([make_fifa_ratings(), promoted_ratings("Ipswich")], ignore_index=True)
+    rated, _ = squads.expected_squad_players(
+        make_fixture(home="Ipswich", away="Chelsea"), lineups, stale_map, fifa, "2025/26"
+    )
+
+    ipswich = rated[rated["team"] == "Ipswich"]
+    assert (ipswich["xi_source"] == "ratings").all()
+    assert ipswich["overall"].notna().all()
 
 
 def test_a_transfer_is_reflected_in_the_squad(monkeypatch):

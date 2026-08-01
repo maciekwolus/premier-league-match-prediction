@@ -324,3 +324,24 @@ def test_summary_bar_reports_the_headline_numbers():
     assert "10" in bar
     assert "DIXON-COLES-SQUAD" in bar
     assert "80%" in bar
+
+
+def test_a_promoted_clubs_xi_is_not_called_a_most_used_eleven():
+    """It comes from ratings, not appearances. Describing it as a most-used eleven would
+    be a quiet lie about exactly the club a reader knows least about."""
+    card = match_card(
+        with_lineups(
+            home=[{"player": "New Signing", "position": "FW", "line": "att", "source": "ratings"}],
+            away=[{"player": "A Keeper", "position": "GK", "line": "gk", "source": "appearances"}],
+        )
+    )
+
+    assert "newly promoted" in card
+    assert "best-rated players" in card
+
+
+def test_an_ordinary_fixture_keeps_the_plain_note():
+    card = match_card(with_lineups())
+
+    assert "Most-used eleven" in card
+    assert "newly promoted" not in card
