@@ -15,7 +15,6 @@ from src.predict.archive import (
     RoundAlreadyStored,
     available_rounds,
     group_by_gameweek,
-    latest_round,
     load_round,
     round_path,
     save_round,
@@ -91,18 +90,6 @@ def test_available_rounds_are_ordered_oldest_first(tmp_path):
 
 def test_available_rounds_is_empty_before_anything_is_stored(tmp_path):
     assert available_rounds(tmp_path / "nothing here") == []
-
-
-def test_latest_round_crosses_a_season_boundary(tmp_path):
-    """Gameweek 1 of a new season is later than gameweek 38 of the old one."""
-    save_round([prediction(match_id="last season", gameweek=38)], "2025_26", 38, root=tmp_path)
-    save_round([prediction(match_id="new season", gameweek=1)], "2026_27", 1, root=tmp_path)
-
-    assert latest_round(tmp_path)[0]["match_id"] == "new season"
-
-
-def test_latest_round_is_empty_before_anything_is_stored(tmp_path):
-    assert latest_round(tmp_path / "nothing here") == []
 
 
 def test_a_stray_file_is_ignored_rather_than_guessed_at(tmp_path):

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from src.predict.archive import available_rounds, latest_round, load_round
+from src.predict.archive import available_rounds, load_round
 from src.report.results import attach_results, scorecard
 
 OUTCOMES = ("home", "draw", "away")
@@ -64,16 +64,6 @@ def season_scorecard(
         if stored_season == season_slug:
             matches.extend(load_round(stored_season, gameweek, root))
     return scorecard(attach_results(matches, results))
-
-
-def load_predictions(root: Path | None = None) -> list[dict]:
-    """The most recent stored round, or nothing if none has been predicted yet.
-
-    The archive is the only source: there is deliberately no "latest" file alongside it,
-    because two copies of the same round invite them to disagree, and the one that is
-    wrong is the one the page would show.
-    """
-    return latest_round(root)
 
 
 def as_percent(probability: float) -> str:
