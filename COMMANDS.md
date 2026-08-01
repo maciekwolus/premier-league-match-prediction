@@ -84,7 +84,7 @@ says which mode produced what you are looking at, because the cards look identic
 way.
 
 **The default model is not the best-scoring model, deliberately.** `poisson-glm` has the
-better RPS (0.2040 against 0.2087) but calls 1-1 in 74% of matches, because RPS rewards
+better RPS (0.2039 against 0.2087) but calls 1-1 in 74% of matches, because RPS rewards
 hedging and the GLM hedges. When the product is a scoreline, that is a failure whatever
 the score says. The reasoning is in full at `DEFAULT_MODEL` in
 [src/predict/gameweek.py](src/predict/gameweek.py).

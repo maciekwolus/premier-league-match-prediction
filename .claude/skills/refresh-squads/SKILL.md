@@ -75,7 +75,8 @@ from src.predict.fixtures import upcoming_fixtures, as_matches
 
 raw, _ = upcoming_fixtures(allow_download=False)
 features, problems, _ = features_for(as_matches(raw))
-print(features[["match_id", "home_squad_overall_mean", "away_squad_overall_mean"]])
+quality = ["home_squad_overall_mean", "away_squad_overall_mean"]
+print(features[["match_id", *quality]])
 print(problems)
 ```
 

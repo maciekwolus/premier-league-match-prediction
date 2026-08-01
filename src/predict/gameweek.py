@@ -48,7 +48,7 @@ MODELS = {
 }
 # Dixon-Coles rather than the model with the best RPS, deliberately.
 #
-# poisson-glm scores better on outcome probabilities (0.2040 against 0.2118) because it
+# poisson-glm scores better on outcome probabilities (0.2039 against 0.2118) because it
 # hedges towards the average, and RPS rewards hedging. That same caution makes it call
 # 1-1 in 74% of matches and produce only nine distinct top scorelines across a season -
 # for Crystal Palace against Arsenal it predicts 1.27 vs 1.63 goals where the market has

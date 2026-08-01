@@ -274,7 +274,7 @@ walk-forward validation — train on seasons 1..n, test on n+1, never a random s
 | **bookmaker (closing)** | **0.1965** | 55.3% |
 | gbm-with-odds | 0.2027 | 53.3% |
 | poisson-glm-with-odds | 0.2029 | 53.6% |
-| poisson-glm | 0.2040 | 53.5% |
+| poisson-glm | 0.2039 | 53.4% |
 | baseline-elo | 0.2051 | 53.1% |
 | gbm | 0.2068 | 52.9% |
 | dixon-coles-squad | 0.2087 | 51.7% |
@@ -297,7 +297,7 @@ best also produce the least interesting scorelines:
 
 | Model | RPS | 1-1 most likely | Distinct top scorelines |
 |---|---|---|---|
-| poisson-glm | **0.2040** | 74% of matches | 9 |
+| poisson-glm | **0.2039** | 74% of matches | 9 |
 | gbm | 0.2068 | 65% | 11 |
 | **dixon-coles-squad** | 0.2087 | **54%** | **11** |
 | dixon-coles | 0.2118 | 60% | 11 |

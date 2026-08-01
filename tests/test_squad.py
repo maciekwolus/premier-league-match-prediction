@@ -16,7 +16,8 @@ from src.features.squad import line_of, squad_features, starting_ratings
         ("MC", "mid"),
         ("ML", "mid"),
         ("AMC", "mid"),
-        ("AMR", "mid"),
+        ("AMR", "att"),
+        ("AML", "att"),
         ("FW", "att"),
         ("FWL", "att"),
         ("Sub", "unknown"),
@@ -31,6 +32,26 @@ def test_defensive_midfielders_are_midfielders():
     assert line_of("DMC") == "mid"
     assert line_of("DML") == "mid"
     assert line_of("DMR") == "mid"
+
+
+def test_wide_attacking_midfielders_are_attackers():
+    """Understat names AML and AMR for a slot in a formation grid, but the players in
+    them are wingers - Mbeumo is an AMR, Cunha an AML.
+
+    Reading them as midfielders produced sides with four defenders, six midfielders and
+    *no attacker*, which is not a formation anybody has played: Man United's most-used XI
+    rendered as 4-6-0 while genuinely being a 4-3-3. Across all 5,320 starting XIs on
+    record this change makes 4-3-3 the most common shape and leaves none with an empty
+    attack.
+    """
+    assert line_of("AML") == "att"
+    assert line_of("AMR") == "att"
+
+
+def test_a_number_ten_is_still_a_midfielder():
+    """The distinction that makes the rule worth stating: AMC is a central creator, a
+    different job from a winger, and prefix order has to catch it first."""
+    assert line_of("AMC") == "mid"
 
 
 def make_lineup(match_id="m1", team="Arsenal", players=None) -> pd.DataFrame:

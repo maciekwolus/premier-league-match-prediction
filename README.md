@@ -92,7 +92,7 @@ matches, lower is better:
 |---|---|
 | **bookmaker (closing odds)** | **0.1965** |
 | gbm-with-odds | 0.2027 |
-| poisson-glm | 0.2040 |
+| poisson-glm | 0.2039 |
 | baseline-elo | 0.2051 |
 | dixon-coles-squad *(what the report shows)* | 0.2087 |
 | baseline-league-average | 0.2346 |

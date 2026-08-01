@@ -35,7 +35,7 @@ Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 | bookmaker (closing) | **0.1965** |
 | gbm-with-odds | 0.2027 |
 | poisson-glm-with-odds | 0.2029 |
-| poisson-glm | 0.2040 |
+| poisson-glm | 0.2039 |
 | baseline-elo | 0.2051 |
 | gbm | 0.2068 |
 | dixon-coles-squad | 0.2087 |
@@ -273,6 +273,22 @@ deviation of 3.4. Occasionally the change is positive, because the twelfth-most-
 can be rated above the eleventh. Do not oversell this feature on the strength of it being
 correct.
 
+**AML and AMR are wingers, so they count as attackers.** Understat names positions for a
+slot in a formation grid, not for the job — reading its wide attacking codes as midfield
+gave sides with four defenders, six midfielders and *no attacker at all*. Man United's
+most-used XI rendered as 4-6-0 while genuinely being a 4-3-3 with Mbeumo, Cunha and
+Diallo across the front. `AMC` stays a midfielder, since that is a number ten, so prefix
+order in `LINE_PREFIXES` has to catch the wide codes first. Across all 5,320 starting XIs
+this makes 4-3-3 the most common shape and leaves none with an empty attack. It shifts
+`squad_att_overall` and `squad_mid_overall` for every historical match; the backtest moved
+by 0.0001 on one model, so re-run `compare --fast` if you touch the mapping again.
+
+**A line that arrives already set is kept, never recomputed.** `starting_ratings` reads
+Understat's codes, and an XI built from ratings uses FIFA's (`CB`, `LB`, `ST`) which fall
+through to `unknown` — which put every promoted club's entire outfield into midfield on
+the pitch view. Anything supplying its own `line` or `fifa_player_name` has it preserved
+through the join.
+
 **A promoted club's XI comes from ratings, not appearances, and says so.** It has no
 history in this division, so `most_used_eleven` returns nothing and every squad-quality
 column lands null — which downstream becomes the training median, describing a newly
@@ -345,7 +361,7 @@ train/test split lets the model see the future.
 
 **The best-scoring model is not the best report, and the report knows it.**
 `predict.gameweek.DEFAULT_MODEL` is `dixon-coles-squad` (RPS 0.2087), not `poisson-glm`
-(0.2040). Do not "fix" this without reading the comment there. The GLM hedges towards the
+(0.2039). Do not "fix" this without reading the comment there. The GLM hedges towards the
 average — which is exactly what RPS rewards — and the cost is that it calls 1-1 in 74% of
 matches with nine distinct top scorelines all season. Dixon-Coles estimates each club's
 attack and defence directly, commits, and gives 60% and eleven. For Crystal Palace against

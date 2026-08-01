@@ -78,8 +78,9 @@ from src.predict.fixtures import upcoming_fixtures, as_matches
 
 raw, _ = upcoming_fixtures(allow_download=False)
 features, problems, _ = features_for(as_matches(raw))
-print(features[["match_id", "home_squad_overall_mean", "away_squad_overall_mean",
-                "home_rated_share", "away_rated_share"]])
+quality = ["home_squad_overall_mean", "away_squad_overall_mean"]
+share = ["home_rated_share", "away_rated_share"]
+print(features[["match_id", *quality, *share]])
 ```
 
 Any NaN, or a `rated_share` of 0.0, means a club is reaching the model without squad

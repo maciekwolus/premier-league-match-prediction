@@ -298,6 +298,9 @@ def expected_squad_players(
                         "team": team,
                         "player": player.player,
                         "position": player.position,
+                        # Carried rather than recomputed downstream: a ratings XI uses
+                        # FIFA's position codes, which the Understat mapping cannot read.
+                        "line": player.line,
                         "starts": int(player.starts),
                         "is_starter": True,
                         # Recorded so the report can say which kind of guess this is,
