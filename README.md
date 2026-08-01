@@ -118,6 +118,7 @@ cd C:\repositories\premier-league-match-prediction
 | [COMMANDS.md](COMMANDS.md) | Every command and flag, plus what the error messages mean |
 | [PLAN.md](PLAN.md) | The ten-phase build plan and where it landed |
 | [CLAUDE.md](CLAUDE.md) | Architecture contracts, leakage rules, and the data quirks worth knowing |
+| [.claude/skills/](.claude/skills/) | Three Claude Code skills: refresh squads, predict a round, check the report |
 
 ```
 src/config.py     seasons, paths, source URLs — the single place seasons are defined
