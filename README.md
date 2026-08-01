@@ -127,7 +127,7 @@ cd C:\repositories\premier-league-match-prediction
 | [COMMANDS.md](COMMANDS.md) | Every command and flag, plus what the error messages mean |
 | [PLAN.md](PLAN.md) | The ten-phase build plan and where it landed |
 | [CLAUDE.md](CLAUDE.md) | Architecture contracts, leakage rules, and the data quirks worth knowing |
-| [.claude/skills/](.claude/skills/) | Three Claude Code skills: refresh squads, predict a round, check the report |
+| [SKILLS.md](SKILLS.md) | The four Claude Code skills in this repo, and when to reach for each |
 
 ```
 src/config.py     seasons, paths, source URLs — the single place seasons are defined
@@ -139,7 +139,7 @@ src/evaluate/     scoring, walk-forward backtesting, the bookmaker benchmark
 src/predict/      fixtures, expected XIs, and predictions for unplayed matches
 src/report/       shaping predictions for display
 app.py            the Streamlit report
-tests/            435 tests, no network access and no reading of data/
+tests/            452 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, squad changes, fixtures (committed)
 ```
 

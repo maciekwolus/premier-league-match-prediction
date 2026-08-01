@@ -8,11 +8,12 @@ Predicts Premier League **scorelines with probabilities** (`1-1 (11%) · 2-1 (9%
 just win/draw/loss. Pipeline: match results + lineups + FIFA player ratings → per-match
 feature table → goals models → scoreline probability matrix → Streamlit report.
 
-**Four docs, four jobs — put a change in the right one.** `README.md` is the shop window:
+**Five docs, five jobs — put a change in the right one.** `README.md` is the shop window:
 what this is, why it exists, screenshots, results. `SETUP.md` is the end-to-end install and
-run guide. `COMMANDS.md` is the flag-by-flag reference and the error-message table. This
-file is the operating manual for working *on* it. A run command belongs in SETUP.md and
-COMMANDS.md, not in the README, which links to them instead.
+run guide. `COMMANDS.md` is the flag-by-flag reference and the error-message table.
+`SKILLS.md` indexes the project skills and says when to reach for each. This file is the
+operating manual for working *on* it. A run command belongs in SETUP.md and COMMANDS.md,
+not in the README, which links to them instead.
 
 `PLAN.md` is the source of truth for scope and what comes next; read it before starting
 work. It runs in two stages. **Stage one (Phases 0–9) built the pipeline** from raw
@@ -20,7 +21,7 @@ downloads to a Streamlit report. **Stage two (Phases 11–15) made it survive a 
 season**: predictions archived per gameweek and never rewritten, a browsable history
 scored against reality, suspensions derived from cards already on disk, squads for a
 season whose ratings edition does not exist yet, and the skills. Both are complete and
-435 tests cover them. Phase 16 is planned and deliberately optional. There is no Phase 10
+452 tests cover them. Phase 16 is planned and deliberately optional. There is no Phase 10
 — the numbering skips it so the two stages stay visually distinct.
 
 **The project now predicts a season it has no results for.** Training runs on 2019/20
@@ -329,12 +330,21 @@ fixtures is a round, not evidence.
 round otherwise reads as next week's matches, since the cards look identical either way.
 Every stored prediction carries a `mode` field for exactly this.
 
-**Three project skills live in `.claude/skills/`**, auto-discovered and committed, so they
-work for anyone who clones this. `refresh-squads` covers transfers and injuries and the
-verification that the change reached the model; `predict-round` covers predicting and
-archiving a gameweek, including why the archive refuses to overwrite; `check-report`
-covers verifying the page by measuring the DOM. They encode the *why* and the traps, not
+**Four project skills live in `.claude/skills/`**, auto-discovered and committed, so they
+work for anyone who clones this, and indexed in `SKILLS.md`: `refresh-squads`,
+`audit-squads`, `predict-round`, `check-report`. They encode the *why* and the traps, not
 the command list — `COMMANDS.md` is the command list.
+
+**Squad membership comes from FPL, and only departures are acted on.** Appearances are last
+season's, so a departed regular keeps his place forever otherwise — Casemiro was still being
+picked for Man United a year after leaving. `predict.transfers` diffs each club's recent
+starters against its current FPL squad and removes anyone with no counterpart. **Scope the
+check to recent starters, never to a club's whole history**, or it reports Cristiano Ronaldo
+as a departure. Matching is deliberately generous in both containment directions, because a
+false departure silently deletes a real player: `Amad Diallo Traore` must match `Amad`, and
+`Bruno Fernandes` must match `Bruno Borges Fernandes`. **Arrivals are reported and never
+selected** — a signing has no appearances to rank against the players who have them, so
+picking one would assert a team sheet rather than describe an expectation.
 
 ## Rules that matter
 

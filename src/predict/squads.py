@@ -27,6 +27,7 @@ import pandas as pd
 from src.config import MANUAL_DIR
 from src.features.squad import STARTERS_PER_TEAM, line_of
 from src.predict.suspensions import load_unavailable, unavailable_for
+from src.predict.transfers import departures
 
 SQUAD_CHANGES_CSV = MANUAL_DIR / "squad_changes.csv"
 MANUAL_RATINGS_CSV = MANUAL_DIR / "player_ratings_manual.csv"
@@ -64,6 +65,23 @@ def load_manual_ratings() -> pd.DataFrame:
     return df
 
 
+def recent_starters(
+    lineups: pd.DataFrame, team: str, before: pd.Timestamp, matches: int = RECENT_MATCHES
+) -> pd.DataFrame:
+    """Rows for everyone who started for this club in its last few matches.
+
+    The pool the expected XI is drawn from, and the only sensible scope for asking who
+    has left: a club's full appearance history reaches back seven seasons, so checking
+    that against a current squad reports Cristiano Ronaldo as a Man United departure.
+    """
+    history = lineups[(lineups["team"] == team) & (lineups["date"] < before)]
+    if history.empty:
+        return history
+
+    recent_ids = history.drop_duplicates("match_id").nlargest(matches, "date")["match_id"].tolist()
+    return history[history["match_id"].isin(recent_ids) & history["is_starter"]]
+
+
 def most_used_eleven(
     lineups: pd.DataFrame,
     team: str,
@@ -82,12 +100,7 @@ def most_used_eleven(
     player steps up and the side is still eleven strong. Dropping them afterwards would
     field ten and understate the squad, which is a bigger error than the absence itself.
     """
-    history = lineups[(lineups["team"] == team) & (lineups["date"] < before)]
-    if history.empty:
-        return pd.DataFrame(columns=["player", "position", "line", "starts"])
-
-    recent_ids = history.drop_duplicates("match_id").nlargest(matches, "date")["match_id"].tolist()
-    recent = history[history["match_id"].isin(recent_ids) & history["is_starter"]]
+    recent = recent_starters(lineups, team, before, matches)
     if unavailable:
         recent = recent[~recent["player"].isin(unavailable)]
     if recent.empty:
@@ -233,6 +246,7 @@ def expected_squad_players(
     player_map: pd.DataFrame,
     fifa: pd.DataFrame,
     lookup_season: str,
+    squads: dict[str, list[dict]] | None = None,
 ) -> tuple[pd.DataFrame, list[str]]:
     """Every expected starter, with the ratings we could find for them.
 
@@ -275,6 +289,18 @@ def expected_squad_players(
             # Bans are counted against the season being played, not the season whose
             # ratings are being borrowed - a card shown last May is served last May.
             out = unavailable_for(lineups, team, season, fixture.date, unavailable=hand_flagged)
+
+            # Players who have left the club since we last saw them play. Appearances are
+            # last season's, so without this a departed regular keeps his place in the XI
+            # indefinitely - Casemiro started for Man United through 2025/26 and was still
+            # being picked for the opening round of 2026/27, a year after leaving.
+            if squads is not None:
+                pool = recent_starters(lineups, team, fixture.date)
+                gone = departures(sorted(set(pool["player"])), team, squads)
+                if gone:
+                    problems.append(f"{team}: left the club - {', '.join(gone)}")
+                out = out | set(gone)
+
             eleven = most_used_eleven(lineups, team, fixture.date, unavailable=out)
 
             # A promoted club fails this two ways, and both end in the same place: no
