@@ -58,9 +58,9 @@ club, so there is nothing to rank them against the players who have. Putting the
 into the eleven would be asserting a team sheet rather than describing one, and this project
 does not have the evidence for that.
 
-If you know a signing will start, that is a human judgement and it belongs in a file: add
-them to `data/manual/player_ratings_manual.csv` if they have no FIFA entry, and record the
-move in `data/manual/squad_changes.csv`. The `refresh-squads` skill covers that workflow.
+If you know a signing will start, that is a human judgement. Give them a rating in
+`data/manual/player_ratings_manual.csv` if FIFA has never heard of them; the `refresh-squads`
+skill covers that workflow.
 
 ## Read the output carefully
 

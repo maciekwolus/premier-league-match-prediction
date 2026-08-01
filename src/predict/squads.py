@@ -4,15 +4,15 @@ You do not know a lineup until an hour before kickoff, so the default is the ele
 club has actually used most across its recent matches. That is a decent guess in
 mid-season and a poor one in August, which is what the manual files are for.
 
-**Two committed files record squad changes, and both record *changes* rather than whole
-squads.** A file restating twenty full squads would go stale within a week of a transfer
-window opening, and a stale squad file that looks authoritative is worse than none:
+**Who has left is detected rather than typed.** ``predict.transfers`` diffs each club's
+recent starters against its current FPL squad, so a departed player drops out without
+anyone recording the transfer. A ``squad_changes.csv`` once existed for that job and never
+worked - the function that would have applied it was never called - so it is gone rather
+than left looking functional.
 
-``data/manual/squad_changes.csv``
-    ``season, fifa_player_name, team, note`` - one row per move. A blank ``team`` means
-    the player has left the league. This is what corrects the September-snapshot problem:
-    ratings are published once a year, so a July signing is still listed at their old
-    club. The rating is right; only the club is wrong.
+One committed file still records squad changes, and it records *changes* rather than whole
+squads, because a file restating twenty squads goes stale within a week of a window opening
+and a stale squad file that looks authoritative is worse than none:
 
 ``data/manual/player_ratings_manual.csv``
     ``season, fifa_player_name, overall, age, position, note`` - for a signing with no
@@ -29,26 +29,11 @@ from src.features.squad import STARTERS_PER_TEAM, line_of
 from src.predict.suspensions import load_unavailable, unavailable_for
 from src.predict.transfers import departures
 
-SQUAD_CHANGES_CSV = MANUAL_DIR / "squad_changes.csv"
 MANUAL_RATINGS_CSV = MANUAL_DIR / "player_ratings_manual.csv"
 
 # How much history to read a club's preferred eleven from. Long enough to see through
 # rotation and a cup week, short enough to follow a change of shape.
 RECENT_MATCHES = 6
-
-
-def load_squad_changes() -> pd.DataFrame:
-    """Hand-recorded transfers. Empty frame when nothing has been entered."""
-    columns = ["season", "fifa_player_name", "team", "note"]
-    if not SQUAD_CHANGES_CSV.exists():
-        return pd.DataFrame(columns=columns)
-
-    df = pd.read_csv(SQUAD_CHANGES_CSV)
-    missing = {"season", "fifa_player_name", "team"} - set(df.columns)
-    if missing:
-        raise ValueError(f"{SQUAD_CHANGES_CSV} is missing column(s) {sorted(missing)}")
-
-    return df
 
 
 def load_manual_ratings() -> pd.DataFrame:
@@ -185,40 +170,6 @@ def ratings_eleven(fifa: pd.DataFrame, club: str, season: str) -> pd.DataFrame:
     ).reset_index(drop=True)
 
 
-def apply_squad_changes(
-    squad_players: pd.DataFrame, changes: pd.DataFrame, season: str
-) -> pd.DataFrame:
-    """Move players between clubs according to the hand-recorded transfers.
-
-    Rows whose ``team`` is blank are departures and are dropped outright.
-    """
-    if changes.empty or "season" not in changes.columns:
-        return squad_players
-
-    relevant = changes[changes["season"] == season]
-    if relevant.empty:
-        return squad_players
-
-    updated = squad_players.copy()
-    for change in relevant.itertuples():
-        name = change.fifa_player_name
-        leaving = pd.isna(change.team) or str(change.team).strip() == ""
-
-        updated = updated[updated["fifa_player_name"] != name]
-        if not leaving:
-            updated = pd.concat(
-                [
-                    updated,
-                    pd.DataFrame(
-                        [{"fifa_player_name": name, "team": change.team, "season": season}]
-                    ),
-                ],
-                ignore_index=True,
-            )
-
-    return updated
-
-
 def _with_manual_ratings(fifa: pd.DataFrame, lookup_season: str, season: str) -> pd.DataFrame:
     """Add hand-written ratings to the pool, labelled so the squad join finds them."""
     manual = load_manual_ratings()
@@ -267,13 +218,7 @@ def expected_squad_players(
     # has never heard of counts towards squad quality like any other player.
     fifa = _with_manual_ratings(fifa, lookup_season, season)
 
-    changes = load_squad_changes()
-    known = set(player_map["fifa_player_name"].dropna()) | set(fifa["player_name"])
-    problems = [
-        f"squad change for an unknown player: {name!r}"
-        for name in unmatched_changes(changes, known, season)
-    ]
-
+    problems: list[str] = []
     hand_flagged = load_unavailable()
 
     # Scoped to the lookup season *and* the club, because that is exactly how the ratings
@@ -346,23 +291,6 @@ def expected_squad_players(
     return starting_ratings(pd.DataFrame(rows), player_map, fifa), problems
 
 
-def expected_squad_features(
-    fixtures: pd.DataFrame,
-    lineups: pd.DataFrame,
-    player_map: pd.DataFrame,
-    fifa: pd.DataFrame,
-    lookup_season: str,
-) -> tuple[pd.DataFrame, list[str]]:
-    """Squad quality per (match_id, team), aggregated from the expected XIs."""
-    from src.features.squad import aggregate_ratings
-
-    rated, problems = expected_squad_players(fixtures, lineups, player_map, fifa, lookup_season)
-    if rated.empty:
-        return pd.DataFrame(), problems
-
-    return aggregate_ratings(rated), problems
-
-
 # Order a team sheet reads in, rather than by rating - a lineup with the keeper in the
 # middle looks wrong however accurate it is.
 LINE_ORDER = {"gk": 0, "def": 1, "mid": 2, "att": 3, "unknown": 4}
@@ -405,22 +333,3 @@ def lineups_by_side(rated: pd.DataFrame, fixtures: pd.DataFrame) -> dict[str, di
         result.setdefault(match_id, {})[side] = players
 
     return result
-
-
-def unmatched_changes(changes: pd.DataFrame, known_players: set[str], season: str) -> list[str]:
-    """Names in the change file that match no known player.
-
-    A typo here would silently do nothing, so the caller reports these loudly rather
-    than letting a transfer quietly fail to apply.
-    """
-    if changes.empty or "season" not in changes.columns:
-        return []
-
-    relevant = changes[changes["season"] == season]
-    return sorted(
-        {
-            name
-            for name in relevant["fifa_player_name"]
-            if isinstance(name, str) and name not in known_players
-        }
-    )

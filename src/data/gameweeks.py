@@ -19,9 +19,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-MATCHES_PER_GAMEWEEK = 10
-GAMEWEEKS_PER_SEASON = 38
-
 
 def assign_gameweeks(matches: pd.DataFrame) -> pd.Series:
     """A gameweek number per row, aligned to ``matches.index``.

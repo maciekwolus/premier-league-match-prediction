@@ -87,15 +87,6 @@ def available_rounds(root: Path | None = None) -> list[tuple[str, int]]:
     return sorted(rounds)
 
 
-def latest_round(root: Path | None = None) -> list[dict]:
-    """The most recently played-or-predicted round on record, or nothing."""
-    rounds = available_rounds(root)
-    if not rounds:
-        return []
-    season_slug, gameweek = rounds[-1]
-    return load_round(season_slug, gameweek, root)
-
-
 def group_by_gameweek(predictions: list[dict]) -> dict[tuple[str, int], list[dict]]:
     """Split a prediction run into the rounds it actually covers.
 

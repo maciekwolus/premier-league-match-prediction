@@ -7,7 +7,7 @@ description: Update Premier League squads in this project after a transfer, inju
 
 Player ratings are an annual snapshot: EA publishes them in September and they do not
 move again. Every transfer after that leaves a player rated correctly and filed at the
-wrong club. Four hand-maintained files under `data/manual/` correct that, and this is the
+wrong club. Three hand-maintained files under `data/manual/` correct that, and this is the
 workflow for using them.
 
 **Each file records a *change*, never whole state.** A file restating twenty squads to
@@ -18,18 +18,16 @@ worse than no file at all. One line, then a rebuild.
 
 | Situation | File | Columns |
 |---|---|---|
-| Player transferred; ratings still list the old club | `squad_changes.csv` — **see the warning below** | `season,fifa_player_name,team,note` |
 | Player has no FIFA entry at all — signed from another league or straight out of an academy | `player_ratings_manual.csv` | `season,fifa_player_name,overall,age,position,note` |
 | Player is injured or otherwise unavailable | `unavailable.csv` | `season,team,player,from_date,until_date,reason,note` |
 | The name matcher missed a pair | `player_name_overrides.csv` | `season,understat_player,fifa_player_name,confidence,reason` |
 
 Three things worth knowing before you edit:
 
-- **`squad_changes.csv` is currently inert.** `apply_squad_changes` exists, has tests, and
-  is called by nothing, so a row there reports an unrecognised name and otherwise changes
-  nothing. Departures are detected automatically from the FPL squad lists instead — see the
-  `audit-squads` skill. Do not reach for this file expecting a player to move until that is
-  resolved.
+- **There is no transfer file, on purpose.** Who has left a club is detected from the FPL
+  squad lists and applied automatically — see the `audit-squads` skill. A `squad_changes.csv`
+  once existed for this and never worked, so it was removed rather than left looking
+  functional.
 - **A blank `until_date` in `unavailable.csv` means open-ended**, which is the honest
   default for an injury with no announced return date.
 - **Suspensions need no row.** Red cards and yellow accumulation are derived from

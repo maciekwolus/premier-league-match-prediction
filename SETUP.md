@@ -368,7 +368,6 @@ Two committed files fix that, and both record **changes, not whole squads**:
 
 | File | One row per |
 |---|---|
-| `data/manual/squad_changes.csv` | Transfer. A blank `team` means the player left the league |
 | `data/manual/player_ratings_manual.csv` | Player with no FIFA entry at all |
 
 Moving a player is one line and a re-run — no code change, and an unrecognised name is

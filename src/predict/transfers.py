@@ -31,10 +31,6 @@ from src.data.clean_fpl import club_names
 from src.data.fetch_fpl import fetch
 from src.matching.player_names import normalise
 
-# A club's squad is small, so containment is safe here in a way it would not be against a
-# world-wide pool: "Amad" fits inside "Amad Diallo Traore" and nothing else in the squad.
-MIN_TOKENS_FOR_SUBSET = 1
-
 
 def fpl_squads(bootstrap: dict | None = None) -> dict[str, list[dict]]:
     """Every club's current squad, keyed by football-data club name.
