@@ -213,7 +213,7 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 435 tests, about fifteen seconds |
+| `-m pytest` | All 452 tests, about fifteen seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |
@@ -242,12 +242,13 @@ Run lint, format and the full suite before opening a PR.
 
 ## Skills
 
-Three skills under `.claude/skills/` cover the recurring workflows, and Claude Code picks
-them up automatically:
+Four skills under `.claude/skills/` cover the recurring workflows, and Claude Code picks
+them up automatically. [SKILLS.md](SKILLS.md) is the index.
 
 | Skill | Covers |
 |---|---|
 | `refresh-squads` | A transfer, a new signing or an injury — and confirming the change actually reached the model |
+| `audit-squads` | Checking every club's expected XI against its real current squad |
 | `predict-round` | Predicting and archiving a gameweek, including a new season's schedule |
 | `check-report` | Verifying the page renders, by measuring it rather than reading the code |
 

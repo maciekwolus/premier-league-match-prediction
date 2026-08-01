@@ -39,6 +39,7 @@ from src.predict.archive import (
 )
 from src.predict.fixtures import as_matches, upcoming_fixtures
 from src.predict.squads import expected_squad_players, lineups_by_side
+from src.predict.transfers import fpl_squads
 
 MODELS = {
     "poisson-glm": ("src.models.poisson_glm", "PoissonRegressionModel"),
@@ -113,7 +114,19 @@ def features_for(fixtures: pd.DataFrame) -> tuple[pd.DataFrame, list[str], dict]
     fifa = pd.read_parquet(FIFA_PLAYERS_PARQUET)
     lookup_season = str(player_map["season"].max())
 
-    rated, problems = expected_squad_players(fixtures, lineups, player_map, fifa, lookup_season)
+    # Who is actually at each club now. Appearances are last season's, so without this a
+    # departed regular keeps his place indefinitely. Failing to reach the feed is not fatal
+    # - the prediction is still worth making, it is just working from staler squads - so it
+    # degrades to None and says so rather than aborting the run.
+    try:
+        squads = fpl_squads()
+    except Exception as error:  # noqa: BLE001 - any failure here is non-fatal by design
+        print(f"  could not check current squads ({error}); using appearances alone")
+        squads = None
+
+    rated, problems = expected_squad_players(
+        fixtures, lineups, player_map, fifa, lookup_season, squads=squads
+    )
     if not rated.empty:
         team_matches = team_matches.merge(
             aggregate_ratings(rated), on=["match_id", "team"], how="left"

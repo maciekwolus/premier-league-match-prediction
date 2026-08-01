@@ -3,7 +3,7 @@
 > **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
 > report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
 > a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 435 tests, none needing network or
+> predictions for fixtures that have not been played. 452 tests, none needing network or
 > data.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
@@ -18,7 +18,7 @@
 > and archived** — the point of the whole stage. Predictions are stored per gameweek and
 > never rewritten, the report browses them and scores them against what happened,
 > suspensions come out of the cards already on disk, the twenty clubs and 380 fixtures of
-> the new season come from the Fantasy Premier League API, and three skills encode the
+> the new season come from the Fantasy Premier League API, and four skills encode the
 > recurring workflows. Phase 16 remains as an optional experiment.
 
 ## Goal
