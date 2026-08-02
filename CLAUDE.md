@@ -217,6 +217,13 @@ sign or a mis-scaled bar still renders, and the page looks authoritative either 
 anything under `src/`, restart the server — otherwise the page raises `ImportError` for a
 function that exists and whose tests pass, which is a confusing few minutes.
 
+**The round picker is a page-level widget on purpose, and styled to disappear into the
+page.** Season segments and round pills, laid out flat: a `selectbox` filtered as you typed
+— baffling with two options — and hid which rounds exist behind a click, when "what have we
+predicted?" is a question the page should answer unasked. Style them through
+`[data-testid="stButtonGroup"]` and the `data-variant` / `data-selected` attributes rather
+than the emotion class hashes sitting beside them, which change on every Streamlit upgrade.
+
 **Interactivity in a card is CSS, never a Streamlit widget.** A card is one block of
 markup so it can be packed three to a row, and raw HTML cannot trigger a rerun. The
 expected-XI overlay is therefore a hidden checkbox with `<label>`s as its button and its
@@ -247,7 +254,14 @@ Written at the time or not at all. The report reads the newest stored round and 
 deliberately no "latest" file beside the archive, because two copies of one round invite
 them to disagree and the page would show whichever is wrong.
 
-**Gameweeks are derived, because no upstream source publishes them.** `data/gameweeks.py`
+**An official gameweek beats a derived one, and for an unstarted season the derivation
+cannot work at all.** `predict.gameweeks_for` uses the fixture's own `gameweek` column when
+the FPL schedule supplies one. Without that check every 2026/27 fixture came out as
+gameweek 1 — the derivation counts each club's matches in `matches.parquet`, which is empty
+for a season nobody has played, so every round would have tried to overwrite the last. The
+archive's refusal is what surfaced it.
+
+**Gameweeks are derived when nothing publishes them, which is every historical season.** `data/gameweeks.py`
 counts each club's matches within a season rather than clustering dates: a club plays each
 round exactly once, so a postponed fixture played six weeks later still lands correctly and
 midweek rounds do not merge into the weekend. **Do not assume 10 fixtures to a round** —

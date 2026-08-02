@@ -76,21 +76,59 @@ def render_grid(predictions: list[dict]) -> None:
 
 
 def choose_round(options: list[dict]) -> dict:
-    """The gameweek selector.
+    """Pick a stored round: season along the top, then the rounds within it.
 
-    A page-level Streamlit widget, which is fine: the rule that interactivity must be CSS
-    applies to a *card*, because a card is one block of markup and a rerun would reflow
-    the grid. Rerunning to change which round is displayed is exactly what should happen.
+    Page-level Streamlit widgets, which is fine and is the point: the rule that
+    interactivity must be CSS applies to a *card*, because a card is one block of markup
+    and a rerun would reflow the grid. Rerunning to change which round is shown is exactly
+    what should happen.
 
-    Hidden entirely when only one round is stored - a dropdown with a single choice is
-    furniture, not a control.
+    This was a dropdown and it was the wrong control twice over. A ``selectbox`` filters
+    as you type, which is baffling with two options; and it hides what exists until you
+    open it, when "which rounds have we predicted?" is a question the page should answer
+    without being asked. Laid out flat, the archive is legible at a glance.
+
+    Each level disappears when it has one choice, because a control with a single option
+    is furniture rather than a control.
     """
-    if len(options) == 1:
-        return options[0]
+    seasons = list(dict.fromkeys(option["season_slug"] for option in options))
 
-    labels = [option["label"] for option in options]
-    chosen = st.selectbox("GAMEWEEK", labels, index=0, label_visibility="collapsed")
-    return options[labels.index(chosen)]
+    season = seasons[0]
+    if len(seasons) > 1:
+        st.markdown('<div class="pl-picker-key">SEASON</div>', unsafe_allow_html=True)
+        picked = st.segmented_control(
+            "Season",
+            seasons,
+            default=seasons[0],
+            format_func=lambda slug: slug.replace("_", "/"),
+            label_visibility="collapsed",
+        )
+        # These controls are deselectable, so a second click on the active choice returns
+        # None. Falling back to the newest season keeps the page showing something.
+        season = picked or seasons[0]
+
+    rounds = [option for option in options if option["season_slug"] == season]
+    if len(rounds) == 1:
+        return rounds[0]
+
+    # Ascending, so the strip reads like a season running left to right. The options
+    # arrive newest-first, which is right for the season control and for choosing a
+    # default, but backwards for a row of round numbers.
+    gameweeks = sorted(option["gameweek"] for option in rounds)
+    st.markdown('<div class="pl-picker-key">ROUND</div>', unsafe_allow_html=True)
+    chosen = st.pills(
+        "Round",
+        gameweeks,
+        # The latest round is the one you almost always want.
+        default=gameweeks[-1],
+        format_func=lambda number: f"GW {number}",
+        label_visibility="collapsed",
+        # Keyed by season so switching seasons does not carry a gameweek across that the
+        # new season has never stored.
+        key=f"round-{season}",
+    )
+    chosen = gameweeks[-1] if chosen is None else chosen
+    return next(option for option in rounds if option["gameweek"] == chosen)
 
 
 def main() -> None:
