@@ -128,10 +128,12 @@ decisions rather than data — losing them would mean re-deriving each one by ha
 they are committed deliberately. `player_name_overrides.csv` is consulted before the
 matching cascade runs and always wins; add a row there rather than loosening a threshold.
 
-**Hand-maintained files record *changes*, never whole state.** Phase 7 adds squad edits for
-the open transfer window, and the same rule applies: a file that restates twenty full
-squads to move one player will go stale, and a stale file that looks authoritative is worse
-than no file. Adding a transfer should be one line and a rebuild.
+**Hand-maintained files record *changes*, never whole state.** A file that restates twenty
+full squads to move one player goes stale within a week of a window opening, and a stale
+file that looks authoritative is worse than no file. Four remain — name overrides, manual
+ratings, absences, and hand-typed fixtures — and each is one line per decision. Transfers
+are *not* among them: who has left a club is detected from the FPL squad lists, which is
+why `squad_changes.csv` was removed rather than kept.
 
 **`src/config.py` is the only place seasons are defined.** Each upstream source names
 seasons differently, so the `Season` dataclass carries every identifier at once —

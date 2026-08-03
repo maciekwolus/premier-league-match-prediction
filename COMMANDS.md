@@ -34,8 +34,8 @@ cd C:\repositories\premier-league-match-prediction
 
 Opens **http://localhost:8501**. `Ctrl+C` in that terminal stops it.
 
-Once more than one round is stored, a **gameweek selector** appears at the top of the page.
-Rounds that have been played show the final score on each card and a season-to-date
+Once more than one round is stored, a **season and round picker** appears at the top of the
+page. Rounds that have been played show the final score on each card and a season-to-date
 scorecard: how often the call was right, and our RPS beside the bookmaker's.
 
 That is the whole thing — the report opens on the newest round stored under
