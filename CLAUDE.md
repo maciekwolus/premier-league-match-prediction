@@ -21,7 +21,7 @@ downloads to a Streamlit report. **Stage two (Phases 11–15) made it survive a 
 season**: predictions archived per gameweek and never rewritten, a browsable history
 scored against reality, suspensions derived from cards already on disk, squads for a
 season whose ratings edition does not exist yet, and the skills. Both are complete and
-452 tests cover them. Phase 16 is planned and deliberately optional. There is no Phase 10
+441 tests cover them. Phase 16 is planned and deliberately optional. There is no Phase 10
 — the numbering skips it so the two stages stay visually distinct.
 
 **The project now predicts a season it has no results for.** Training runs on 2019/20
@@ -267,6 +267,21 @@ round exactly once, so a postponed fixture played six weeks later still lands co
 midweek rounds do not merge into the weekend. **Do not assume 10 fixtures to a round** —
 measured on 2025/26, 36 of the 38 come out at exactly 10 and 2 split because a match
 crossed a round boundary. `gameweek_sizes` reports rather than validates for that reason.
+
+**The expected XI is picked to a shape, not just by appearances.** Ranking the outfield
+purely by starts does not produce a formation: Arsenal came out **5-5-0** for gameweek 1,
+five defenders and five midfielders with six available forwards all a start behind. Each
+line takes a minimum first (`FORMATION_MINIMUM`, 1/3/2/1) and the free places go to whoever
+has played most within `FORMATION_MAXIMUM` (1/5/6/4), so every side lands inside the range
+real formations occupy. The goalkeeper was already protected this way; every other line
+needed it too.
+
+**A club can lose every goalkeeper it has recently started.** Leeds' only keeper in the
+pool had transferred, and the free places then went to outfielders — eleven of them, with
+nobody in goal. Outfield places are capped at ten whether or not a keeper was found, and a
+missing keeper is filled from the ratings, which know a club's keepers even when
+appearances no longer do. That row is labelled `ratings` individually, so the overlay's
+wording stays true for a side that is otherwise appearance-based.
 
 **Unavailable players are removed before the XI is picked, never after.** `most_used_eleven`
 filters suspended and hand-flagged players out of the pool, so the next-most-used player

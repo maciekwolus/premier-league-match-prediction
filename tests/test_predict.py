@@ -114,6 +114,100 @@ def test_the_most_used_players_are_chosen():
     assert "Mid 0" in set(eleven["player"])
 
 
+def lopsided_pool(team="Arsenal"):
+    """Arsenal's real 2026/27 pool: the defenders and midfielders have played most.
+
+    Five defenders and five midfielders on four starts each, six forwards on two. Ranking
+    the outfield purely by appearances fills all ten places before a forward is reached.
+    """
+    rows = []
+    date = pd.Timestamp("2026-01-01")
+    heavy = [("Keeper", "GK")]
+    heavy += [(f"Def {i}", "DC") for i in range(5)]
+    heavy += [(f"Mid {i}", "MC") for i in range(5)]
+    light = [(f"Att {i}", "FW") for i in range(6)]
+
+    for match in range(4):
+        for name, position in heavy:
+            rows.append(
+                {
+                    "match_id": f"m{match}",
+                    "date": date,
+                    "season": "2026/27",
+                    "team": team,
+                    "player": name,
+                    "position": position,
+                    "minutes": 90,
+                    "is_starter": True,
+                    "yellow_cards": 0,
+                    "red_cards": 0,
+                }
+            )
+        date += pd.Timedelta(days=7)
+    for match in range(2):
+        for name, position in light:
+            rows.append(
+                {
+                    "match_id": f"m{match}",
+                    "date": date,
+                    "season": "2026/27",
+                    "team": team,
+                    "player": name,
+                    "position": position,
+                    "minutes": 90,
+                    "is_starter": True,
+                    "yellow_cards": 0,
+                    "red_cards": 0,
+                }
+            )
+        date += pd.Timedelta(days=7)
+    return pd.DataFrame(rows)
+
+
+def test_the_eleven_always_has_an_attacker():
+    """Arsenal came out 5-5-0 for gameweek 1 - five defenders, five midfielders and no
+    forward at all, with six forwards available a start behind. That is not a formation."""
+    eleven = most_used_eleven(lopsided_pool(), "Arsenal", pd.Timestamp("2026-06-01"))
+
+    assert (eleven["line"] == "att").sum() >= 1
+
+
+def test_the_eleven_stays_inside_a_real_formation():
+    """Three to five at the back, one to four up front - the range every Premier League
+    shape lives in."""
+    eleven = most_used_eleven(lopsided_pool(), "Arsenal", pd.Timestamp("2026-06-01"))
+    counts = eleven["line"].value_counts().to_dict()
+
+    assert len(eleven) == 11
+    assert counts.get("gk", 0) == 1
+    assert 3 <= counts.get("def", 0) <= 5
+    assert 1 <= counts.get("att", 0) <= 4
+
+
+def test_the_most_used_of_each_line_is_still_preferred():
+    """Shape constrains which lines are filled, not who fills them."""
+    pool = lopsided_pool()
+    rare = pool[(pool["match_id"] == "m0") & (pool["player"] == "Def 0")].copy()
+    rare["player"] = "Fringe Defender"
+    pool = pd.concat([pool, rare], ignore_index=True)
+
+    eleven = most_used_eleven(pool, "Arsenal", pd.Timestamp("2026-06-01"))
+
+    assert "Fringe Defender" not in set(eleven["player"])
+
+
+def test_a_club_with_no_forwards_fields_what_it_has():
+    """Honest rather than inventing a player. After departures a thin squad can genuinely
+    have no forward left, and the shape should say so instead of failing."""
+    pool = lopsided_pool()
+    pool = pool[~pool["player"].str.startswith("Att")]
+
+    eleven = most_used_eleven(pool, "Arsenal", pd.Timestamp("2026-06-01"))
+
+    assert (eleven["line"] == "att").sum() == 0
+    assert len(eleven) == 11
+
+
 # -------------------------------------------------------- squad quality for fixtures
 
 
