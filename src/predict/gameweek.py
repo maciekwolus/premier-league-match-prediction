@@ -158,6 +158,13 @@ def gameweeks_for(fixtures: pd.DataFrame) -> dict[str, int]:
     ``features_for`` does it: with ``--replay`` the round is already in the table, and
     counting it twice would put every later fixture a round out.
     """
+    # An official round number beats a derived one whenever it exists. FPL publishes one
+    # per fixture, and for a season with no results yet the derivation cannot work at all:
+    # every club's first *recorded* match is its first, so the whole season collapses onto
+    # gameweek 1 and each round predicted would try to overwrite the last.
+    if "gameweek" in fixtures.columns and fixtures["gameweek"].notna().all():
+        return dict(zip(fixtures["match_id"], fixtures["gameweek"].astype(int), strict=True))
+
     # Only the schedule matters here, so both sides are narrowed to those columns before
     # concatenating. Reindexing the fixtures to the full match table would drag in all-NA
     # result columns and the dtype-coercion warning that comes with them.

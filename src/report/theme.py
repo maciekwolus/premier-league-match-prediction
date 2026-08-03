@@ -355,6 +355,57 @@ h1 {{
   .pl-legend-row {{ grid-template-columns: 1fr; gap: 0.45rem; }}
 }}
 
+/* ------------------------------------------------------------- round picker */
+
+/* The archive laid out flat rather than hidden behind a dropdown. A selectbox filtered
+   as you typed - baffling with two options - and made "which rounds have we predicted?"
+   a question you had to open a menu to answer. These borrow the expected-XI button's
+   language, so the page has one idea of what a pressable thing looks like. */
+
+.pl-picker-key {{
+  font-family: ui-monospace, monospace;
+  font-size: 0.6rem; letter-spacing: 0.13em; color: {MUTED};
+  margin: 0 0 0.3rem;
+}}
+
+/* Streamlit still emits the widget label when it is collapsed; it is duplicated by the
+   key above, so it goes rather than being shown twice. */
+[data-testid="stButtonGroup"] [data-testid="stWidgetLabel"] {{ display: none; }}
+
+[data-testid="stButtonGroup"] {{ margin-bottom: 0.7rem; }}
+[data-testid="stButtonGroup"] [role="radiogroup"] {{ gap: 0.35rem; flex-wrap: wrap; }}
+
+/* Attribute selectors rather than the emotion class hashes beside them, which change
+   whenever Streamlit is upgraded. */
+[data-testid="stButtonGroup"] button[data-variant="segmented_control"],
+[data-testid="stButtonGroup"] button[data-variant="pills"] {{
+  font-family: 'Press Start 2P', ui-monospace, monospace;
+  font-size: 0.52rem; letter-spacing: 0.06em;
+  color: {INK}; background: {PANEL};
+  border: 2px solid {MUTED}; border-radius: 0;
+  padding: 0.5rem 0.7rem;
+  transition: none;
+}}
+
+[data-testid="stButtonGroup"] button[data-variant="segmented_control"]:hover,
+[data-testid="stButtonGroup"] button[data-variant="pills"]:hover {{
+  border-color: {INK}; color: {INK}; background: {PANEL};
+}}
+
+/* Selected reads like the verdict bar on a card: amber block, dark text. */
+[data-testid="stButtonGroup"] button[data-selected="true"] {{
+  color: {PAPER} !important; background: {ACCENT_2} !important;
+  border-color: {INK} !important;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.5);
+}}
+
+[data-testid="stButtonGroup"] button:focus-visible {{
+  outline: 2px solid {ACCENT_2}; outline-offset: 2px;
+}}
+
+/* The label markup Streamlit wraps each option in carries its own colour. */
+[data-testid="stButtonGroup"] button p {{ color: inherit !important; margin: 0; }}
+
 /* ------------------------------------------------------------------- notices */
 
 .pl-notice {{
