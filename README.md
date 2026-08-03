@@ -12,33 +12,21 @@ Crystal Palace vs Arsenal     0-1 (14%) · 0-2 (13%) · 1-1 (11%)
 
 ## Why this exists
 
-**It is a workout for Claude Code, disguised as a football project.** The prediction is
-real and the numbers are honest, but the point was to find out what an AI coding agent can
-do when the task is long enough to have a memory problem, a research problem, and a taste
-problem all at once.
+**It is a workout for Claude Code, disguised as a football project.** The predictions are
+real, but the point was to see how an AI coding agent copes with a project long enough to
+outlive its own memory.
 
-What that turned into, concretely:
-
-- **A written plan as the contract.** [PLAN.md](PLAN.md) defined ten phases up front, and
-  every session started by reading it. An agent with a plan argues with you about scope;
-  an agent without one agrees with everything and drifts. It later grew a second stage,
-  and the original estimates were left in place where they turned out wrong — what the
-  plan expected against what happened is the more useful record.
-- **Persistent instructions that outlive the conversation.** [CLAUDE.md](CLAUDE.md) is the
-  project's operating memory — the leakage rules, the join contracts, the data quirks that
-  cost hours to discover. It exists because the *interesting* failures were never syntax
-  errors, they were facts nobody wrote down.
-- **Parallel subagents on genuinely parallel work.** Seven agents, one per season, run on
-  the *residue* left by automated name-matching rather than instead of it. Their most
-  valuable output was negative: by refusing to guess, they exposed an upstream filtering
-  bug rather than papering over it.
-- **One branch, one PR, one review per phase.** Nothing reached `main` unread.
-- **Verifying the UI by measuring the rendered page**, not by reading the source. Every
-  front-end bug here was invisible in the code and obvious in the DOM.
+- **A written plan.** [PLAN.md](PLAN.md) holds the scope; every session starts by reading it.
+- **Instructions that outlive the conversation.** [CLAUDE.md](CLAUDE.md) carries the rules
+  and the traps.
+- **Parallel subagents**, one per season, on work that was genuinely parallel.
+- **A branch and a PR per phase.** Nothing reached `main` unread.
+- **Skills** for the workflows that recur — see [SKILLS.md](SKILLS.md).
+- **UI checked by measuring the page**, never by reading the code.
 
 The most useful lesson had nothing to do with football: **a feature with passing tests can
-be connected to nothing at all.** An entire squad-adjustment mechanism was built, tested
-and documented before anyone noticed the prediction path never called it.
+be connected to nothing at all.** A whole squad-adjustment mechanism was built, tested and
+documented before anyone noticed that nothing called it.
 
 ## What it does
 
@@ -79,7 +67,7 @@ home/draw/away split, and where the model **disagrees with the market by more th
 points** — the only genuinely interesting thing a model can offer once a market exists.
 Club crests are trademarked, so each side gets a pixel kit instead, generated as inline SVG.
 
-Once more than one round is stored a **gameweek selector** appears, and any round that has
+Once more than one round is stored a **season and round picker** appears, and any round that has
 been played shows the final score on each card with a verdict — including `EXACT SCORE`
 alongside `WRONG CALL` when the scoreline landed but the headline call did not, which is
 the normal case rather than an edge one.
@@ -138,7 +126,7 @@ cd C:\repositories\premier-league-match-prediction
 |---|---|
 | [SETUP.md](SETUP.md) | Install and run the whole app, step by step |
 | [COMMANDS.md](COMMANDS.md) | Every command and flag, plus what the error messages mean |
-| [PLAN.md](PLAN.md) | The ten-phase build plan and where it landed |
+| [PLAN.md](PLAN.md) | The build plan, both stages, and where each phase landed |
 | [CLAUDE.md](CLAUDE.md) | Architecture contracts, leakage rules, and the data quirks worth knowing |
 | [SKILLS.md](SKILLS.md) | The four Claude Code skills in this repo, and when to reach for each |
 
@@ -153,9 +141,35 @@ src/predict/      fixtures, expected XIs, squad currency, and the prediction arc
 src/report/       shaping predictions for display
 app.py            the Streamlit report
 tests/            441 tests, no network access and no reading of data/
-data/manual/      hand-written overrides: names, squad changes, fixtures (committed)
+data/manual/      hand-written overrides: names, ratings, absences, fixtures (committed)
 ```
 
 **Status: complete.** Stage one built the pipeline; stage two made it survive a live
 season — archived predictions, a scored history, suspensions, and squads for clubs the
 data has never seen. Almost no data is committed: it is gitignored and rebuilt from source.
+
+## Built with
+
+**Python 3.12.** Every dependency is in [requirements.txt](requirements.txt); this is what
+each one is here for.
+
+| | | |
+|---|---|---|
+| **Data** | `pandas`, `numpy` | Every stage is a dataframe; parquet on disk between them |
+| | `pyarrow` | The parquet reader and writer |
+| **Sources** | `requests` | football-data CSVs, the Fantasy Premier League API |
+| | `understatapi` | Per-match lineups and expected goals |
+| **Matching** | `rapidfuzz` | Player names across three sources that spell them differently |
+| **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
+| | `autogluon.tabular` | Gradient boosting, and ~700 MB of the install. `compare --fast` runs without it |
+| **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
+| **Tooling** | `pytest`, `ruff` | 441 tests, lint and format |
+
+**No neural network was written by hand** — that was a constraint from the start.
+Dixon-Coles is a well-defined statistical model fitted with `scipy.optimize`, and AutoGluon
+handles the machine learning behind a `.fit()`.
+
+**Not used, deliberately.** No database: parquet files are faster at this size and diff
+cleanly. No web framework: the report is a single Streamlit script. **Every data source is
+free**, and the one that needs an account — Kaggle, for the player ratings — is placed by
+hand rather than automated around, because credentials are the user's to handle.
