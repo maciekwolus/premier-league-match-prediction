@@ -101,13 +101,55 @@ def most_used_eleven(
         .sort_values(["starts", "minutes"], ascending=False)
     )
     tally["line"] = tally["position"].map(line_of)
+    return _pick_a_shape(tally)
 
-    # One goalkeeper, then the ten outfielders with the most starts. Without the split a
-    # rotating keeper pair can push a striker out of the eleven, or contribute two.
-    keepers = tally[tally["line"] == "gk"].head(1)
-    outfield = tally[tally["line"] != "gk"].head(STARTERS_PER_TEAM - len(keepers))
 
-    return pd.concat([keepers, outfield], ignore_index=True)
+# The bounds every Premier League formation lives inside. A side always has one keeper,
+# never fewer than three defenders or more than five, and always at least one forward.
+FORMATION_MINIMUM = {"gk": 1, "def": 3, "mid": 2, "att": 1}
+FORMATION_MAXIMUM = {"gk": 1, "def": 5, "mid": 6, "att": 4}
+
+
+def _pick_a_shape(tally: pd.DataFrame) -> pd.DataFrame:
+    """The most-used eleven that is also a team.
+
+    Ranking purely by appearances does not produce a formation. Arsenal's most-used ten
+    outfielders were five defenders and five midfielders, with six available forwards all
+    sitting a start or two behind - so the XI came out 5-5-0, which nobody has played.
+    The goalkeeper was already protected this way, for exactly the same reason; every
+    other line needed it too.
+
+    Each line takes its minimum first, by starts and then minutes, and the remaining
+    places go to whoever has played most within the maxima. A club whose pool genuinely
+    lacks a line - no forward left after departures, say - gets what exists rather than an
+    invented player, and the shape says so.
+    """
+    picked = []
+    for line, minimum in FORMATION_MINIMUM.items():
+        picked.append(tally[tally["line"] == line].head(minimum))
+
+    chosen = pd.concat(picked) if picked else tally.head(0)
+
+    # Outfield places are capped whether or not a keeper was found. Leeds' only goalkeeper
+    # in the pool had left the club, and without this the free places went to outfielders
+    # instead - eleven of them, on a pitch with nobody in goal.
+    outfield_cap = STARTERS_PER_TEAM - FORMATION_MINIMUM["gk"]
+    remaining = min(STARTERS_PER_TEAM, outfield_cap + len(chosen[chosen["line"] == "gk"])) - len(
+        chosen
+    )
+    if remaining > 0:
+        counts = chosen["line"].value_counts().to_dict()
+        for row in tally.drop(chosen.index).itertuples():
+            if remaining == 0:
+                break
+            line = row.line
+            if counts.get(line, 0) >= FORMATION_MAXIMUM.get(line, STARTERS_PER_TEAM):
+                continue
+            chosen = pd.concat([chosen, tally.loc[[row.Index]]])
+            counts[line] = counts.get(line, 0) + 1
+            remaining -= 1
+
+    return chosen.reset_index(drop=True)
 
 
 # FIFA's primary position -> the four lines. A promoted club has no appearance history to
@@ -260,6 +302,20 @@ def expected_squad_players(
             )
             if from_ratings:
                 eleven = ratings_eleven(fifa, team, lookup_season)
+            if not eleven.empty:
+                eleven = eleven.assign(source="ratings" if from_ratings else "appearances")
+
+            if not from_ratings and not eleven.empty and "gk" not in set(eleven["line"]):
+                # A club can lose every goalkeeper it has recently started - Leeds lost
+                # theirs to a transfer - and no side takes the field without one. The
+                # ratings know who the club's keepers are even when appearances do not,
+                # so the best-rated one fills the shirt rather than leaving it empty.
+                keeper = ratings_eleven(fifa, team, lookup_season)
+                keeper = keeper[keeper["line"] == "gk"].head(1)
+                if not keeper.empty:
+                    problems.append(f"{team}: no goalkeeper has started recently; using ratings")
+                    keeper = keeper.assign(source="ratings")
+                    eleven = pd.concat([keeper, eleven.head(STARTERS_PER_TEAM - 1)])
 
             for player in eleven.itertuples():
                 rows.append(
@@ -276,10 +332,12 @@ def expected_squad_players(
                         "is_starter": True,
                         # Recorded so the report can say which kind of guess this is,
                         # rather than calling a ratings XI a most-used eleven.
-                        "xi_source": "ratings" if from_ratings else "appearances",
-                        # A ratings XI is already named as FIFA names players, so it
-                        # carries its own mapping and skips the Understat name map.
-                        "fifa_player_name": player.player if from_ratings else None,
+                        "xi_source": player.source,
+                        # A name that came from the ratings is already spelled as FIFA
+                        # spells it, so it carries its own mapping and skips the Understat
+                        # name map. That is true of a backfilled keeper as much as a whole
+                        # ratings eleven.
+                        "fifa_player_name": (player.player if player.source == "ratings" else None),
                     }
                 )
 
