@@ -111,6 +111,13 @@ Tests never hit the network and never read `data/` — they build synthetic seas
 they stay meaningful when upstream sources change, and a green run verifies a fresh
 environment before the slow data build.
 
+**CI runs lint, format and the full suite on every push and pull request**
+(`.github/workflows/ci.yml`), on Ubuntu rather than Windows on purpose: it is the platform
+the report would deploy to, so a green run also says nothing depends on Windows paths.
+It installs `requirements.txt` only — **AutoGluon is deliberately absent from CI**, which is
+safe because every test passes with it unimportable, and that was verified rather than
+assumed. Keep it that way: a test that needs AutoGluon would add ~700 MB to every run.
+
 ## Architecture
 
 **Data flows one way through three directories**, each stage written to disk so any

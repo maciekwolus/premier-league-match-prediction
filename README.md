@@ -1,5 +1,7 @@
 # Premier League Match Prediction
 
+[![CI](https://github.com/maciekwolus/premier-league-match-prediction/actions/workflows/ci.yml/badge.svg)](https://github.com/maciekwolus/premier-league-match-prediction/actions/workflows/ci.yml)
+
 Predicts the **scoreline** of upcoming Premier League fixtures, with probabilities — and
 shows every prediction next to the bookmaker's line, so it is obvious whether the model is
 actually adding anything.
@@ -150,8 +152,9 @@ data has never seen. Almost no data is committed: it is gitignored and rebuilt f
 
 ## Built with
 
-**Python 3.12.** Every dependency is in [requirements.txt](requirements.txt); this is what
-each one is here for.
+**Python 3.12.** [requirements.txt](requirements.txt) is small and quick; the gradient
+boosting is a separate [requirements-models.txt](requirements-models.txt) because it is
+~700 MB and nothing else needs it. This is what each dependency is here for.
 
 | | | |
 |---|---|---|
@@ -163,7 +166,7 @@ each one is here for.
 | **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
 | | `autogluon.tabular` | Gradient boosting, and ~700 MB of the install. `compare --fast` runs without it |
 | **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
-| **Tooling** | `pytest`, `ruff` | 441 tests, lint and format |
+| **Tooling** | `pytest`, `ruff` | 441 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
 
 **No neural network was written by hand** — that was a constraint from the start.
 Dixon-Coles is a well-defined statistical model fitted with `scipy.optimize`, and AutoGluon

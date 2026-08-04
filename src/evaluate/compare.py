@@ -12,6 +12,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import sys
 import warnings
 
@@ -42,6 +43,17 @@ def build_models(fast: bool = False) -> list:
     models[-1].name = "poisson-glm-with-odds"
 
     if not fast:
+        # Checked here rather than left to fail inside fit(). AutoGluon is imported lazily
+        # by the model, so without this the run gets several minutes into a backtest
+        # before dying on a missing import - and it is the one dependency deliberately
+        # kept out of requirements.txt, so its absence is normal rather than broken.
+        if importlib.util.find_spec("autogluon.tabular") is None:
+            raise ImportError(
+                "The gradient-boosting models need AutoGluon, which is not installed.\n"
+                "  Install it:  pip install -r requirements-models.txt\n"
+                "  Or skip it:  python -m src.evaluate.compare --fast"
+            )
+
         from src.models.gbm import GradientBoostingModel
 
         models.append(GradientBoostingModel())

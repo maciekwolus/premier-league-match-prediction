@@ -1,0 +1,10 @@
+# The gradient-boosting models, and the ~700 MB they cost.
+#
+# Only `compare` without --fast needs these. Everything else - the data build, the whole
+# test suite, predicting a round and the report - runs on requirements.txt alone, which is
+# why the two are separate.
+
+-r requirements.txt
+
+autogluon.tabular>=1.1
+typing_extensions      # autogluon imports it without declaring the dependency

@@ -126,10 +126,19 @@ pytest
 The tests need neither network nor data, so a green run here confirms the environment is
 sound before the slow step.
 
-**AutoGluon is around 700 MB of that install and is optional.** It is imported only when
-a gradient-boosting model is actually built, so the whole data pipeline, the tests, and
-`compare --fast` all work without it. Comment it out of `requirements.txt` if you would
-rather not download it.
+**That is everything the data build, the tests and the report need**, and it is a small,
+quick install.
+
+**The gradient-boosting models are a further ~700 MB and live in a separate file**, because
+only `compare` without `--fast` uses them — the whole pipeline, all 441 tests and the report
+run without them. Install those too if you want the full nine-model comparison:
+
+```bash
+pip install -r requirements-models.txt
+```
+
+Without it, `compare` says so and points at both this command and `--fast`, rather than
+failing partway through a backtest.
 
 ### 5. Build the data
 
