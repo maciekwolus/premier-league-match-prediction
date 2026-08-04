@@ -7,6 +7,22 @@ data/**
 # would otherwise have to be re-derived by hand on every machine.
 !data/manual/*.csv
 
+# ...and except the two things the deployed report reads. Everything else in data/ is
+# build output that can be rebuilt from source; these two cannot.
+#
+# The prediction archive is the record of what the model said before each round was
+# played. It is the one artefact here that cannot be regenerated - re-running a past
+# round answers a different question - so keeping it on a single laptop was a bad idea
+# quite apart from deployment.
+!data/final/rounds/*.json
+!data/final/rounds/**/*.json
+
+# matches.parquet is rebuildable, but the report needs final scores to say whether a
+# prediction was right, and 140 KB is a cheap price for a page that works on a clean
+# clone. Committed whole rather than as a trimmed copy, because a second file holding
+# the same results is a second file that can disagree with the first.
+!data/processed/matches.parquet
+
 # Python
 __pycache__/
 *.py[cod]

@@ -22,10 +22,12 @@ import argparse
 import json
 import sys
 import time
-
-from understatapi import UnderstatClient
+from typing import TYPE_CHECKING
 
 from src.config import MATCHES_PER_SEASON, RAW_LINEUPS_DIR, SEASONS, SEASONS_BY_LABEL, Season
+
+if TYPE_CHECKING:  # the annotations below need the name, not the package at runtime
+    from understatapi import UnderstatClient
 
 ROSTER_DIR = RAW_LINEUPS_DIR / "rosters"
 
@@ -144,6 +146,13 @@ def main(argv: list[str] | None = None) -> int:
         seasons = list(SEASONS)
 
     all_failures: list[str] = []
+
+    # Imported here rather than at module scope. understatapi pins its transitive
+    # dependencies exactly - urllib3==1.26.5, idna==2.10 - and clean_lineups imports this
+    # module for two helpers, so a module-level import dragged those pins into anything
+    # that touched a lineup, including the report and the test suite. Only this function
+    # actually talks to Understat.
+    from understatapi import UnderstatClient
 
     with UnderstatClient() as client:
         if args.stage in ("matches", "all"):
