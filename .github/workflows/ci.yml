@@ -1,0 +1,40 @@
+name: CI
+
+# Every push to main and every pull request. The suite is quick because it builds
+# synthetic seasons rather than reading data/, so there is nothing to cache or download.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Ubuntu although the project is developed on Windows, on purpose: it is the platform
+    # the report would be deployed to, so a green run here also says the code is not
+    # quietly depending on Windows paths.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      # requirements.txt only. AutoGluon is ~700 MB and nothing in the suite needs it -
+      # every test passes with it unimportable, which is what keeps this job fast.
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Format
+        run: ruff format --check .
+
+      # No network access and no reading of data/ is a property the tests are written to
+      # have, and running them on a bare machine with neither is what proves it.
+      - name: Test
+        run: pytest -q

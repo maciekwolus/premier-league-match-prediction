@@ -1,22 +1,23 @@
-# Core data pipeline (Phases 1-5)
+# Everything needed to build the data, run the tests and open the report.
+#
+# Deliberately small and quick to install. The one heavy dependency - AutoGluon, around
+# 700 MB - lives in requirements-models.txt instead, because nothing here needs it: the
+# full test suite passes with it absent, and `compare --fast` skips it.
+
+# Core data pipeline
 pandas>=2.2
 numpy>=1.26
 pyarrow>=15.0          # parquet support
 requests>=2.31
-rapidfuzz>=3.6         # player name matching (Phase 4)
-scipy>=1.12            # Dixon-Coles (Phase 6)
+rapidfuzz>=3.6         # player name matching
+scipy>=1.12            # fits Dixon-Coles, the model the report uses
 
-# Lineup scraping (Phase 2)
+# Lineup scraping
 understatapi>=0.5
+
+# Report
+streamlit>=1.35
 
 # Dev tooling
 pytest>=8.0
 ruff>=0.4
-
-# Models (Phase 6). This is the bulk of the install - around 700 MB.
-# Skip it if you only need the data pipeline; `compare --fast` runs without it.
-autogluon.tabular>=1.1
-typing_extensions      # autogluon imports it without declaring the dependency
-
-# Report (Phase 8)
-streamlit>=1.35
