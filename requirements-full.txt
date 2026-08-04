@@ -1,0 +1,17 @@
+# The two dependencies needed to rebuild everything from source, kept separate because
+# each is awkward in a way the rest are not.
+#
+#   understatapi  pins its transitive dependencies exactly - urllib3==1.26.5, idna==2.10 -
+#                 so installing it drags a 2021-era urllib3 into whatever environment it
+#                 lands in. Only `fetch_lineups` talks to Understat, and it imports the
+#                 package inside the function that does.
+#
+#   autogluon     is around 700 MB, and only `compare` without --fast uses it.
+#
+# The report, the whole test suite and every other command run on requirements.txt alone.
+
+-r requirements.txt
+
+understatapi>=0.5      # Understat scraping, for `fetch_lineups`
+autogluon.tabular>=1.1 # gradient boosting, for the full model comparison
+typing_extensions      # autogluon imports it without declaring the dependency

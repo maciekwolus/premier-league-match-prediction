@@ -1,0 +1,20 @@
+# Streamlit's own chrome, matched to the report.
+#
+# The page paints itself from src/report/theme.py, but the surrounding frame is
+# Streamlit's and defaults to light — which means a white flash on every load, and a
+# light scrollbar and menu around a near-black page. These are the same tokens the CSS
+# uses, so the two stop disagreeing.
+
+[theme]
+base = "dark"
+backgroundColor = "#111418"          # PAPER
+secondaryBackgroundColor = "#1A1F26" # PANEL
+textColor = "#F4F1E8"                # INK
+primaryColor = "#F1C40F"             # ACCENT_2, the scoreboard amber
+
+[server]
+# Nothing here is user data, and the deployed page is public anyway.
+enableCORS = false
+
+[browser]
+gatherUsageStats = false

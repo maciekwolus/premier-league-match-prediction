@@ -152,19 +152,20 @@ data has never seen. Almost no data is committed: it is gitignored and rebuilt f
 
 ## Built with
 
-**Python 3.12.** [requirements.txt](requirements.txt) is small and quick; the gradient
-boosting is a separate [requirements-models.txt](requirements-models.txt) because it is
-~700 MB and nothing else needs it. This is what each dependency is here for.
+**Python 3.12.** [requirements.txt](requirements.txt) is small, quick and free of hard
+version pins — which is what makes it safe to deploy. The two awkward dependencies are
+separate, in [requirements-full.txt](requirements-full.txt), and all 441 tests pass with
+both absent. This is what each one is here for.
 
 | | | |
 |---|---|---|
 | **Data** | `pandas`, `numpy` | Every stage is a dataframe; parquet on disk between them |
 | | `pyarrow` | The parquet reader and writer |
 | **Sources** | `requests` | football-data CSVs, the Fantasy Premier League API |
-| | `understatapi` | Per-match lineups and expected goals |
+| | `understatapi` | Per-match lineups and expected goals *(separate: it hard-pins urllib3)* |
 | **Matching** | `rapidfuzz` | Player names across three sources that spell them differently |
 | **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
-| | `autogluon.tabular` | Gradient boosting, and ~700 MB of the install. `compare --fast` runs without it |
+| | `autogluon.tabular` | Gradient boosting *(separate: ~700 MB)*. `compare --fast` runs without it |
 | **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
 | **Tooling** | `pytest`, `ruff` | 441 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
 

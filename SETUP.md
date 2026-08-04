@@ -129,16 +129,21 @@ sound before the slow step.
 **That is everything the data build, the tests and the report need**, and it is a small,
 quick install.
 
-**The gradient-boosting models are a further ~700 MB and live in a separate file**, because
-only `compare` without `--fast` uses them — the whole pipeline, all 441 tests and the report
-run without them. Install those too if you want the full nine-model comparison:
+**Two dependencies are kept out of it**, and you only need them to rebuild everything from
+source:
 
 ```bash
-pip install -r requirements-models.txt
+pip install -r requirements-full.txt
 ```
 
-Without it, `compare` says so and points at both this command and `--fast`, rather than
-failing partway through a backtest.
+- **`understatapi`** pins its transitive dependencies exactly — `urllib3==1.26.5`,
+  `idna==2.10` — so installing it drags a 2021-era urllib3 into the environment. Only
+  `fetch_lineups` talks to Understat.
+- **AutoGluon** is around 700 MB, and only `compare` without `--fast` uses it. Run without
+  it, `compare` says so and names both this command and `--fast`, rather than failing
+  partway through a backtest.
+
+All 441 tests pass with both absent, which is why they are separable at all.
 
 ### 5. Build the data
 
@@ -480,3 +485,45 @@ ruff check . && ruff format .
 Tests build synthetic seasons instead of reading downloaded files, so they run offline
 and stay meaningful if an upstream source changes.
 
+
+
+---
+
+## Deploying the report
+
+The page is small enough to host for free. It reads **two things** and nothing else:
+
+| | |
+|---|---|
+| `data/final/rounds/**` | The prediction archive — what was said before each round |
+| `data/processed/matches.parquet` | Final scores, to say whether a prediction was right |
+
+Both are committed, so **a fresh clone runs the report with no data build at all** — about
+1.5 MB. The other 165 MB in `data/` is build input the page never touches.
+
+### Streamlit Community Cloud
+
+1. Sign in at [share.streamlit.io](https://share.streamlit.io) with GitHub.
+2. Point it at this repository, branch `main`, main file `app.py`.
+3. Set the Python version to **3.12**.
+
+It installs `requirements.txt` by itself. Nothing else is needed — no secrets, no database,
+no build step.
+
+**The theme is already set** in `.streamlit/config.toml`. Without it the frame around the
+page loads light while the report is near-black, which flashes white on every load.
+
+### Keeping a deployed page current
+
+The site redeploys on every push, so a new round appears once it is predicted and
+committed:
+
+```bash
+.venv\Scripts\python.exe -m src.predict.gameweek
+```
+```bash
+git add data/final/rounds && git commit -m "Predict gameweek N" && git push
+```
+
+**Predict before the matches are played, not after.** A stored round is the record of what
+the model said beforehand, and that is the one thing a later run cannot reconstruct.

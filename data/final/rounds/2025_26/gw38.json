@@ -1,0 +1,1992 @@
+[
+  {
+    "bookmaker": {
+      "home": 0.393,
+      "draw": 0.274,
+      "away": 0.333
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Martin Dubravka",
+          "position": "GK",
+          "line": "gk",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Maxime Est\u00e8ve",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Kyle Walker",
+          "position": "DR",
+          "line": "def",
+          "starts": 5,
+          "overall": 79
+        },
+        {
+          "player": "Hjalmar Ekdal",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 72
+        },
+        {
+          "player": "Quilindschy Hartman",
+          "position": "DL",
+          "line": "def",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Jaidon Anthony",
+          "position": "AML",
+          "line": "mid",
+          "starts": 6,
+          "overall": 74
+        },
+        {
+          "player": "Florentino Lu\u00eds",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 80
+        },
+        {
+          "player": "Loum Tchaouna",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 69
+        },
+        {
+          "player": "James Ward-Prowse",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Chimuanya Ugochukwu",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 73
+        },
+        {
+          "player": "Zian Flemming",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 73
+        }
+      ],
+      "away": [
+        {
+          "player": "Daniel Bentley",
+          "position": "GK",
+          "line": "gk",
+          "starts": 3,
+          "overall": 71
+        },
+        {
+          "player": "Santiago Bueno",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Toti",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 75
+        },
+        {
+          "player": "Yerson Mosquera",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 72
+        },
+        {
+          "player": "Ladislav Krejc\u00ed",
+          "position": "DC",
+          "line": "def",
+          "starts": 3,
+          "overall": 78
+        },
+        {
+          "player": "Andr\u00e9",
+          "position": "MC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Jo\u00e3o Gomes",
+          "position": "MC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Hugo Bueno",
+          "position": "DML",
+          "line": "mid",
+          "starts": 5,
+          "overall": 74
+        },
+        {
+          "player": "Mateus Man\u00e9",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 60
+        },
+        {
+          "player": "Pedro Lima",
+          "position": "DMR",
+          "line": "mid",
+          "starts": 3,
+          "overall": 68
+        },
+        {
+          "player": "Adam Armstrong",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 73
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_burnley_wolves",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Burnley",
+    "away_team": "Wolves",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.5,
+      "away": 1.06
+    },
+    "outcome": {
+      "home": 0.469,
+      "draw": 0.266,
+      "away": 0.265
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.127
+      },
+      {
+        "score": "1-0",
+        "probability": 0.112
+      },
+      {
+        "score": "2-1",
+        "probability": 0.092
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.237,
+      "draw": 0.257,
+      "away": 0.506
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Dean Henderson",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 81
+        },
+        {
+          "player": "Jaydee Canvot",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 70
+        },
+        {
+          "player": "Maxence Lacroix",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Chris Richards",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Daniel Mu\u00f1oz",
+          "position": "DMR",
+          "line": "mid",
+          "starts": 6,
+          "overall": 81
+        },
+        {
+          "player": "Tyrick Mitchell",
+          "position": "DML",
+          "line": "mid",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Brennan Johnson",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 79
+        },
+        {
+          "player": "Daichi Kamada",
+          "position": "MC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Yeremi Pino",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 80
+        },
+        {
+          "player": "Adam Wharton",
+          "position": "MC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 79
+        },
+        {
+          "player": "J\u00f8rgen Strand Larsen",
+          "position": "FW",
+          "line": "att",
+          "starts": 4,
+          "overall": 78
+        }
+      ],
+      "away": [
+        {
+          "player": "David Raya",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 87
+        },
+        {
+          "player": "Gabriel",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 88
+        },
+        {
+          "player": "William Saliba",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 87
+        },
+        {
+          "player": "Ben White",
+          "position": "DR",
+          "line": "def",
+          "starts": 4,
+          "overall": 83
+        },
+        {
+          "player": "Declan Rice",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 87
+        },
+        {
+          "player": "Eberechi Eze",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 83
+        },
+        {
+          "player": "Leandro Trossard",
+          "position": "AML",
+          "line": "mid",
+          "starts": 3,
+          "overall": 83
+        },
+        {
+          "player": "Martin Odegaard",
+          "position": "MC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 87
+        },
+        {
+          "player": "Myles Lewis-Skelly",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 78
+        },
+        {
+          "player": "Kai Havertz",
+          "position": "FW",
+          "line": "att",
+          "starts": 4,
+          "overall": 82
+        },
+        {
+          "player": "Viktor Gyokeres",
+          "position": "FW",
+          "line": "att",
+          "starts": 3,
+          "overall": 87
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_crystal_palace_arsenal",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Crystal Palace",
+    "away_team": "Arsenal",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 0.74,
+      "away": 1.72
+    },
+    "outcome": {
+      "home": 0.154,
+      "draw": 0.24,
+      "away": 0.606
+    },
+    "scorelines": [
+      {
+        "score": "0-1",
+        "probability": 0.144
+      },
+      {
+        "score": "0-2",
+        "probability": 0.127
+      },
+      {
+        "score": "1-1",
+        "probability": 0.112
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.501,
+      "draw": 0.23,
+      "away": 0.269
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Bart Verbruggen",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Ferdi Kadioglu",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Jan Paul van Hecke",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Olivier Boscagli",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 79
+        },
+        {
+          "player": "Mats Wieffer",
+          "position": "DR",
+          "line": "def",
+          "starts": 4,
+          "overall": 78
+        },
+        {
+          "player": "Pascal Gro\u00df",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Yankuba Minteh",
+          "position": "AML",
+          "line": "mid",
+          "starts": 6,
+          "overall": 77
+        },
+        {
+          "player": "Jack Hinshelwood",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 75
+        },
+        {
+          "player": "Carlos Baleba",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 81
+        },
+        {
+          "player": "Kaoru Mitoma",
+          "position": "AML",
+          "line": "mid",
+          "starts": 3,
+          "overall": 82
+        },
+        {
+          "player": "Danny Welbeck",
+          "position": "FW",
+          "line": "att",
+          "starts": 5,
+          "overall": 78
+        }
+      ],
+      "away": [
+        {
+          "player": "Senne Lammens",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Luke Shaw",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Diogo Dalot",
+          "position": "DR",
+          "line": "def",
+          "starts": 4,
+          "overall": 79
+        },
+        {
+          "player": "Harry Maguire",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 80
+        },
+        {
+          "player": "Bruno Fernandes",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 87
+        },
+        {
+          "player": "Kobbie Mainoo",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 77
+        },
+        {
+          "player": "Casemiro",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 80
+        },
+        {
+          "player": "Matheus Cunha",
+          "position": "AML",
+          "line": "mid",
+          "starts": 5,
+          "overall": 83
+        },
+        {
+          "player": "Bryan Mbeumo",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 85
+        },
+        {
+          "player": "Amad Diallo Traore",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 79
+        },
+        {
+          "player": "Benjamin Sesko",
+          "position": "FW",
+          "line": "att",
+          "starts": 4,
+          "overall": 80
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_brighton_man_united",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Brighton",
+    "away_team": "Man United",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.57,
+      "away": 1.3
+    },
+    "outcome": {
+      "home": 0.433,
+      "draw": 0.254,
+      "away": 0.313
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.119
+      },
+      {
+        "score": "2-1",
+        "probability": 0.091
+      },
+      {
+        "score": "1-0",
+        "probability": 0.086
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.502,
+      "draw": 0.27,
+      "away": 0.229
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Anton\u00edn Kinsky",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 75
+        },
+        {
+          "player": "Micky van de Ven",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 82
+        },
+        {
+          "player": "Pedro Porro",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 82
+        },
+        {
+          "player": "Kevin Danso",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 79
+        },
+        {
+          "player": "Iyenoma Destiny Udogie",
+          "position": "DL",
+          "line": "def",
+          "starts": 5,
+          "overall": 80
+        },
+        {
+          "player": "Conor Gallagher",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 81
+        },
+        {
+          "player": "Randal Kolo Muani",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 6,
+          "overall": 81
+        },
+        {
+          "player": "Rodrigo Bentancur",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 80
+        },
+        {
+          "player": "Mathys Tel",
+          "position": "AML",
+          "line": "mid",
+          "starts": 3,
+          "overall": 77
+        },
+        {
+          "player": "Jo\u00e3o Palhinha",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 83
+        },
+        {
+          "player": "Richarlison",
+          "position": "FW",
+          "line": "att",
+          "starts": 4,
+          "overall": 78
+        }
+      ],
+      "away": [
+        {
+          "player": "Jordan Pickford",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 84
+        },
+        {
+          "player": "James Tarkowski",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Vitalii Mykolenko",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Jake O'Brien",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Michael Keane",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 73
+        },
+        {
+          "player": "Iliman Ndiaye",
+          "position": "AML",
+          "line": "mid",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "James Garner",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Kiernan Dewsbury-Hall",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 77
+        },
+        {
+          "player": "Merlin R\u00f6hl",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 3,
+          "overall": 74
+        },
+        {
+          "player": "Idrissa Gueye",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 79
+        },
+        {
+          "player": "Beto",
+          "position": "FW",
+          "line": "att",
+          "starts": 5,
+          "overall": 76
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_tottenham_everton",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Tottenham",
+    "away_team": "Everton",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.44,
+      "away": 1.21
+    },
+    "outcome": {
+      "home": 0.42,
+      "draw": 0.267,
+      "away": 0.314
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.127
+      },
+      {
+        "score": "1-0",
+        "probability": 0.098
+      },
+      {
+        "score": "2-1",
+        "probability": 0.089
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.37,
+      "draw": 0.259,
+      "away": 0.371
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Bernd Leno",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Calvin Bassey",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Timothy Castagne",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Joachim Andersen",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Antonee Robinson",
+          "position": "DL",
+          "line": "def",
+          "starts": 4,
+          "overall": 82
+        },
+        {
+          "player": "Sasa Lukic",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Harry Wilson",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 5,
+          "overall": 76
+        },
+        {
+          "player": "Emile Smith-Rowe",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 77
+        },
+        {
+          "player": "Sander Berge",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 79
+        },
+        {
+          "player": "Samuel Chukwueze",
+          "position": "AML",
+          "line": "mid",
+          "starts": 3,
+          "overall": 80
+        },
+        {
+          "player": "Rodrigo Muniz",
+          "position": "FW",
+          "line": "att",
+          "starts": 4,
+          "overall": 75
+        }
+      ],
+      "away": [
+        {
+          "player": "Nick Pope",
+          "position": "GK",
+          "line": "gk",
+          "starts": 4,
+          "overall": 81
+        },
+        {
+          "player": "Malick Thiaw",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Sven Botman",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 82
+        },
+        {
+          "player": "Lewis Miley",
+          "position": "DR",
+          "line": "def",
+          "starts": 4,
+          "overall": 72
+        },
+        {
+          "player": "Lewis Hall",
+          "position": "DL",
+          "line": "def",
+          "starts": 4,
+          "overall": 80
+        },
+        {
+          "player": "Dan Burn",
+          "position": "DL",
+          "line": "def",
+          "starts": 3,
+          "overall": 79
+        },
+        {
+          "player": "Sandro Tonali",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 86
+        },
+        {
+          "player": "Bruno Guimar\u00e3es",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 86
+        },
+        {
+          "player": "Jacob Murphy",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 81
+        },
+        {
+          "player": "Joelinton",
+          "position": "AML",
+          "line": "mid",
+          "starts": 3,
+          "overall": 82
+        },
+        {
+          "player": "William Osula",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 68
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_fulham_newcastle",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Fulham",
+    "away_team": "Newcastle",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.46,
+      "away": 1.37
+    },
+    "outcome": {
+      "home": 0.391,
+      "draw": 0.258,
+      "away": 0.351
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.121
+      },
+      {
+        "score": "2-1",
+        "probability": 0.086
+      },
+      {
+        "score": "1-0",
+        "probability": 0.082
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.278,
+      "draw": 0.258,
+      "away": 0.464
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Robin Roefs",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 74
+        },
+        {
+          "player": "Nordi Mukiele",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Omar Alderete",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Reinildo",
+          "position": "DL",
+          "line": "def",
+          "starts": 5,
+          "overall": 79
+        },
+        {
+          "player": "Enzo Le F\u00e9e",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Granit Xhaka",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 85
+        },
+        {
+          "player": "Noah Sadiki",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 74
+        },
+        {
+          "player": "Trai Hume",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 74
+        },
+        {
+          "player": "Habib Diarra",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 77
+        },
+        {
+          "player": "Chris Rigg",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 3,
+          "overall": 70
+        },
+        {
+          "player": "Brian Brobbey",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 77
+        }
+      ],
+      "away": [
+        {
+          "player": "Robert S\u00e1nchez",
+          "position": "GK",
+          "line": "gk",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Marc Cucurella",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 84
+        },
+        {
+          "player": "Jorrel Hato",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Malo Gusto",
+          "position": "DR",
+          "line": "def",
+          "starts": 5,
+          "overall": 79
+        },
+        {
+          "player": "Wesley Fofana",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 79
+        },
+        {
+          "player": "Mois\u00e9s Caicedo",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 87
+        },
+        {
+          "player": "Cole Palmer",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 87
+        },
+        {
+          "player": "Enzo Fern\u00e1ndez",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 84
+        },
+        {
+          "player": "Pedro Neto",
+          "position": "AML",
+          "line": "mid",
+          "starts": 4,
+          "overall": 80
+        },
+        {
+          "player": "Jo\u00e3o Pedro",
+          "position": "FW",
+          "line": "att",
+          "starts": 3,
+          "overall": 79
+        },
+        {
+          "player": "Liam Delap",
+          "position": "FW",
+          "line": "att",
+          "starts": 3,
+          "overall": 78
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_sunderland_chelsea",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Sunderland",
+    "away_team": "Chelsea",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.16,
+      "away": 1.27
+    },
+    "outcome": {
+      "home": 0.332,
+      "draw": 0.282,
+      "away": 0.386
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.134
+      },
+      {
+        "score": "0-1",
+        "probability": 0.109
+      },
+      {
+        "score": "1-0",
+        "probability": 0.099
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.677,
+      "draw": 0.183,
+      "away": 0.14
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Gianluigi Donnarumma",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 89
+        },
+        {
+          "player": "Marc Guehi",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 82
+        },
+        {
+          "player": "Matheus Nunes",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Abduqodir Khusanov",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 77
+        },
+        {
+          "player": "Nico O'Reilly",
+          "position": "DL",
+          "line": "def",
+          "starts": 5,
+          "overall": 73
+        },
+        {
+          "player": "Bernardo Silva",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 84
+        },
+        {
+          "player": "Antoine Semenyo",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "J\u00e9remy Doku",
+          "position": "AML",
+          "line": "mid",
+          "starts": 5,
+          "overall": 80
+        },
+        {
+          "player": "Mathis Cherki",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 81
+        },
+        {
+          "player": "Rodri",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 2,
+          "overall": 90
+        },
+        {
+          "player": "Erling Haaland",
+          "position": "FW",
+          "line": "att",
+          "starts": 5,
+          "overall": 90
+        }
+      ],
+      "away": [
+        {
+          "player": "Emiliano Martinez",
+          "position": "GK",
+          "line": "gk",
+          "starts": 5,
+          "overall": 85
+        },
+        {
+          "player": "Matthew Cash",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Ezri Konsa Ngoyo",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 82
+        },
+        {
+          "player": "Victor Lindel\u00f6f",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": null
+        },
+        {
+          "player": "Pau Torres",
+          "position": "DC",
+          "line": "def",
+          "starts": 3,
+          "overall": 80
+        },
+        {
+          "player": "Tyrone Mings",
+          "position": "DC",
+          "line": "def",
+          "starts": 3,
+          "overall": 78
+        },
+        {
+          "player": "Morgan Rogers",
+          "position": "AML",
+          "line": "mid",
+          "starts": 6,
+          "overall": 82
+        },
+        {
+          "player": "Youri Tielemans",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 85
+        },
+        {
+          "player": "John McGinn",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 5,
+          "overall": 81
+        },
+        {
+          "player": "Ross Barkley",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Ollie Watkins",
+          "position": "FW",
+          "line": "att",
+          "starts": 5,
+          "overall": 84
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_man_city_aston_villa",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Man City",
+    "away_team": "Aston Villa",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.97,
+      "away": 1.03
+    },
+    "outcome": {
+      "home": 0.589,
+      "draw": 0.221,
+      "away": 0.19
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.104
+      },
+      {
+        "score": "2-1",
+        "probability": 0.1
+      },
+      {
+        "score": "2-0",
+        "probability": 0.096
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.266,
+      "draw": 0.254,
+      "away": 0.48
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Matz Sels",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 83
+        },
+        {
+          "player": "Neco Williams",
+          "position": "DL",
+          "line": "def",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Nikola Milenkovic",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 83
+        },
+        {
+          "player": "Morato",
+          "position": "DC",
+          "line": "def",
+          "starts": 3,
+          "overall": 76
+        },
+        {
+          "player": "Ola Aina",
+          "position": "DR",
+          "line": "def",
+          "starts": 3,
+          "overall": 80
+        },
+        {
+          "player": "Luca Netz",
+          "position": "DL",
+          "line": "def",
+          "starts": 3,
+          "overall": 72
+        },
+        {
+          "player": "Elliot Anderson",
+          "position": "MC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 80
+        },
+        {
+          "player": "Morgan Gibbs-White",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 82
+        },
+        {
+          "player": "Omari Hutchinson",
+          "position": "MR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 75
+        },
+        {
+          "player": "Igor Jesus",
+          "position": "FW",
+          "line": "att",
+          "starts": 5,
+          "overall": 77
+        },
+        {
+          "player": "Chris Wood",
+          "position": "FW",
+          "line": "att",
+          "starts": 3,
+          "overall": 82
+        }
+      ],
+      "away": [
+        {
+          "player": "Djordje Petrovic",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Adrien Truffert",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 77
+        },
+        {
+          "player": "James Hill",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 71
+        },
+        {
+          "player": "Marcos Senesi",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Alejandro Jim\u00e9nez",
+          "position": "DR",
+          "line": "def",
+          "starts": 4,
+          "overall": 71
+        },
+        {
+          "player": "Alex Scott",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 74
+        },
+        {
+          "player": "Marcus Tavernier",
+          "position": "AML",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Eli Junior Kroupi",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 74
+        },
+        {
+          "player": "Rayan",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 5,
+          "overall": null
+        },
+        {
+          "player": "Ryan Christie",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 79
+        },
+        {
+          "player": "Evanilson",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 80
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_nottm_forest_bournemouth",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Nott'm Forest",
+    "away_team": "Bournemouth",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.51,
+      "away": 1.23
+    },
+    "outcome": {
+      "home": 0.433,
+      "draw": 0.261,
+      "away": 0.306
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.124
+      },
+      {
+        "score": "1-0",
+        "probability": 0.094
+      },
+      {
+        "score": "2-1",
+        "probability": 0.09
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.531,
+      "draw": 0.232,
+      "away": 0.237
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Giorgi Mamardashvili",
+          "position": "GK",
+          "line": "gk",
+          "starts": 4,
+          "overall": 84
+        },
+        {
+          "player": "Virgil van Dijk",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 90
+        },
+        {
+          "player": "Ibrahima Konat\u00e9",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 86
+        },
+        {
+          "player": "Curtis Jones",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Andrew Robertson",
+          "position": "DL",
+          "line": "def",
+          "starts": 4,
+          "overall": 82
+        },
+        {
+          "player": "Dominik Szoboszlai",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 83
+        },
+        {
+          "player": "Alexis Mac Allister",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 87
+        },
+        {
+          "player": "Ryan Gravenberch",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 85
+        },
+        {
+          "player": "Florian Wirtz",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 89
+        },
+        {
+          "player": "Mohamed Salah",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 3,
+          "overall": 91
+        },
+        {
+          "player": "Cody Gakpo",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 84
+        }
+      ],
+      "away": [
+        {
+          "player": "Caoimhin Kelleher",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Keane Lewis-Potter",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Michael Kayode",
+          "position": "DR",
+          "line": "def",
+          "starts": 6,
+          "overall": 73
+        },
+        {
+          "player": "Nathan Collins",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 79
+        },
+        {
+          "player": "Sepp van den Berg",
+          "position": "DC",
+          "line": "def",
+          "starts": 4,
+          "overall": 77
+        },
+        {
+          "player": "Yehor Yarmolyuk",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 71
+        },
+        {
+          "player": "Mathias Jensen",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 77
+        },
+        {
+          "player": "Mikkel Damsgaard",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 80
+        },
+        {
+          "player": "Dango Ouattara",
+          "position": "AMR",
+          "line": "mid",
+          "starts": 5,
+          "overall": 77
+        },
+        {
+          "player": "Kevin Schade",
+          "position": "AML",
+          "line": "mid",
+          "starts": 5,
+          "overall": 78
+        },
+        {
+          "player": "Thiago",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 75
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_liverpool_brentford",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "Liverpool",
+    "away_team": "Brentford",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 2.15,
+      "away": 1.18
+    },
+    "outcome": {
+      "home": 0.593,
+      "draw": 0.208,
+      "away": 0.198
+    },
+    "scorelines": [
+      {
+        "score": "2-1",
+        "probability": 0.098
+      },
+      {
+        "score": "1-1",
+        "probability": 0.093
+      },
+      {
+        "score": "2-0",
+        "probability": 0.083
+      }
+    ]
+  },
+  {
+    "bookmaker": {
+      "home": 0.554,
+      "draw": 0.229,
+      "away": 0.217
+    },
+    "lineups": {
+      "home": [
+        {
+          "player": "Mads Hermansen",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Konstantinos Mavropanos",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Axel Disasi",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 77
+        },
+        {
+          "player": "El Hadji Malick Diouf",
+          "position": "DL",
+          "line": "def",
+          "starts": 6,
+          "overall": 75
+        },
+        {
+          "player": "Kyle Walker-Peters",
+          "position": "DR",
+          "line": "def",
+          "starts": 4,
+          "overall": 75
+        },
+        {
+          "player": "Jarrod Bowen",
+          "position": "MR",
+          "line": "mid",
+          "starts": 6,
+          "overall": 83
+        },
+        {
+          "player": "Mateus Fernandes",
+          "position": "MC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Crysencio Summerville",
+          "position": "ML",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Tomas Soucek",
+          "position": "MC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 78
+        },
+        {
+          "player": "Pablo",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": null
+        },
+        {
+          "player": "Valent\u00edn Castellanos",
+          "position": "FW",
+          "line": "att",
+          "starts": 5,
+          "overall": 80
+        }
+      ],
+      "away": [
+        {
+          "player": "Karl Darlow",
+          "position": "GK",
+          "line": "gk",
+          "starts": 6,
+          "overall": 72
+        },
+        {
+          "player": "James Justin",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 74
+        },
+        {
+          "player": "Jaka Bijol",
+          "position": "DC",
+          "line": "def",
+          "starts": 6,
+          "overall": 77
+        },
+        {
+          "player": "Pascal Struijk",
+          "position": "DC",
+          "line": "def",
+          "starts": 5,
+          "overall": 76
+        },
+        {
+          "player": "Ethan Ampadu",
+          "position": "MC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Ao Tanaka",
+          "position": "MC",
+          "line": "mid",
+          "starts": 6,
+          "overall": 76
+        },
+        {
+          "player": "Brenden Aaronson",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 74
+        },
+        {
+          "player": "Jayden Bogle",
+          "position": "DMR",
+          "line": "mid",
+          "starts": 4,
+          "overall": 75
+        },
+        {
+          "player": "Noah Okafor",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 4,
+          "overall": 76
+        },
+        {
+          "player": "Gabriel Gudmundsson",
+          "position": "DML",
+          "line": "mid",
+          "starts": 3,
+          "overall": 77
+        },
+        {
+          "player": "Dominic Calvert-Lewin",
+          "position": "FW",
+          "line": "att",
+          "starts": 6,
+          "overall": 74
+        }
+      ]
+    },
+    "match_id": "2025_26_20260524_west_ham_leeds",
+    "date": "2026-05-24",
+    "season_slug": "2025_26",
+    "gameweek": 38,
+    "home_team": "West Ham",
+    "away_team": "Leeds",
+    "model": "dixon-coles-squad",
+    "predicted_at": "2026-07-30T18:45:18+00:00",
+    "mode": "replay",
+    "expected_goals": {
+      "home": 1.5,
+      "away": 1.39
+    },
+    "outcome": {
+      "home": 0.396,
+      "draw": 0.255,
+      "away": 0.349
+    },
+    "scorelines": [
+      {
+        "score": "1-1",
+        "probability": 0.119
+      },
+      {
+        "score": "2-1",
+        "probability": 0.087
+      },
+      {
+        "score": "1-2",
+        "probability": 0.081
+      }
+    ]
+  }
+]
