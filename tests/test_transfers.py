@@ -95,6 +95,50 @@ def test_accents_do_not_break_matching():
     assert is_in_squad("Lisandro Martinez", squad["Man United"])
 
 
+# ------------------------------------------------------- differently spelled name parts
+
+
+def test_a_transliterated_surname_still_matches():
+    """Understat writes "Yarmolyuk", FPL writes "Yarmoliuk" - the same Ukrainian name
+    through two transliterations. Token comparison sees two unrelated words, and Brentford
+    silently loses a midfielder."""
+    squad = fpl_squads(bootstrap({"Brentford": [("Yehor", "Yarmoliuk", "Yarmoliuk")]}))
+    assert is_in_squad("Yehor Yarmolyuk", squad["Brentford"])
+
+
+def test_a_forename_spelled_differently_still_matches():
+    """Understat "Yeremi Pino" against FPL "Yéremy Pino Santos": one letter in the
+    forename, plus a surname part Understat omits."""
+    squad = fpl_squads(bootstrap({"Crystal Palace": [("Yéremy", "Pino Santos", "Yeremy")]}))
+    assert is_in_squad("Yeremi Pino", squad["Crystal Palace"])
+
+
+def test_a_lone_name_never_matches_on_spelling_alone():
+    """The case that makes this rule dangerous, and why two tokens are required.
+
+    "Casemiro" scores 75 against the "Carneiro" inside "Matheus Santos Carneiro da Cunha".
+    Matching those would keep Casemiro at Man United forever, which is the precise bug
+    this module was written to fix.
+    """
+    squad = fpl_squads(bootstrap({"Man Utd": [("Matheus", "Santos Carneiro da Cunha", "Cunha")]}))
+
+    assert not is_in_squad("Casemiro", squad["Man United"])
+    assert departures(["Casemiro"], "Man United", squad) == ["Casemiro"]
+
+
+def test_two_different_players_are_not_merged_by_a_shared_forename():
+    """Every token has to find a counterpart, so a matching forename is not enough."""
+    squad = fpl_squads(bootstrap({"Ipswich": [("Sam", "Szmodics", "Szmodics")]}))
+    assert not is_in_squad("Sam Morsy", squad["Ipswich"])
+
+
+def test_a_genuinely_different_player_is_still_a_departure():
+    """Christian Nørgaard against Cristhian Mosquera: the forenames are one letter apart
+    and the players are unrelated."""
+    squad = fpl_squads(bootstrap({"Arsenal": [("Cristhian", "Mosquera", "Mosquera")]}))
+    assert departures(["Christian Nørgaard"], "Arsenal", squad) == ["Christian Nørgaard"]
+
+
 # ------------------------------------------------------------------------ arrivals
 
 

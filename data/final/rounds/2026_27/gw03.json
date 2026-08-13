@@ -190,7 +190,7 @@
     "home_team": "Ipswich",
     "away_team": "Liverpool",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 0.98,
@@ -269,14 +269,6 @@
           "source": "appearances"
         },
         {
-          "player": "Bruno Guimar\u00e3es",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 5,
-          "overall": 86,
-          "source": "appearances"
-        },
-        {
           "player": "Jacob Ramsey",
           "position": "MC",
           "line": "mid",
@@ -290,6 +282,14 @@
           "line": "mid",
           "starts": 3,
           "overall": 76,
+          "source": "appearances"
+        },
+        {
+          "player": "Nick Woltemade",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 79,
           "source": "appearances"
         },
         {
@@ -407,29 +407,29 @@
     "home_team": "Newcastle",
     "away_team": "Bournemouth",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.65,
-      "away": 1.41
+      "home": 1.62,
+      "away": 1.44
     },
     "outcome": {
-      "home": 0.431,
-      "draw": 0.245,
-      "away": 0.324
+      "home": 0.415,
+      "draw": 0.246,
+      "away": 0.339
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.112
+        "probability": 0.113
       },
       {
         "score": "2-1",
-        "probability": 0.09
+        "probability": 0.088
       },
       {
         "score": "1-2",
-        "probability": 0.077
+        "probability": 0.079
       }
     ]
   },
@@ -478,19 +478,19 @@
           "source": "appearances"
         },
         {
-          "player": "Kristoffer Ajer",
-          "position": "DC",
-          "line": "def",
-          "starts": 2,
-          "overall": 75,
-          "source": "appearances"
-        },
-        {
           "player": "Mathias Jensen",
           "position": "DMC",
           "line": "mid",
           "starts": 6,
           "overall": 77,
+          "source": "appearances"
+        },
+        {
+          "player": "Yehor Yarmolyuk",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 5,
+          "overall": 71,
           "source": "appearances"
         },
         {
@@ -624,25 +624,25 @@
     "home_team": "Brentford",
     "away_team": "Sunderland",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.44,
-      "away": 1.04
+      "home": 1.43,
+      "away": 1.06
     },
     "outcome": {
-      "home": 0.459,
-      "draw": 0.272,
-      "away": 0.269
+      "home": 0.45,
+      "draw": 0.273,
+      "away": 0.277
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.129
+        "probability": 0.13
       },
       {
         "score": "1-0",
-        "probability": 0.116
+        "probability": 0.115
       },
       {
         "score": "2-1",
@@ -695,6 +695,14 @@
           "source": "appearances"
         },
         {
+          "player": "Maxim De Cuyper",
+          "position": "DL",
+          "line": "def",
+          "starts": 3,
+          "overall": 80,
+          "source": "appearances"
+        },
+        {
           "player": "Pascal Gro\u00df",
           "position": "DMC",
           "line": "mid",
@@ -724,14 +732,6 @@
           "line": "att",
           "starts": 5,
           "overall": 77,
-          "source": "appearances"
-        },
-        {
-          "player": "Danny Welbeck",
-          "position": "FW",
-          "line": "att",
-          "starts": 5,
-          "overall": 78,
           "source": "appearances"
         },
         {
@@ -841,16 +841,16 @@
     "home_team": "Brighton",
     "away_team": "Leeds",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.78,
-      "away": 1.09
+      "home": 1.79,
+      "away": 1.08
     },
     "outcome": {
-      "home": 0.533,
-      "draw": 0.239,
-      "away": 0.227
+      "home": 0.538,
+      "draw": 0.238,
+      "away": 0.224
     },
     "scorelines": [
       {
@@ -912,19 +912,19 @@
           "source": "appearances"
         },
         {
+          "player": "Ryan Sessegnon",
+          "position": "DL",
+          "line": "def",
+          "starts": 2,
+          "overall": 75,
+          "source": "appearances"
+        },
+        {
           "player": "Emile Smith-Rowe",
           "position": "AMC",
           "line": "mid",
           "starts": 6,
           "overall": 77,
-          "source": "appearances"
-        },
-        {
-          "player": "Sasa Lukic",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 5,
-          "overall": 78,
           "source": "appearances"
         },
         {
@@ -978,19 +978,19 @@
           "source": "appearances"
         },
         {
-          "player": "Maxence Lacroix",
-          "position": "DC",
-          "line": "def",
-          "starts": 5,
-          "overall": 79,
-          "source": "appearances"
-        },
-        {
           "player": "Chris Richards",
           "position": "DC",
           "line": "def",
           "starts": 3,
           "overall": 77,
+          "source": "appearances"
+        },
+        {
+          "player": "Chadi Riad",
+          "position": "DC",
+          "line": "def",
+          "starts": 3,
+          "overall": 72,
           "source": "appearances"
         },
         {
@@ -1026,19 +1026,19 @@
           "source": "appearances"
         },
         {
-          "player": "Brennan Johnson",
-          "position": "AMC",
-          "line": "mid",
-          "starts": 4,
-          "overall": 79,
-          "source": "appearances"
-        },
-        {
           "player": "Adam Wharton",
           "position": "MC",
           "line": "mid",
           "starts": 3,
           "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Jefferson Lerma",
+          "position": "MC",
+          "line": "mid",
+          "starts": 3,
+          "overall": 77,
           "source": "appearances"
         },
         {
@@ -1058,29 +1058,29 @@
     "home_team": "Fulham",
     "away_team": "Crystal Palace",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.38,
-      "away": 1.06
+      "home": 1.42,
+      "away": 1.04
     },
     "outcome": {
-      "home": 0.439,
-      "draw": 0.277,
-      "away": 0.284
+      "home": 0.452,
+      "draw": 0.275,
+      "away": 0.273
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.131
+        "probability": 0.13
       },
       {
         "score": "1-0",
-        "probability": 0.117
+        "probability": 0.118
       },
       {
         "score": "0-0",
-        "probability": 0.091
+        "probability": 0.09
       }
     ]
   },
@@ -1275,7 +1275,7 @@
     "home_team": "Man City",
     "away_team": "Coventry",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 2.96,
@@ -1492,7 +1492,7 @@
     "home_team": "Nott'm Forest",
     "away_team": "Tottenham",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.67,
@@ -1709,7 +1709,7 @@
     "home_team": "Hull",
     "away_team": "Aston Villa",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.07,
@@ -1926,7 +1926,7 @@
     "home_team": "Everton",
     "away_team": "Man United",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.19,
@@ -2143,7 +2143,7 @@
     "home_team": "Arsenal",
     "away_team": "Chelsea",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-03T18:57:01+00:00",
+    "predicted_at": "2026-08-13T14:27:31+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.96,

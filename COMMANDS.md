@@ -71,12 +71,19 @@ the report renders.
 | `--replay` | Predict the last round that was actually **played**, so the output can be checked against reality |
 | `--model NAME` | `dixon-coles-squad` (default), `poisson-glm`, `dixon-coles`, `baseline-elo` |
 | `--offline` | Never download fixtures; use `data/manual/upcoming_fixtures.csv` only |
+| `--gameweek N` | Predict a named round instead of the next one. Needs the FPL schedule (`clean_fpl`) |
 | `--force` | Replace a round already stored. Without it, re-running a stored round exits 1 |
 
 **A stored round is not rewritten.** Predicting a gameweek that already has a file fails
 rather than overwriting it, because the archive exists to show what the model said *before*
 those matches were played — and a record that can be quietly replaced afterwards proves
 nothing. `--force` is there for when you genuinely mean it.
+
+**`--gameweek` with `--force` is how a stored future round takes in a transfer.** A round
+predicted in early August has the squads of early August, and the window stays open until
+September. Re-predicting a round that has *not been played* replaces one pre-kickoff
+forecast with a better-informed one, which is legitimate; doing it to a round that has
+been played is not, and is what the refusal exists to prevent.
 
 **`--replay` is the only way to run this between seasons.** The Premier League fixture
 feed is empty from June to August, so without it there is nothing to predict. The report
