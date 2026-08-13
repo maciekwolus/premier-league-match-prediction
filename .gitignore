@@ -23,6 +23,26 @@ data/**
 # the same results is a second file that can disagree with the first.
 !data/processed/matches.parquet
 
+# ...and except what the scheduled job needs to predict a round on a clean checkout
+# (.github/workflows/predict-round.yml). ~6 MB, and every one of these is read on every
+# run - measured, not assumed.
+#
+# These cannot be rebuilt inside the job. FIFA ratings need a Kaggle account, and
+# credentials are not something a workflow should hold; re-fetching Understat weekly
+# would be 2,660 requests at a small free site. So they travel with the repo or the job
+# cannot exist.
+#
+# Committed whole rather than trimmed to the Premier League, which was tried and is
+# wrong twice over: filtering on `in_premier_league` blanks the promoted clubs, whose
+# elevens come entirely from ratings, and filtering to the season's twenty clubs still
+# loses players whose September rating sits at the club they left. Both changed
+# predictions. A smaller file that quietly predicts something else is not a saving.
+!data/final/features.parquet
+!data/processed/understat_matches.parquet
+!data/processed/lineups.parquet
+!data/processed/player_map.parquet
+!data/processed/fifa_players.parquet
+
 # Python
 __pycache__/
 *.py[cod]
