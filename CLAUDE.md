@@ -408,6 +408,19 @@ false departure silently deletes a real player: `Amad Diallo Traore` must match 
 selected** — a signing has no appearances to rank against the players who have them, so
 picking one would assert a team sheet rather than describe an expectation.
 
+**Two sources transliterate the same name differently, and containment cannot see it.**
+Understat writes `Yehor Yarmolyuk` where FPL writes `Yehor Yarmoliuk`, and `Yeremi Pino`
+where FPL has `Yéremy Pino Santos` — one letter each, and token comparison reads two
+unrelated words, so both were reported as transfers that never happened. `_nearly_contained`
+is the same containment rule with each token allowed to be spelled slightly differently
+(`SPELLING_THRESHOLD`, 80). **Every token must find a counterpart and a lone token is never
+enough**: `Casemiro` scores 75 against the `Carneiro` inside `Matheus Santos Carneiro da
+Cunha`, and keeping Casemiro at Man United is precisely the bug the module exists to fix.
+Measured over all twenty squads it rescues exactly those two names, leaves the other 55
+departures standing, and the best wrong pairing sits 8 points below the threshold. **Check a
+flagged departure against the club's FPL squad before believing it** — a name that is one
+letter away from a squad member is a matching bug, not a transfer.
+
 ## Rules that matter
 
 **No data leakage.** Features may only use information available *before* kickoff. Shots,

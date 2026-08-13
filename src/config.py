@@ -90,5 +90,5 @@ SEASONS_BY_LABEL: dict[str, Season] = {s.label: s for s in SEASONS}
 # and its own edition is not published until late September, so the newest ratings that
 # exist are last year's. Change this line when the new edition lands. Until then the
 # transfer window makes squad membership wrong rather than the ratings, which is what
-# `data/manual/squad_changes.csv` corrects.
+# `predict.transfers` corrects from the FPL squad lists.
 UPCOMING_SEASON = Season("2026/27", "2627", "2026", "EA FC 26")

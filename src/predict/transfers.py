@@ -26,10 +26,16 @@ are surfaced for a human instead.
 from __future__ import annotations
 
 import pandas as pd
+from rapidfuzz import fuzz
 
 from src.data.clean_fpl import club_names
 from src.data.fetch_fpl import fetch
 from src.matching.player_names import normalise
+
+# How close two spellings of one name part must be to count as the same name part. Sits
+# well clear of both sides: the weaker of the two real rescues scores 83, and the best
+# wrong pairing anywhere in the league scores 75.
+SPELLING_THRESHOLD = 80
 
 
 def fpl_squads(bootstrap: dict | None = None) -> dict[str, list[dict]]:
@@ -64,6 +70,33 @@ def _spellings(player: dict) -> set[frozenset[str]]:
     return {frozenset(normalise(name).split()) for name in names if normalise(name)}
 
 
+def _nearly_contained(target: frozenset[str], tokens: frozenset[str]) -> bool:
+    """Containment again, with each token allowed to be spelled slightly differently.
+
+    Exact containment handles a *missing* name part; this handles a *differently spelled*
+    one, which is what two sources transliterating the same player produce. Understat
+    writes ``Yehor Yarmolyuk`` where FPL writes ``Yehor Yarmoliuk``, and ``Yeremi Pino``
+    where FPL has ``Yéremy Pino Santos`` - one letter each, and token comparison sees two
+    unrelated words.
+
+    **Every token must find a counterpart**, which is what keeps this from behaving like a
+    loosened threshold: a surname alone matching is not enough. And **a lone token is never
+    enough evidence**, because that is where this would do real damage - ``Casemiro``
+    scores 75 against the ``Carneiro`` inside ``Matheus Santos Carneiro da Cunha``, and
+    silently keeping Casemiro at Man United is the exact bug this module exists to fix.
+
+    Measured over all twenty squads: two names are rescued, both confirmed the same player,
+    and the best-scoring wrong pairing sits 8 points below the threshold.
+    """
+    small, large = (target, tokens) if len(target) <= len(tokens) else (tokens, target)
+    if len(small) < 2:
+        return False
+    return all(
+        max((fuzz.ratio(token, other) for other in large), default=0.0) >= SPELLING_THRESHOLD
+        for token in small
+    )
+
+
 def is_in_squad(player_name: str, squad: list[dict]) -> bool:
     """Whether this player appears in the club's current squad, by any spelling.
 
@@ -81,6 +114,8 @@ def is_in_squad(player_name: str, squad: list[dict]) -> bool:
             if not tokens:
                 continue
             if target == tokens or target <= tokens or tokens <= target:
+                return True
+            if _nearly_contained(target, tokens):
                 return True
     return False
 

@@ -107,7 +107,9 @@ def fpl_fixtures(gameweek: int | None = None) -> pd.DataFrame:
     return fixtures[fixtures["gameweek"] == gameweek].reset_index(drop=True)
 
 
-def upcoming_fixtures(allow_download: bool = True) -> tuple[pd.DataFrame, str]:
+def upcoming_fixtures(
+    allow_download: bool = True, gameweek: int | None = None
+) -> tuple[pd.DataFrame, str]:
     """The fixtures to predict, and where they came from.
 
     Returns (fixtures, source), in order of preference:
@@ -118,7 +120,15 @@ def upcoming_fixtures(allow_download: bool = True) -> tuple[pd.DataFrame, str]:
        works in the summer, when football-data's rolling feed is empty. This is what
        makes predicting the opening round possible at all.
     3. football-data's rolling feed, which only ever covers the next few days.
+
+    ``gameweek`` names a round instead of taking the next one. It skips the hand-written
+    file, which describes one specific round and would otherwise silently answer for a
+    different one.
     """
+    if gameweek is not None:
+        stored = fpl_fixtures(gameweek)
+        return stored, f"FPL schedule, gameweek {gameweek}"
+
     manual = manual_fixtures()
     if not manual.empty:
         return manual, str(MANUAL_FIXTURES_CSV)

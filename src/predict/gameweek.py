@@ -338,6 +338,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--offline", action="store_true", help="never download fixtures")
     parser.add_argument(
+        "--gameweek",
+        type=int,
+        metavar="N",
+        help="predict a named round rather than the next one (needs the FPL schedule)",
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="replace an already-stored round (by default storing one is a one-time act)",
@@ -348,7 +354,7 @@ def main(argv: list[str] | None = None) -> int:
         fixtures = replay_fixtures()
         source = "replay of the last known round"
     else:
-        raw, source = upcoming_fixtures(allow_download=not args.offline)
+        raw, source = upcoming_fixtures(allow_download=not args.offline, gameweek=args.gameweek)
         fixtures = as_matches(raw)
 
     if fixtures.empty:
@@ -378,8 +384,10 @@ def main(argv: list[str] | None = None) -> int:
     if not args.replay and UPCOMING_SEASON.fifa_edition != "EA FC 27":
         print(
             f"\nNote: {UPCOMING_SEASON.label} is using {UPCOMING_SEASON.fifa_edition} ratings, "
-            f"the newest edition that exists. Record transfers in "
-            f"data/manual/squad_changes.csv until the new edition is published."
+            f"the newest edition that exists, so a summer signing is still rated at their "
+            f"old club. Departures are taken from the FPL squad lists above and need "
+            f"nothing; a signing FIFA has never rated goes in "
+            f"data/manual/player_ratings_manual.csv."
         )
 
     return 0
