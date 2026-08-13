@@ -28,18 +28,44 @@ from src.evaluate.metrics import OUTCOMES, ranked_probability_score
 MEANINGFUL_SAMPLE = 30
 
 
-def actual_results(path=None) -> dict[str, dict]:
-    """Final scores keyed by ``match_id``, for matches that have been played.
+def fixture_key(season_slug: str, home_team: str, away_team: str) -> tuple[str, str, str]:
+    """The identity of a fixture, and deliberately not its date.
+
+    A home/away pairing occurs exactly once per season, which is the join key every
+    cross-source stage in this project uses. **``match_id`` cannot be used here** even
+    though both sides carry one: it encodes the *scheduled* date, and football-data
+    records a postponed match under the date it was actually played. The two ids then
+    never meet, the fixture reads as never played, and it leaves the scorecard silently -
+    which on a real stored round turned 10 scored matches into 9 and moved the reported
+    RPS from 0.2407 to 0.2513 with nothing on the page to say anything had gone missing.
+    """
+    return (str(season_slug), str(home_team), str(away_team))
+
+
+def _key_of(match: dict) -> tuple[str, str, str]:
+    """The fixture key of one stored prediction."""
+    return fixture_key(
+        match.get("season_slug", ""), match.get("home_team", ""), match.get("away_team", "")
+    )
+
+
+def actual_results(path=None) -> dict[tuple[str, str, str], dict]:
+    """Final scores keyed by fixture, for matches that have been played.
 
     Unplayed fixtures are absent rather than present with nulls, so a caller checking
     membership gets the right answer without also testing for NaN.
     """
     matches = pd.read_parquet(
-        path or MATCHES_PARQUET, columns=["match_id", "home_goals", "away_goals"]
+        path or MATCHES_PARQUET,
+        columns=["season", "home_team", "away_team", "home_goals", "away_goals"],
     )
     played = matches.dropna(subset=["home_goals", "away_goals"])
     return {
-        row.match_id: {"home_goals": int(row.home_goals), "away_goals": int(row.away_goals)}
+        # matches.parquet spells a season "2025/26"; the archive uses the slug form.
+        fixture_key(row.season.replace("/", "_"), row.home_team, row.away_team): {
+            "home_goals": int(row.home_goals),
+            "away_goals": int(row.away_goals),
+        }
         for row in played.itertuples()
     }
 
@@ -51,7 +77,7 @@ def outcome_of(home_goals: int, away_goals: int) -> str:
     return "D" if home_goals == away_goals else "A"
 
 
-def attach_results(predictions: list[dict], results: dict[str, dict] | None = None) -> list[dict]:
+def attach_results(predictions: list[dict], results: dict | None = None) -> list[dict]:
     """Copy of the predictions with an ``actual`` block where the match has been played.
 
     Returns copies rather than mutating: the archive is a record, and a display concern
@@ -62,7 +88,7 @@ def attach_results(predictions: list[dict], results: dict[str, dict] | None = No
     attached = []
     for match in predictions:
         match = dict(match)
-        actual = results.get(match["match_id"])
+        actual = results.get(_key_of(match))
         if actual:
             home, away = actual["home_goals"], actual["away_goals"]
             match["actual"] = {
@@ -110,6 +136,27 @@ def _probability_rows(matches: list[dict], key: str) -> np.ndarray:
     )
 
 
+def once_per_fixture(predictions: list[dict]) -> list[dict]:
+    """The predictions with repeat forecasts of the same fixture removed.
+
+    A postponed match gets predicted twice: once for the round it was scheduled in, and
+    again for the round it is moved to. Both then join to the same result, so counting
+    both would score one fixture twice.
+
+    **The earliest is the one kept**, by ``predicted_at``. It is the less informed of the
+    two - made furthest from a kickoff that had not yet been rearranged - so this cannot
+    flatter the record. Keeping the later one would mean scoring ourselves on the forecast
+    made with more information, which is the direction of error worth refusing.
+    """
+    ordered = sorted(
+        enumerate(predictions), key=lambda pair: (pair[1].get("predicted_at") or "", pair[0])
+    )
+    first: dict[tuple[str, str, str], dict] = {}
+    for _, match in ordered:
+        first.setdefault(_key_of(match), match)
+    return list(first.values())
+
+
 def scorecard(predictions: list[dict]) -> dict:
     """How the stored predictions did, against the market where it priced the same games.
 
@@ -117,7 +164,7 @@ def scorecard(predictions: list[dict]) -> dict:
     played and priced - because comparing scores taken over different match sets is the
     easiest way to produce a flattering and meaningless number.
     """
-    played = [match for match in predictions if match.get("actual")]
+    played = [match for match in once_per_fixture(predictions) if match.get("actual")]
     empty = {
         "played": 0,
         "exact": 0,

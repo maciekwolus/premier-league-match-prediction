@@ -8,16 +8,23 @@ claims to what was actually predicted.
 
 from __future__ import annotations
 
+import pandas as pd
+
 from src.predict.archive import save_round
 from src.report.render import match_card, scorecard_bar
 from src.report.results import (
     MEANINGFUL_SAMPLE,
+    actual_results,
     attach_results,
+    fixture_key,
+    once_per_fixture,
     outcome_of,
     scorecard,
     verdict,
 )
 from src.report.view import load_round_predictions, round_options, season_scorecard
+
+SEASON = "2026_27"
 
 
 def prediction(
@@ -25,15 +32,22 @@ def prediction(
     scoreline: str = "1-1",
     outcome: tuple[float, float, float] = (0.5, 0.3, 0.2),
     bookmaker: tuple[float, float, float] | None = (0.45, 0.3, 0.25),
+    date: str = "2026-08-15",
+    predicted_at: str | None = None,
 ) -> dict:
+    # The away side carries the identifier because a fixture *is* its two clubs: one
+    # home/away pairing per season, so distinct opponents give distinct fixtures.
     match = {
-        "match_id": match_id,
-        "date": "2026-08-15",
+        "match_id": f"{SEASON}_{date.replace('-', '')}_arsenal_{match_id}",
+        "season_slug": SEASON,
+        "date": date,
         "home_team": "Arsenal",
-        "away_team": "Chelsea",
+        "away_team": match_id,
         "scorelines": [{"score": scoreline, "probability": 0.12}],
         "outcome": {"home": outcome[0], "draw": outcome[1], "away": outcome[2]},
     }
+    if predicted_at:
+        match["predicted_at"] = predicted_at
     if bookmaker:
         match["bookmaker"] = {
             "home": bookmaker[0],
@@ -43,10 +57,10 @@ def prediction(
     return match
 
 
-def results_for(**scores: tuple[int, int]) -> dict[str, dict]:
+def results_for(**scores: tuple[int, int]) -> dict[tuple[str, str, str], dict]:
     return {
-        match_id: {"home_goals": home, "away_goals": away}
-        for match_id, (home, away) in scores.items()
+        fixture_key(SEASON, "Arsenal", away): {"home_goals": home, "away_goals": away_goals}
+        for away, (home, away_goals) in scores.items()
     }
 
 
@@ -310,3 +324,81 @@ def test_the_season_scorecard_ignores_other_seasons(tmp_path):
     )
 
     assert card["played"] == 1
+
+
+# ------------------------------------------------------------------ rescheduled matches
+
+
+def test_a_rescheduled_match_is_still_scored():
+    """The reason this join is not on ``match_id``.
+
+    A postponed fixture is recorded by football-data under the date it was *actually*
+    played, so its id no longer matches the one we archived. Keyed on the id it reads as
+    never played and leaves the scorecard without a word - measured on a real stored
+    round, 10 scored matches silently became 9.
+    """
+    as_scheduled = prediction("m1", date="2026-08-15")
+    as_played = prediction("m1", date="2026-11-04")
+    assert as_scheduled["match_id"] != as_played["match_id"]
+
+    attached = attach_results([as_scheduled], results_for(m1=(2, 1)))
+
+    assert attached[0]["actual"]["score"] == "2-1"
+
+
+def test_a_fixture_predicted_twice_is_counted_once():
+    """A match moved into a later round gets predicted again. Both forecasts then join to
+    the same result, and counting both would score one fixture twice."""
+    predictions = [
+        prediction("m1", predicted_at="2026-08-10T12:00:00+00:00"),
+        prediction("m1", predicted_at="2026-11-01T12:00:00+00:00"),
+    ]
+
+    card = scorecard(attach_results(predictions, results_for(m1=(1, 1))))
+
+    assert card["played"] == 1
+
+
+def test_the_earliest_of_two_predictions_is_the_one_kept():
+    """The conservative half of the rule. The later forecast was made with more
+    information, so scoring ourselves on it would flatter the record."""
+    predictions = [
+        prediction("m1", scoreline="1-0", predicted_at="2026-11-01T12:00:00+00:00"),
+        prediction("m1", scoreline="2-1", predicted_at="2026-08-10T12:00:00+00:00"),
+    ]
+
+    kept = once_per_fixture(predictions)
+
+    assert [match["scorelines"][0]["score"] for match in kept] == ["2-1"]
+    assert scorecard(attach_results(predictions, results_for(m1=(1, 0))))["exact"] == 0
+
+
+def test_two_different_fixtures_are_not_confused_for_one():
+    """The mirror check: deduplication must not swallow genuinely distinct matches."""
+    predictions = [prediction("m1"), prediction("m2")]
+
+    assert len(once_per_fixture(predictions)) == 2
+
+
+def test_results_are_keyed_by_fixture_when_read_from_disk(tmp_path):
+    """``matches.parquet`` spells a season "2025/26" where the archive uses "2025_26". Get
+    that normalisation wrong and every key misses, so nothing is ever scored."""
+    path = tmp_path / "matches.parquet"
+    pd.DataFrame(
+        {
+            "season": ["2025/26", "2025/26"],
+            "home_team": ["Arsenal", "Everton"],
+            "away_team": ["Chelsea", "Fulham"],
+            "home_goals": pd.array([2, None], dtype="Int64"),
+            "away_goals": pd.array([1, None], dtype="Int64"),
+        }
+    ).to_parquet(path)
+
+    results = actual_results(path)
+
+    assert results[fixture_key("2025_26", "Arsenal", "Chelsea")] == {
+        "home_goals": 2,
+        "away_goals": 1,
+    }
+    # The unplayed fixture is absent rather than present with nulls.
+    assert fixture_key("2025_26", "Everton", "Fulham") not in results
