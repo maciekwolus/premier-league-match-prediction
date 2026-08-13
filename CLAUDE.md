@@ -118,6 +118,19 @@ It installs `requirements.txt` only — **AutoGluon is deliberately absent from 
 safe because every test passes with it unimportable, and that was verified rather than
 assumed. Keep it that way: a test that needs AutoGluon would add ~700 MB to every run.
 
+**A second workflow predicts each round and commits it** (`.github/workflows/predict-round.yml`).
+It runs *daily* and predicts *weekly*: `--if-due` picks the round only when its first
+kickoff is close and it is not already stored, so most runs do nothing and exit 0. **Nothing
+to do has to be a success** — a job that failed on the six quiet days would cry wolf until
+nobody read it, and a genuine failure would then go unnoticed too. The job never passes
+`--force`, because a scheduler that can silently rewrite a stored round destroys the one
+property the archive has. Committing the round is what publishes it: Streamlit Cloud
+redeploys on push. Two traps found by running it rather than reading it — **a new round file
+is *untracked*, so `git diff` does not see it** and a `git diff --quiet` guard would report
+"nothing to commit" every week forever; and **the job needs the derived parquets in the
+repo**, since FIFA ratings cannot be downloaded without a Kaggle account and re-scraping
+Understat weekly would be 2,660 requests at a small free site.
+
 ## Architecture
 
 **Data flows one way through three directories**, each stage written to disk so any

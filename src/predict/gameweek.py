@@ -35,9 +35,16 @@ from src.predict.archive import (
     ROUNDS_DIR,
     RoundAlreadyStored,
     group_by_gameweek,
+    round_path,
     save_round,
 )
-from src.predict.fixtures import as_matches, upcoming_fixtures
+from src.predict.fixtures import (
+    DEFAULT_LEAD_DAYS,
+    as_matches,
+    due_round,
+    fpl_schedule,
+    upcoming_fixtures,
+)
 from src.predict.squads import expected_squad_players, lineups_by_side
 from src.predict.transfers import fpl_squads
 
@@ -310,6 +317,27 @@ def replay_fixtures() -> pd.DataFrame:
     return fixtures.reset_index(drop=True)
 
 
+def due_gameweek(within_days: int, force: bool = False) -> int | None:
+    """The round an unattended run should predict now, or None with a reason printed.
+
+    Every "nothing to do" path here is a *success*. A weekly round predicted by a daily
+    job means most runs have nothing to do, and a job that failed on those days would cry
+    wolf until nobody read it - by which time a genuine failure would go unnoticed too.
+    """
+    gameweek = due_round(fpl_schedule(), within_days=within_days)
+    if gameweek is None:
+        print(f"No round kicks off within {within_days} day(s); nothing to predict.")
+        return None
+
+    stored = round_path(UPCOMING_SEASON.slug, gameweek)
+    if stored.exists() and not force:
+        print(f"Gameweek {gameweek} is already stored as {stored.name}; nothing to do.")
+        return None
+
+    print(f"Gameweek {gameweek} is due.")
+    return gameweek
+
+
 def format_report(report: list[dict]) -> str:
     lines = []
     for match in report:
@@ -344,11 +372,31 @@ def main(argv: list[str] | None = None) -> int:
         help="predict a named round rather than the next one (needs the FPL schedule)",
     )
     parser.add_argument(
+        "--if-due",
+        type=int,
+        nargs="?",
+        const=DEFAULT_LEAD_DAYS,
+        metavar="DAYS",
+        help=(
+            f"for unattended runs: predict the next round only when its first kickoff is "
+            f"within DAYS (default {DEFAULT_LEAD_DAYS}) and it is not already stored, and "
+            f"exit 0 doing nothing otherwise"
+        ),
+    )
+    parser.add_argument(
         "--force",
         action="store_true",
         help="replace an already-stored round (by default storing one is a one-time act)",
     )
     args = parser.parse_args(argv)
+
+    if args.if_due is not None:
+        if args.replay:
+            parser.error("--if-due predicts an upcoming round, so it cannot be used with --replay")
+        decision = due_gameweek(args.if_due, force=args.force)
+        if decision is None:
+            return 0
+        args.gameweek = decision
 
     if args.replay:
         fixtures = replay_fixtures()

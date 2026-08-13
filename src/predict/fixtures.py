@@ -90,21 +90,70 @@ def next_fpl_gameweek(fixtures: pd.DataFrame, played_before: pd.Timestamp | None
     return None if upcoming.empty else int(upcoming["gameweek"].min())
 
 
+def fpl_schedule() -> pd.DataFrame:
+    """The whole stored FPL season, or an empty frame when it has not been built."""
+    if not FPL_FIXTURES_PARQUET.exists():
+        return pd.DataFrame(columns=["date", "home_team", "away_team", "gameweek"])
+    return pd.read_parquet(FPL_FIXTURES_PARQUET)
+
+
 def fpl_fixtures(gameweek: int | None = None) -> pd.DataFrame:
     """One round from the stored FPL schedule, defaulting to the next one.
 
     Returns an empty frame when the schedule has not been built, so the caller falls
     through to its other sources rather than failing.
     """
-    if not FPL_FIXTURES_PARQUET.exists():
-        return pd.DataFrame(columns=["date", "home_team", "away_team"])
+    fixtures = fpl_schedule()
+    if fixtures.empty:
+        return fixtures
 
-    fixtures = pd.read_parquet(FPL_FIXTURES_PARQUET)
     gameweek = gameweek if gameweek is not None else next_fpl_gameweek(fixtures)
     if gameweek is None:
         return pd.DataFrame(columns=["date", "home_team", "away_team"])
 
     return fixtures[fixtures["gameweek"] == gameweek].reset_index(drop=True)
+
+
+# How close to kickoff an unpredicted round has to be before the scheduled job predicts
+# it. Later is better - team news, suspensions and transfers all keep arriving - but the
+# job only gets one attempt per day, so this is also how many attempts a round gets before
+# it kicks off. Three days is two spare attempts if a run fails or the FPL feed is down.
+DEFAULT_LEAD_DAYS = 3
+
+
+def due_round(
+    fixtures: pd.DataFrame, now: pd.Timestamp | None = None, within_days: int = DEFAULT_LEAD_DAYS
+) -> int | None:
+    """The gameweek an unattended run should predict, or None if none is due.
+
+    Due means the next round's *first* kickoff is ahead of us and no further away than
+    ``within_days``. Both halves matter:
+
+    **A round that has already started is never due**, whatever went wrong. If the job was
+    down for the whole window, the honest outcome is a missing round - a "prediction" made
+    after kickoff is not one, and the archive exists precisely to be trustworthy about
+    when it was written.
+
+    **A round further out than the window is not due yet**, so the job waits rather than
+    committing to a team sheet a fortnight early. A stored round is never rewritten, so
+    predicting early is a decision that cannot be taken back.
+    """
+    if fixtures.empty or "gameweek" not in fixtures.columns:
+        return None
+
+    now = now if now is not None else pd.Timestamp.now()
+    gameweek = next_fpl_gameweek(fixtures, now)
+    if gameweek is None:
+        return None
+
+    kickoffs = fixtures.loc[fixtures["gameweek"] == gameweek, "date"].dropna()
+    if kickoffs.empty:
+        return None
+
+    first = kickoffs.min()
+    if first <= now or first - now > pd.Timedelta(days=within_days):
+        return None
+    return int(gameweek)
 
 
 def upcoming_fixtures(
