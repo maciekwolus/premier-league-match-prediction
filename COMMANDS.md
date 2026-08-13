@@ -72,7 +72,16 @@ the report renders.
 | `--model NAME` | `dixon-coles-squad` (default), `poisson-glm`, `dixon-coles`, `baseline-elo` |
 | `--offline` | Never download fixtures; use `data/manual/upcoming_fixtures.csv` only |
 | `--gameweek N` | Predict a named round instead of the next one. Needs the FPL schedule (`clean_fpl`) |
+| `--if-due [DAYS]` | For unattended runs: predict only if a round kicks off within `DAYS` (default 3) and is not already stored. Otherwise prints why and **exits 0** |
 | `--force` | Replace a round already stored. Without it, re-running a stored round exits 1 |
+
+**`--if-due` is what makes a scheduled run safe to fire every day.** Most days there is
+nothing to predict, and *nothing to do is a success* — a job that failed on those days
+would cry wolf until nobody read it, and a real failure would then go unnoticed too. It
+refuses in both directions: a round further out than the window waits (a stored round
+cannot be un-stored, so predicting early is irreversible), and **a round that has already
+kicked off is never predicted at all**. If the job was down for the whole window the
+honest outcome is a missing round, because a forecast written after kickoff is not one.
 
 **A stored round is not rewritten.** Predicting a gameweek that already has a file fails
 rather than overwriting it, because the archive exists to show what the model said *before*

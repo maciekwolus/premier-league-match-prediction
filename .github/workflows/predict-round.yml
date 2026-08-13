@@ -1,0 +1,97 @@
+# Predicts each round shortly before it kicks off, and commits it.
+#
+# The report renders whatever is under data/final/rounds/, and Streamlit Cloud redeploys
+# on every push, so committing the round *is* publishing it. No server, no database, and
+# nothing to keep running.
+#
+# **Runs daily, predicts weekly.** A round is predicted once, when its first kickoff is
+# close (src.predict.fixtures.due_round). Most runs therefore have nothing to do and say
+# so with exit 0 - a job that failed on those days would cry wolf until nobody read it,
+# and a real failure would then go unnoticed too.
+#
+# **Nothing here ever passes --force.** A stored round is the record of what the model
+# said before those matches were played; a scheduled job that could quietly rewrite one
+# would make the archive worthless precisely when it starts to matter.
+
+name: Predict the next round
+
+on:
+  schedule:
+    # 06:00 UTC daily. Rounds open Friday evening or Saturday lunchtime, so this gives a
+    # round three attempts before it starts. GitHub delays scheduled runs under load and
+    # can skip them, which is the other reason this is daily rather than weekly.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      lead_days:
+        description: "Predict a round whose first kickoff is within this many days"
+        required: false
+        default: "3"
+
+permissions:
+  contents: write
+
+# Never two runs at once: both would predict the same round, and the second would fail on
+# the push rather than on anything meaningful.
+concurrency:
+  group: predict-round
+  cancel-in-progress: false
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      # requirements.txt only - the same set CI proves the suite passes with. AutoGluon is
+      # not needed: the report's model is Dixon-Coles, fitted with scipy.
+      - name: Install
+        run: pip install -r requirements.txt
+
+      # The one live source. Undocumented and free, so treat a schema change as expected:
+      # clean_fpl validates 20 clubs and 380 fixtures and raises rather than writing a
+      # suspect schedule, which is what stops a bad feed reaching the archive.
+      - name: Refresh the Fantasy Premier League feed
+        run: |
+          python -m src.data.fetch_fpl --force
+          python -m src.data.clean_fpl
+
+      # --offline because the schedule is now on disk: the round comes from FPL's official
+      # gameweek numbers rather than football-data's rolling feed, which is empty most of
+      # the week and has no rounds in it at all.
+      - name: Predict the round, if one is due
+        run: |
+          python -m src.predict.gameweek \
+            --if-due "${{ github.event.inputs.lead_days || '3' }}" \
+            --offline
+
+      - name: Commit the round
+        run: |
+          # `git status --porcelain`, not `git diff`: a newly stored round is an
+          # *untracked* file, which git diff does not report at all - so this step would
+          # have announced "nothing to commit" every single week and never once failed.
+          changes=$(git status --porcelain data/final/rounds)
+          if [ -z "$changes" ]; then
+            echo "No new round was stored; nothing to commit."
+            exit 0
+          fi
+
+          round=$(echo "$changes" | awk '{print $NF}' | head -1)
+          echo "Committing $round"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/final/rounds
+          git commit -m "Predict $(basename "$(dirname "$round")")/$(basename "$round" .json)"
+
+          # Someone may have pushed while this ran. Rebase rather than force: the round
+          # file is new, so there is nothing to conflict with.
+          git pull --rebase --autostash
+          git push
