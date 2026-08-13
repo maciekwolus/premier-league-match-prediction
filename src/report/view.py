@@ -41,7 +41,7 @@ def load_round_predictions(
     season_slug: str,
     gameweek: int,
     root: Path | None = None,
-    results: dict[str, dict] | None = None,
+    results: dict | None = None,
 ) -> list[dict]:
     """One stored round, with actual results attached where the matches were played.
 
@@ -52,7 +52,7 @@ def load_round_predictions(
 
 
 def season_scorecard(
-    season_slug: str, root: Path | None = None, results: dict[str, dict] | None = None
+    season_slug: str, root: Path | None = None, results: dict | None = None
 ) -> dict:
     """How every stored round of one season has fared, taken together.
 

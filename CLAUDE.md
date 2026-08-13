@@ -352,6 +352,21 @@ everything and the bookmaker's over the subset it quoted. Scoring two models on 
 match sets produces a flattering number that looks entirely ordinary, and this is the one
 page element with a motive to be wrong.
 
+**Scoring joins on `(season_slug, home_team, away_team)`, never on `match_id`.** Both sides
+carry an id, which is exactly what makes this tempting and wrong: `match_id` encodes the
+*scheduled* date, and football-data records a postponed match under the date it was actually
+played, so the two ids never meet. Keyed on the id a rescheduled fixture reads as never
+played and leaves the scorecard without a word — simulated on the stored 2025/26 gameweek 38,
+10 scored matches became 9 and the reported RPS moved 0.2407 → 0.2513. Rescheduling is not
+rare: 2 of 38 rounds that season already had a match cross a round boundary. This is the same
+rule the ingestion stages follow, and `report/results.py` was the one place breaking it.
+
+**A postponed fixture gets predicted twice, and is scored once.** Moved into a later round it
+is forecast again, and both forecasts then join to the same result. `results.once_per_fixture`
+keeps the **earliest** by `predicted_at` — the less informed of the two, made furthest from a
+kickoff that had not yet been rearranged. Keeping the later one would mean scoring ourselves
+on the forecast made with more information, which is the direction of error worth refusing.
+
 **A card admits both halves of a split result.** An exact scoreline can come with the wrong
 call: 1-1 leads the scorelines on a card whose headline verdict is HOME WIN, because the
 draw is the most likely single score while the home win is the most likely outcome. When
