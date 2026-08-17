@@ -27,6 +27,7 @@ from src.config import (
     SEASONS,
     UPCOMING_SEASON,
     Season,
+    write_parquet,
 )
 
 MATCHES_PARQUET = PROCESSED_DIR / "matches.parquet"
@@ -359,8 +360,7 @@ def build(strict: bool = True, include_in_progress: bool = True) -> pd.DataFrame
 def main() -> int:
     matches = build()
 
-    PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-    matches.to_parquet(MATCHES_PARQUET, index=False)
+    write_parquet(matches, MATCHES_PARQUET)
 
     print(f"\n{len(matches)} matches, {len(matches.columns)} columns")
     print(f"written to {MATCHES_PARQUET}")

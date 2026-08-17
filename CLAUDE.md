@@ -131,6 +131,19 @@ is *untracked*, so `git diff` does not see it** and a `git diff --quiet` guard w
 repo**, since FIFA ratings cannot be downloaded without a Kaggle account and re-scraping
 Understat weekly would be 2,660 requests at a small free site.
 
+**A committed parquet must never depend on which machine wrote it — use `config.write_parquet`.**
+Writing one with `to_parquet` directly makes the scheduled job commit `Update results` with
+**0 insertions and 0 deletions every single day**, redeploy the site for nothing, and bury
+the real results updates in noise. Two independent causes, and fixing only the first is
+what makes this worth writing down. pandas 3 defaults datetimes to microseconds where
+pandas 2 used nanoseconds, so the runner and a laptop disagreed on dtype; normalising that
+was not enough, because **pyarrow also stamps its own version into every file**, and
+pyarrow 20 and 24 produce different bytes from identical data no matter what. Git compares
+bytes. So `write_parquet` compares the *data* and leaves the file untouched when it has not
+changed — the only version-proof answer, and the honest one: a rebuild producing the same
+table has not changed anything. It returns whether it wrote. Verified by rebuilding the
+runner's file locally on a different pyarrow and getting no diff.
+
 ## Architecture
 
 **Data flows one way through three directories**, each stage written to disk so any

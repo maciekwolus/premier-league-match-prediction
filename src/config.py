@@ -94,3 +94,63 @@ SEASONS_BY_LABEL: dict[str, Season] = {s.label: s for s in SEASONS}
 # transfer window makes squad membership wrong rather than the ratings, which is what
 # `predict.transfers` corrects from the FPL squad lists.
 UPCOMING_SEASON = Season("2026/27", "2627", "2026", "EA FC 26")
+
+
+# Timestamp resolution for anything written to parquet.
+#
+# **A committed parquet must not depend on which machine wrote it.** pandas 3 defaults
+# datetimes to microseconds where pandas 2 used nanoseconds, so the scheduled job (Linux,
+# pandas 3) and a developer laptop (pandas 2) wrote byte-different files holding
+# identical values. The job noticed a change every single day, committed "Update results"
+# with 0 insertions and 0 deletions, and redeployed the site for nothing - and the next
+# local rebuild flipped it straight back. Microseconds because that is parquet's native
+# resolution and what the newer default produces, so this converts on the way out rather
+# than on the way in.
+PARQUET_TIME_UNIT = "us"
+
+
+def normalise_for_parquet(frame):
+    """Copy of a frame with every datetime column at ``PARQUET_TIME_UNIT``."""
+    import pandas as pd
+
+    stable = frame.copy()
+    for column in stable.columns:
+        if isinstance(stable[column].dtype, pd.DatetimeTZDtype):
+            stable[column] = stable[column].dt.as_unit(PARQUET_TIME_UNIT)
+        elif str(stable[column].dtype).startswith("datetime64"):
+            stable[column] = stable[column].astype(f"datetime64[{PARQUET_TIME_UNIT}]")
+    return stable
+
+
+def write_parquet(frame, path) -> bool:
+    """Write a dataframe to parquet, but **leave the file alone if the data is the same**.
+
+    Returns whether anything was written.
+
+    Use this for anything under version control; ``to_parquet`` directly is fine for
+    throwaway output.
+
+    Normalising the timestamp resolution is not enough on its own. pyarrow stamps its own
+    version into every file it writes, so a laptop on pyarrow 20 and a runner on pyarrow
+    24 produce different bytes from identical data no matter what. The scheduled job
+    rebuilds this table daily, and byte-comparison is what git does - so it committed
+    "Update results" with 0 insertions and 0 deletions every day, redeployed the site for
+    nothing, and buried the real results updates in the noise.
+
+    Comparing the *data* instead is the only version-proof answer, and it is the honest
+    one: a rebuild that produces the same table has not changed anything.
+    """
+    import pandas as pd
+
+    stable = normalise_for_parquet(frame)
+
+    if path.exists():
+        try:
+            if pd.read_parquet(path).equals(stable):
+                return False
+        except Exception:  # noqa: BLE001 - unreadable or written by a future format
+            pass  # fall through and rewrite it
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    stable.to_parquet(path, index=False)
+    return True
