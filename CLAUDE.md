@@ -16,18 +16,23 @@ operating manual for working *on* it. A run command belongs in SETUP.md and COMM
 not in the README, which links to them instead.
 
 `PLAN.md` is the source of truth for scope and what comes next; read it before starting
-work. It runs in two stages. **Stage one (Phases 0–9) built the pipeline** from raw
+work. It runs in three stages. **Stage one (Phases 0–9) built the pipeline** from raw
 downloads to a Streamlit report. **Stage two (Phases 11–15) made it survive a live
 season**: predictions archived per gameweek and never rewritten, a browsable history
 scored against reality, suspensions derived from cards already on disk, squads for a
-season whose ratings edition does not exist yet, and the skills. Both are complete and
-441 tests cover them. Phase 16 is planned and deliberately optional. There is no Phase 10
-— the numbering skips it so the two stages stay visually distinct.
+season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
+17–19) put it online and left it running**: CI, a public Streamlit deployment, a daily
+job that predicts each round before kickoff and commits it, and ingestion of the season
+as it is played. All three are complete and 487 tests cover them. Phase 16 is planned and
+deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
+stay visually distinct.
 
-**The project now predicts a season it has no results for.** Training runs on 2019/20
-through 2025/26; the live target is 2026/27, whose twenty clubs and 380 fixtures come from
-the Fantasy Premier League API rather than from `matches.parquet`, which is empty for a
-season nobody has played.
+**The project runs itself now.** Training runs on 2019/20 through 2025/26; the live target
+is 2026/27, whose twenty clubs and 380 fixtures come from the Fantasy Premier League API.
+A scheduled job predicts each round a few days before it kicks off, commits it, and
+Streamlit Cloud redeploys — so the published archive is written before the matches and
+never rewritten. Results are ingested as the season is played, which is what lets the
+report score itself.
 
 Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 
@@ -53,7 +58,7 @@ What exists in `data/processed/` after a full build:
 
 | Table | Rows | Contents |
 |---|---|---|
-| `matches.parquet` | 2,660 | results, match statistics, referee, opening and closing odds |
+| `matches.parquet` | 2,660 + | results, match statistics, referee, opening and closing odds. Grows through 2026/27 as it is played |
 | `understat_matches.parquet` | 2,660 | match-level expected goals |
 | `lineups.parquet` | 77,278 | player appearances: position, minutes, xG, xA, cards |
 | `fifa_players.parquet` | 127,930 | player ratings per season, every club, `in_premier_league` flags the season's 20 |
