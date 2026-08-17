@@ -173,8 +173,21 @@ def _rating_for(player: dict, fifa: pd.DataFrame) -> int | None:
 
 
 def rating_index(fifa: pd.DataFrame, club: str, season: str) -> pd.DataFrame:
-    """One club's ratings with a token column, ready for ``_rating_for``."""
-    squad = fifa[(fifa.get("club_fd") == club) & (fifa["season"] == season)].copy()
+    """Ratings to look an arrival up in, with a token column ready for ``_rating_for``.
+
+    **Deliberately not scoped to the club**, which is the one scoping decision in this
+    project that has to go the other way. Ratings are a September snapshot, so a player
+    who has just signed is still listed at the club he left - Youri Tielemans moved to
+    Man United and FC 26 has him at Aston Villa, rated 85. A club-scoped lookup therefore
+    returns nothing for precisely the players this function exists to rate, and every
+    genuine transfer came back ``overall: None``.
+
+    Safety comes from ``_rating_for`` instead, which accepts a name only when exactly one
+    player in the season matches it. ``club`` is kept in the signature because callers
+    read better for naming whose arrival they are rating, and so this can be narrowed
+    again without changing them.
+    """
+    squad = fifa[fifa["season"] == season].copy()
     if squad.empty:
         return squad
     squad["_tokens"] = squad["player_name"].map(lambda name: frozenset(normalise(name).split()))

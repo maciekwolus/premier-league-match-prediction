@@ -7,7 +7,7 @@
           "player": "David Raya",
           "position": "GK",
           "line": "gk",
-          "starts": 5,
+          "starts": 18,
           "overall": 87,
           "source": "appearances"
         },
@@ -15,7 +15,7 @@
           "player": "Gabriel",
           "position": "DC",
           "line": "def",
-          "starts": 5,
+          "starts": 18,
           "overall": 88,
           "source": "appearances"
         },
@@ -23,71 +23,71 @@
           "player": "William Saliba",
           "position": "DC",
           "line": "def",
-          "starts": 5,
+          "starts": 16,
           "overall": 87,
           "source": "appearances"
         },
         {
-          "player": "Riccardo Calafiori",
-          "position": "DL",
+          "player": "Jurri\u00ebn Timber",
+          "position": "DR",
           "line": "def",
-          "starts": 4,
-          "overall": 78,
+          "starts": 12,
+          "overall": 82,
           "source": "appearances"
         },
         {
           "player": "Piero Hincapi\u00e9",
           "position": "DL",
           "line": "def",
-          "starts": 3,
+          "starts": 12,
           "overall": 83,
           "source": "appearances"
         },
         {
           "player": "Declan Rice",
-          "position": "MC",
+          "position": "DMC",
           "line": "mid",
-          "starts": 5,
+          "starts": 18,
           "overall": 87,
           "source": "appearances"
+        },
+        {
+          "player": "Martin \u00d8degaard",
+          "position": "CM",
+          "line": "mid",
+          "starts": 16,
+          "overall": 87,
+          "source": "signing"
         },
         {
           "player": "Eberechi Eze",
           "position": "AMC",
           "line": "mid",
-          "starts": 5,
+          "starts": 10,
           "overall": 83,
           "source": "appearances"
         },
         {
-          "player": "Martin Odegaard",
-          "position": "MC",
-          "line": "mid",
-          "starts": 3,
+          "player": "Viktor Gyokeres",
+          "position": "FW",
+          "line": "att",
+          "starts": 12,
           "overall": 87,
           "source": "appearances"
         },
         {
-          "player": "Myles Lewis-Skelly",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 3,
-          "overall": 78,
-          "source": "appearances"
-        },
-        {
-          "player": "Mart\u00edn Zubimendi",
-          "position": "MC",
-          "line": "mid",
-          "starts": 3,
-          "overall": 83,
+          "player": "Noni Madueke",
+          "position": "AMR",
+          "line": "att",
+          "starts": 11,
+          "overall": 80,
           "source": "appearances"
         },
         {
           "player": "Bukayo Saka",
           "position": "AMR",
           "line": "att",
-          "starts": 3,
+          "starts": 10,
           "overall": 88,
           "source": "appearances"
         }
@@ -158,12 +158,12 @@
           "source": "ratings"
         },
         {
-          "player": "Ephron Mason-Clark",
+          "player": "Gustavo Hamer",
           "position": "LM",
           "line": "mid",
           "starts": 0,
-          "overall": 71,
-          "source": "ratings"
+          "overall": 77,
+          "source": "signing"
         },
         {
           "player": "Haji Wright",
@@ -190,29 +190,29 @@
     "home_team": "Arsenal",
     "away_team": "Coventry",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 2.98,
-      "away": 0.52
+      "home": 3.0,
+      "away": 0.51
     },
     "outcome": {
-      "home": 0.861,
-      "draw": 0.101,
-      "away": 0.038
+      "home": 0.865,
+      "draw": 0.099,
+      "away": 0.036
     },
     "scorelines": [
       {
-        "score": "2-0",
-        "probability": 0.134
+        "score": "3-0",
+        "probability": 0.135
       },
       {
-        "score": "3-0",
-        "probability": 0.133
+        "score": "2-0",
+        "probability": 0.135
       },
       {
         "score": "4-0",
-        "probability": 0.099
+        "probability": 0.101
       }
     ]
   },
@@ -221,12 +221,12 @@
     "lineups": {
       "home": [
         {
-          "player": "Ivor Pandur",
+          "player": "Konstantinos Tzolakis",
           "position": "GK",
           "line": "gk",
           "starts": 0,
-          "overall": 72,
-          "source": "ratings"
+          "overall": 79,
+          "source": "signing"
         },
         {
           "player": "John Egan",
@@ -253,12 +253,12 @@
           "source": "ratings"
         },
         {
-          "player": "Lewie Coyle",
-          "position": "RB",
+          "player": "Paddy McNair",
+          "position": "CB",
           "line": "def",
           "starts": 0,
-          "overall": 70,
-          "source": "ratings"
+          "overall": 73,
+          "source": "signing"
         },
         {
           "player": "Amir Had\u017eiahmetovi\u0107",
@@ -285,12 +285,12 @@
           "source": "ratings"
         },
         {
-          "player": "Liam Millar",
-          "position": "LM",
+          "player": "Hidemasa Morita",
+          "position": "CM",
           "line": "mid",
           "starts": 0,
-          "overall": 72,
-          "source": "ratings"
+          "overall": 79,
+          "source": "signing"
         },
         {
           "player": "Oli McBurnie",
@@ -314,15 +314,23 @@
           "player": "Senne Lammens",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 19,
           "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Luke Shaw",
-          "position": "DL",
+          "player": "Matthijs de Ligt",
+          "position": "CB",
           "line": "def",
-          "starts": 6,
+          "starts": 19,
+          "overall": 82,
+          "source": "signing"
+        },
+        {
+          "player": "Diogo Dalot",
+          "position": "DR",
+          "line": "def",
+          "starts": 15,
           "overall": 79,
           "source": "appearances"
         },
@@ -330,31 +338,15 @@
           "player": "Harry Maguire",
           "position": "DC",
           "line": "def",
-          "starts": 5,
+          "starts": 15,
           "overall": 80,
-          "source": "appearances"
-        },
-        {
-          "player": "Diogo Dalot",
-          "position": "DR",
-          "line": "def",
-          "starts": 4,
-          "overall": 79,
-          "source": "appearances"
-        },
-        {
-          "player": "Ayden Heaven",
-          "position": "DC",
-          "line": "def",
-          "starts": 3,
-          "overall": 69,
           "source": "appearances"
         },
         {
           "player": "Lisandro Mart\u00ednez",
           "position": "DC",
           "line": "def",
-          "starts": 3,
+          "starts": 11,
           "overall": 81,
           "source": "appearances"
         },
@@ -362,40 +354,48 @@
           "player": "Bruno Fernandes",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 18,
           "overall": 87,
           "source": "appearances"
         },
         {
-          "player": "Kobbie Mainoo",
-          "position": "DMC",
+          "player": "Youri Tielemans",
+          "position": "CM",
           "line": "mid",
-          "starts": 6,
-          "overall": 77,
-          "source": "appearances"
-        },
-        {
-          "player": "Bryan Mbeumo",
-          "position": "AMR",
-          "line": "att",
-          "starts": 5,
+          "starts": 16,
           "overall": 85,
-          "source": "appearances"
+          "source": "signing"
         },
         {
           "player": "Matheus Cunha",
           "position": "AML",
           "line": "att",
-          "starts": 4,
+          "starts": 15,
           "overall": 83,
+          "source": "appearances"
+        },
+        {
+          "player": "Bryan Mbeumo",
+          "position": "FW",
+          "line": "att",
+          "starts": 15,
+          "overall": 85,
           "source": "appearances"
         },
         {
           "player": "Amad Diallo Traore",
           "position": "AMR",
           "line": "att",
-          "starts": 4,
+          "starts": 13,
           "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Benjamin Sesko",
+          "position": "FW",
+          "line": "att",
+          "starts": 8,
+          "overall": 80,
           "source": "appearances"
         }
       ]
@@ -407,29 +407,29 @@
     "home_team": "Hull",
     "away_team": "Man United",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.04,
-      "away": 2.04
+      "home": 1.01,
+      "away": 2.05
     },
     "outcome": {
-      "home": 0.183,
-      "draw": 0.215,
-      "away": 0.602
+      "home": 0.175,
+      "draw": 0.213,
+      "away": 0.611
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.101
+        "probability": 0.1
       },
       {
         "score": "1-2",
-        "probability": 0.099
+        "probability": 0.1
       },
       {
         "score": "0-2",
-        "probability": 0.096
+        "probability": 0.099
       }
     ]
   },
@@ -441,7 +441,7 @@
           "player": "Jordan Pickford",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 19,
           "overall": 84,
           "source": "appearances"
         },
@@ -449,39 +449,39 @@
           "player": "James Tarkowski",
           "position": "DC",
           "line": "def",
-          "starts": 6,
+          "starts": 18,
           "overall": 80,
-          "source": "appearances"
-        },
-        {
-          "player": "Vitalii Mykolenko",
-          "position": "DL",
-          "line": "def",
-          "starts": 6,
-          "overall": 78,
           "source": "appearances"
         },
         {
           "player": "Jake O'Brien",
           "position": "DR",
           "line": "def",
-          "starts": 6,
+          "starts": 18,
           "overall": 76,
           "source": "appearances"
         },
         {
-          "player": "Michael Keane",
-          "position": "DC",
+          "player": "Vitalii Mykolenko",
+          "position": "DL",
           "line": "def",
-          "starts": 5,
-          "overall": 73,
+          "starts": 17,
+          "overall": 78,
           "source": "appearances"
+        },
+        {
+          "player": "Jarrad Branthwaite",
+          "position": "CB",
+          "line": "def",
+          "starts": 12,
+          "overall": 79,
+          "source": "signing"
         },
         {
           "player": "James Garner",
           "position": "DMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 19,
           "overall": 76,
           "source": "appearances"
         },
@@ -489,41 +489,41 @@
           "player": "Kiernan Dewsbury-Hall",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 15,
           "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "Tim Iroegbunam",
-          "position": "DMC",
+          "player": "Christian N\u00f8rgaard",
+          "position": "CDM",
           "line": "mid",
-          "starts": 4,
-          "overall": 74,
-          "source": "appearances"
+          "starts": 8,
+          "overall": 80,
+          "source": "signing"
         },
         {
           "player": "Iliman Ndiaye",
           "position": "AML",
           "line": "att",
-          "starts": 6,
+          "starts": 16,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "Merlin R\u00f6hl",
-          "position": "AMR",
+          "player": "Thierno Barry",
+          "position": "FW",
           "line": "att",
-          "starts": 4,
-          "overall": 74,
+          "starts": 10,
+          "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "Beto",
-          "position": "FW",
+          "player": "Brennan Johnson",
+          "position": "RW",
           "line": "att",
-          "starts": 4,
-          "overall": 76,
-          "source": "appearances"
+          "starts": 9,
+          "overall": 79,
+          "source": "signing"
         }
       ],
       "away": [
@@ -531,89 +531,89 @@
           "player": "Dean Henderson",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 18,
           "overall": 81,
-          "source": "appearances"
-        },
-        {
-          "player": "Jaydee Canvot",
-          "position": "DC",
-          "line": "def",
-          "starts": 5,
-          "overall": 70,
           "source": "appearances"
         },
         {
           "player": "Chris Richards",
           "position": "DC",
           "line": "def",
-          "starts": 3,
+          "starts": 14,
           "overall": 77,
           "source": "appearances"
+        },
+        {
+          "player": "Borna Sosa",
+          "position": "LB",
+          "line": "def",
+          "starts": 13,
+          "overall": 73,
+          "source": "signing"
         },
         {
           "player": "Chadi Riad",
           "position": "DC",
           "line": "def",
-          "starts": 3,
-          "overall": 72,
-          "source": "appearances"
-        },
-        {
-          "player": "Daniel Mu\u00f1oz",
-          "position": "DMR",
-          "line": "mid",
           "starts": 6,
-          "overall": 81,
-          "source": "appearances"
-        },
-        {
-          "player": "Daichi Kamada",
-          "position": "MC",
-          "line": "mid",
-          "starts": 5,
-          "overall": 77,
+          "overall": 72,
           "source": "appearances"
         },
         {
           "player": "Tyrick Mitchell",
           "position": "DML",
           "line": "mid",
-          "starts": 4,
+          "starts": 17,
           "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Ismaila Sarr",
-          "position": "AMC",
+          "player": "Daniel Mu\u00f1oz",
+          "position": "DMR",
           "line": "mid",
-          "starts": 4,
-          "overall": 79,
+          "starts": 15,
+          "overall": 81,
           "source": "appearances"
         },
         {
           "player": "Adam Wharton",
           "position": "MC",
           "line": "mid",
-          "starts": 3,
+          "starts": 12,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "Jefferson Lerma",
+          "player": "Ismaila Sarr",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 12,
+          "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Yeremy Pino",
+          "position": "RM",
+          "line": "mid",
+          "starts": 12,
+          "overall": 80,
+          "source": "signing"
+        },
+        {
+          "player": "Will Hughes",
           "position": "MC",
           "line": "mid",
-          "starts": 3,
+          "starts": 11,
           "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "J\u00f8rgen Strand Larsen",
-          "position": "FW",
+          "player": "Jean-Philippe Mateta",
+          "position": "ST",
           "line": "att",
-          "starts": 4,
-          "overall": 78,
-          "source": "appearances"
+          "starts": 12,
+          "overall": 82,
+          "source": "signing"
         }
       ]
     },
@@ -624,16 +624,16 @@
     "home_team": "Everton",
     "away_team": "Crystal Palace",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.23,
-      "away": 1.0
+      "home": 1.25,
+      "away": 0.97
     },
     "outcome": {
-      "home": 0.408,
-      "draw": 0.295,
-      "away": 0.298
+      "home": 0.423,
+      "draw": 0.294,
+      "away": 0.283
     },
     "scorelines": [
       {
@@ -642,11 +642,11 @@
       },
       {
         "score": "1-0",
-        "probability": 0.128
+        "probability": 0.132
       },
       {
         "score": "0-0",
-        "probability": 0.111
+        "probability": 0.113
       }
     ]
   },
@@ -719,12 +719,12 @@
           "source": "ratings"
         },
         {
-          "player": "Sammie Szmodics",
-          "position": "LM",
+          "player": "Sa\u0161a Luki\u0107",
+          "position": "CDM",
           "line": "mid",
           "starts": 0,
-          "overall": 74,
-          "source": "ratings"
+          "overall": 78,
+          "source": "signing"
         },
         {
           "player": "Chuba Akpom",
@@ -735,12 +735,12 @@
           "source": "ratings"
         },
         {
-          "player": "George Hirst",
-          "position": "ST",
+          "player": "Daizen Maeda",
+          "position": "LW",
           "line": "att",
           "starts": 0,
-          "overall": 72,
-          "source": "ratings"
+          "overall": 79,
+          "source": "signing"
         }
       ],
       "away": [
@@ -748,71 +748,71 @@
           "player": "Robin Roefs",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 16,
           "overall": 74,
-          "source": "appearances"
-        },
-        {
-          "player": "Nordi Mukiele",
-          "position": "DC",
-          "line": "def",
-          "starts": 6,
-          "overall": 79,
-          "source": "appearances"
-        },
-        {
-          "player": "Reinildo",
-          "position": "DL",
-          "line": "def",
-          "starts": 5,
-          "overall": 79,
           "source": "appearances"
         },
         {
           "player": "Omar Alderete",
           "position": "DC",
           "line": "def",
-          "starts": 5,
+          "starts": 18,
           "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Luke O'Nien",
-          "position": "DC",
+          "player": "Nordi Mukiele",
+          "position": "DR",
           "line": "def",
-          "starts": 2,
-          "overall": 72,
+          "starts": 15,
+          "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Thomas Meunier",
+          "position": "RB",
+          "line": "def",
+          "starts": 12,
+          "overall": 76,
+          "source": "signing"
+        },
+        {
+          "player": "Reinildo",
+          "position": "DL",
+          "line": "def",
+          "starts": 11,
+          "overall": 79,
           "source": "appearances"
         },
         {
           "player": "Enzo Le F\u00e9e",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 17,
           "overall": 76,
-          "source": "appearances"
-        },
-        {
-          "player": "Granit Xhaka",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 6,
-          "overall": 85,
           "source": "appearances"
         },
         {
           "player": "Noah Sadiki",
           "position": "DMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 17,
           "overall": 74,
           "source": "appearances"
         },
         {
-          "player": "Brian Brobbey",
-          "position": "FW",
-          "line": "att",
-          "starts": 6,
+          "player": "Granit Xhaka",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 13,
+          "overall": 85,
+          "source": "appearances"
+        },
+        {
+          "player": "Habib Diarra",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 11,
           "overall": 77,
           "source": "appearances"
         },
@@ -820,16 +820,16 @@
           "player": "Trai Hume",
           "position": "AMR",
           "line": "att",
-          "starts": 5,
+          "starts": 17,
           "overall": 74,
           "source": "appearances"
         },
         {
-          "player": "Chemsdine Talbi",
-          "position": "AML",
+          "player": "Brian Brobbey",
+          "position": "FW",
           "line": "att",
-          "starts": 2,
-          "overall": 73,
+          "starts": 17,
+          "overall": 77,
           "source": "appearances"
         }
       ]
@@ -841,16 +841,16 @@
     "home_team": "Ipswich",
     "away_team": "Sunderland",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 0.9,
-      "away": 1.59
+      "home": 0.91,
+      "away": 1.57
     },
     "outcome": {
-      "home": 0.21,
-      "draw": 0.258,
-      "away": 0.532
+      "home": 0.215,
+      "draw": 0.261,
+      "away": 0.524
     },
     "scorelines": [
       {
@@ -859,11 +859,11 @@
       },
       {
         "score": "1-1",
-        "probability": 0.122
+        "probability": 0.123
       },
       {
         "score": "0-2",
-        "probability": 0.104
+        "probability": 0.103
       }
     ]
   },
@@ -875,7 +875,15 @@
           "player": "Matz Sels",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 15,
+          "overall": 83,
+          "source": "appearances"
+        },
+        {
+          "player": "Nikola Milenkovic",
+          "position": "DC",
+          "line": "def",
+          "starts": 18,
           "overall": 83,
           "source": "appearances"
         },
@@ -883,81 +891,73 @@
           "player": "Neco Williams",
           "position": "DL",
           "line": "def",
-          "starts": 5,
+          "starts": 17,
           "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Nikola Milenkovic",
+          "player": "Ola Aina",
+          "position": "DR",
+          "line": "def",
+          "starts": 15,
+          "overall": 80,
+          "source": "appearances"
+        },
+        {
+          "player": "Murillo",
           "position": "DC",
           "line": "def",
-          "starts": 5,
+          "starts": 12,
           "overall": 83,
           "source": "appearances"
         },
         {
-          "player": "Morato",
-          "position": "DC",
-          "line": "def",
-          "starts": 4,
-          "overall": 76,
-          "source": "appearances"
-        },
-        {
-          "player": "Jair",
-          "position": "DC",
-          "line": "def",
-          "starts": 4,
-          "overall": 74,
-          "source": "appearances"
-        },
-        {
-          "player": "Luca Netz",
-          "position": "DL",
-          "line": "def",
-          "starts": 3,
-          "overall": 72,
-          "source": "appearances"
-        },
-        {
           "player": "Morgan Gibbs-White",
-          "position": "ML",
+          "position": "AMC",
           "line": "mid",
-          "starts": 4,
+          "starts": 17,
           "overall": 82,
           "source": "appearances"
         },
         {
-          "player": "Omari Hutchinson",
-          "position": "MR",
+          "player": "Xaver Schlager",
+          "position": "CDM",
           "line": "mid",
-          "starts": 4,
-          "overall": 75,
-          "source": "appearances"
+          "starts": 14,
+          "overall": 80,
+          "source": "signing"
         },
         {
-          "player": "Ibrahim Sangare",
+          "player": "Nicol\u00e1s Dom\u00ednguez",
           "position": "MC",
           "line": "mid",
-          "starts": 3,
-          "overall": 77,
+          "starts": 11,
+          "overall": 79,
           "source": "appearances"
         },
         {
           "player": "Igor Jesus",
           "position": "FW",
           "line": "att",
-          "starts": 5,
+          "starts": 17,
           "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "Chris Wood",
-          "position": "FW",
+          "player": "Callum Hudson-Odoi",
+          "position": "AML",
           "line": "att",
-          "starts": 4,
-          "overall": 82,
+          "starts": 11,
+          "overall": 78,
           "source": "appearances"
+        },
+        {
+          "player": "Chris Wood",
+          "position": "ST",
+          "line": "att",
+          "starts": 11,
+          "overall": 82,
+          "source": "signing"
         }
       ],
       "away": [
@@ -965,55 +965,39 @@
           "player": "Lucas Perri",
           "position": "GK",
           "line": "gk",
-          "starts": 0,
+          "starts": 2,
           "overall": 81,
-          "source": "ratings"
+          "source": "appearances"
         },
         {
-          "player": "Jaka Bijol",
+          "player": "James Justin",
           "position": "DC",
           "line": "def",
-          "starts": 6,
-          "overall": 77,
+          "starts": 19,
+          "overall": 74,
           "source": "appearances"
         },
         {
           "player": "Joe Rodon",
           "position": "DC",
           "line": "def",
-          "starts": 4,
+          "starts": 15,
           "overall": 76,
           "source": "appearances"
         },
         {
-          "player": "Sebastiaan Bornauw",
+          "player": "Jaka Bijol",
           "position": "DC",
           "line": "def",
-          "starts": 1,
-          "overall": 74,
+          "starts": 12,
+          "overall": 77,
           "source": "appearances"
         },
         {
           "player": "Ethan Ampadu",
           "position": "MC",
           "line": "mid",
-          "starts": 6,
-          "overall": 76,
-          "source": "appearances"
-        },
-        {
-          "player": "James Justin",
-          "position": "DML",
-          "line": "mid",
-          "starts": 6,
-          "overall": 74,
-          "source": "appearances"
-        },
-        {
-          "player": "Ao Tanaka",
-          "position": "MC",
-          "line": "mid",
-          "starts": 6,
+          "starts": 18,
           "overall": 76,
           "source": "appearances"
         },
@@ -1021,7 +1005,7 @@
           "player": "Brenden Aaronson",
           "position": "AMC",
           "line": "mid",
-          "starts": 5,
+          "starts": 18,
           "overall": 74,
           "source": "appearances"
         },
@@ -1029,23 +1013,39 @@
           "player": "Jayden Bogle",
           "position": "DMR",
           "line": "mid",
-          "starts": 4,
+          "starts": 14,
           "overall": 75,
+          "source": "appearances"
+        },
+        {
+          "player": "Gabriel Gudmundsson",
+          "position": "DML",
+          "line": "mid",
+          "starts": 13,
+          "overall": 77,
           "source": "appearances"
         },
         {
           "player": "Anton Stach",
           "position": "MC",
           "line": "mid",
-          "starts": 3,
+          "starts": 12,
           "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Ilia Gruev",
+          "position": "MC",
+          "line": "mid",
+          "starts": 10,
+          "overall": 74,
           "source": "appearances"
         },
         {
           "player": "Dominic Calvert-Lewin",
           "position": "FW",
           "line": "att",
-          "starts": 6,
+          "starts": 18,
           "overall": 74,
           "source": "appearances"
         }
@@ -1058,29 +1058,29 @@
     "home_team": "Nott'm Forest",
     "away_team": "Leeds",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.54,
-      "away": 1.18
+      "home": 1.67,
+      "away": 1.07
     },
     "outcome": {
-      "home": 0.453,
-      "draw": 0.26,
-      "away": 0.288
+      "home": 0.509,
+      "draw": 0.25,
+      "away": 0.24
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.123
+        "probability": 0.119
       },
       {
         "score": "1-0",
-        "probability": 0.098
+        "probability": 0.104
       },
       {
         "score": "2-1",
-        "probability": 0.092
+        "probability": 0.096
       }
     ]
   },
@@ -1092,31 +1092,23 @@
           "player": "Caoimhin Kelleher",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 18,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "Keane Lewis-Potter",
-          "position": "DL",
+          "player": "Ethan Pinnock",
+          "position": "CB",
           "line": "def",
-          "starts": 6,
-          "overall": 76,
-          "source": "appearances"
-        },
-        {
-          "player": "Michael Kayode",
-          "position": "DR",
-          "line": "def",
-          "starts": 6,
-          "overall": 73,
-          "source": "appearances"
+          "starts": 18,
+          "overall": 77,
+          "source": "signing"
         },
         {
           "player": "Nathan Collins",
           "position": "DC",
           "line": "def",
-          "starts": 6,
+          "starts": 14,
           "overall": 79,
           "source": "appearances"
         },
@@ -1124,81 +1116,81 @@
           "player": "Sepp van den Berg",
           "position": "DC",
           "line": "def",
-          "starts": 4,
+          "starts": 13,
           "overall": 77,
+          "source": "appearances"
+        },
+        {
+          "player": "Keane Lewis-Potter",
+          "position": "DL",
+          "line": "def",
+          "starts": 13,
+          "overall": 76,
           "source": "appearances"
         },
         {
           "player": "Mathias Jensen",
-          "position": "DMC",
+          "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 19,
           "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "Yehor Yarmolyuk",
-          "position": "DMC",
+          "player": "Vitaly Janelt",
+          "position": "CM",
           "line": "mid",
-          "starts": 5,
-          "overall": 71,
-          "source": "appearances"
+          "starts": 13,
+          "overall": 76,
+          "source": "signing"
         },
         {
           "player": "Mikkel Damsgaard",
           "position": "AMC",
           "line": "mid",
-          "starts": 5,
+          "starts": 12,
           "overall": 80,
           "source": "appearances"
         },
         {
-          "player": "Thiago",
-          "position": "FW",
+          "player": "Callum Wilson",
+          "position": "ST",
           "line": "att",
-          "starts": 6,
-          "overall": 75,
+          "starts": 19,
+          "overall": 78,
+          "source": "signing"
+        },
+        {
+          "player": "Kevin Schade",
+          "position": "AML",
+          "line": "att",
+          "starts": 15,
+          "overall": 78,
           "source": "appearances"
         },
         {
           "player": "Dango Ouattara",
           "position": "AMR",
           "line": "att",
-          "starts": 5,
+          "starts": 13,
           "overall": 77,
-          "source": "appearances"
-        },
-        {
-          "player": "Kevin Schade",
-          "position": "AML",
-          "line": "att",
-          "starts": 5,
-          "overall": 78,
           "source": "appearances"
         }
       ],
       "away": [
         {
-          "player": "Anton\u00edn Kinsky",
+          "player": "Guglielmo Vicario",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
-          "overall": 75,
-          "source": "appearances"
-        },
-        {
-          "player": "Kevin Danso",
-          "position": "DC",
-          "line": "def",
-          "starts": 6,
-          "overall": 79,
+          "starts": 12,
+          "overall": 82,
           "source": "appearances"
         },
         {
           "player": "Micky van de Ven",
           "position": "DC",
           "line": "def",
-          "starts": 6,
+          "starts": 17,
           "overall": 82,
           "source": "appearances"
         },
@@ -1206,65 +1198,73 @@
           "player": "Pedro Porro",
           "position": "DR",
           "line": "def",
-          "starts": 6,
+          "starts": 15,
           "overall": 82,
           "source": "appearances"
         },
         {
-          "player": "Iyenoma Destiny Udogie",
-          "position": "DL",
+          "player": "Kevin Danso",
+          "position": "DC",
           "line": "def",
-          "starts": 5,
-          "overall": 80,
+          "starts": 10,
+          "overall": 79,
           "source": "appearances"
         },
         {
+          "player": "Andrew Robertson",
+          "position": "LB",
+          "line": "def",
+          "starts": 8,
+          "overall": 82,
+          "source": "signing"
+        },
+        {
           "player": "Conor Gallagher",
+          "position": "MC",
+          "line": "mid",
+          "starts": 14,
+          "overall": 81,
+          "source": "appearances"
+        },
+        {
+          "player": "Sandro Tonali",
+          "position": "CDM",
+          "line": "mid",
+          "starts": 11,
+          "overall": 86,
+          "source": "signing"
+        },
+        {
+          "player": "Xavi Simons",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
-          "overall": 81,
+          "starts": 10,
+          "overall": 84,
           "source": "appearances"
         },
         {
           "player": "Rodrigo Bentancur",
           "position": "DMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 8,
           "overall": 80,
           "source": "appearances"
         },
         {
-          "player": "Richarlison",
+          "player": "Dominic Solanke",
           "position": "FW",
           "line": "att",
-          "starts": 4,
-          "overall": 78,
+          "starts": 11,
+          "overall": 80,
           "source": "appearances"
         },
         {
-          "player": "Mathys Tel",
-          "position": "AML",
+          "player": "Mohammed Kudus",
+          "position": "RW",
           "line": "att",
-          "starts": 4,
-          "overall": 77,
-          "source": "appearances"
-        },
-        {
-          "player": "Djed Spence",
-          "position": "AMR",
-          "line": "att",
-          "starts": 2,
-          "overall": 78,
-          "source": "appearances"
-        },
-        {
-          "player": "Xavi Simons",
-          "position": "AML",
-          "line": "att",
-          "starts": 2,
-          "overall": 84,
-          "source": "appearances"
+          "starts": 10,
+          "overall": 80,
+          "source": "signing"
         }
       ]
     },
@@ -1275,25 +1275,25 @@
     "home_team": "Brentford",
     "away_team": "Tottenham",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.89,
-      "away": 1.33
+      "home": 1.8,
+      "away": 1.36
     },
     "outcome": {
-      "home": 0.503,
-      "draw": 0.231,
-      "away": 0.267
+      "home": 0.476,
+      "draw": 0.236,
+      "away": 0.287
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.104
+        "probability": 0.107
       },
       {
         "score": "2-1",
-        "probability": 0.095
+        "probability": 0.094
       },
       {
         "score": "1-0",
@@ -1309,7 +1309,7 @@
           "player": "Bart Verbruggen",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 19,
           "overall": 78,
           "source": "appearances"
         },
@@ -1317,80 +1317,80 @@
           "player": "Ferdi Kadioglu",
           "position": "DL",
           "line": "def",
-          "starts": 6,
+          "starts": 19,
           "overall": 79,
           "source": "appearances"
+        },
+        {
+          "player": "Maxim De Cuyper",
+          "position": "LB",
+          "line": "def",
+          "starts": 14,
+          "overall": 80,
+          "source": "signing"
         },
         {
           "player": "Mats Wieffer",
           "position": "DR",
           "line": "def",
-          "starts": 4,
+          "starts": 10,
           "overall": 78,
-          "source": "appearances"
-        },
-        {
-          "player": "Lewis Dunk",
-          "position": "DC",
-          "line": "def",
-          "starts": 3,
-          "overall": 77,
           "source": "appearances"
         },
         {
           "player": "Olivier Boscagli",
           "position": "DC",
           "line": "def",
-          "starts": 3,
+          "starts": 7,
           "overall": 79,
-          "source": "appearances"
-        },
-        {
-          "player": "Maxim De Cuyper",
-          "position": "DL",
-          "line": "def",
-          "starts": 3,
-          "overall": 80,
           "source": "appearances"
         },
         {
           "player": "Pascal Gro\u00df",
           "position": "DMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 18,
           "overall": 80,
           "source": "appearances"
         },
         {
-          "player": "Jack Hinshelwood",
-          "position": "AMC",
+          "player": "Matt O'Riley",
+          "position": "CAM",
           "line": "mid",
-          "starts": 6,
-          "overall": 75,
-          "source": "appearances"
+          "starts": 15,
+          "overall": 78,
+          "source": "signing"
         },
         {
           "player": "Carlos Baleba",
           "position": "DMC",
           "line": "mid",
-          "starts": 4,
+          "starts": 9,
           "overall": 81,
-          "source": "appearances"
-        },
-        {
-          "player": "Yankuba Minteh",
-          "position": "AMR",
-          "line": "att",
-          "starts": 5,
-          "overall": 77,
           "source": "appearances"
         },
         {
           "player": "Kaoru Mitoma",
           "position": "AML",
           "line": "att",
-          "starts": 3,
+          "starts": 13,
           "overall": 82,
+          "source": "appearances"
+        },
+        {
+          "player": "Diego G\u00f3mez",
+          "position": "AMR",
+          "line": "att",
+          "starts": 13,
+          "overall": 73,
+          "source": "appearances"
+        },
+        {
+          "player": "Yankuba Minteh",
+          "position": "AML",
+          "line": "att",
+          "starts": 8,
+          "overall": 77,
           "source": "appearances"
         }
       ],
@@ -1399,88 +1399,88 @@
           "player": "Emiliano Martinez",
           "position": "GK",
           "line": "gk",
-          "starts": 5,
+          "starts": 17,
           "overall": 85,
-          "source": "appearances"
-        },
-        {
-          "player": "Matthew Cash",
-          "position": "DR",
-          "line": "def",
-          "starts": 5,
-          "overall": 79,
           "source": "appearances"
         },
         {
           "player": "Ezri Konsa Ngoyo",
           "position": "DC",
           "line": "def",
-          "starts": 4,
+          "starts": 16,
           "overall": 82,
           "source": "appearances"
         },
         {
-          "player": "Tyrone Mings",
-          "position": "DC",
+          "player": "Matthew Cash",
+          "position": "DR",
           "line": "def",
-          "starts": 4,
-          "overall": 78,
+          "starts": 16,
+          "overall": 79,
           "source": "appearances"
         },
         {
           "player": "Ian Maatsen",
           "position": "DL",
           "line": "def",
-          "starts": 4,
+          "starts": 11,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "Victor Lindel\u00f6f",
+          "player": "Tyrone Mings",
           "position": "DC",
           "line": "def",
-          "starts": 4,
-          "overall": null,
+          "starts": 9,
+          "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Ross Barkley",
-          "position": "AMC",
-          "line": "mid",
-          "starts": 4,
-          "overall": 77,
+          "player": "Pau Torres",
+          "position": "DC",
+          "line": "def",
+          "starts": 8,
+          "overall": 80,
           "source": "appearances"
         },
         {
-          "player": "Lamare Bogarde",
+          "player": "Amadou Onana",
           "position": "DMC",
           "line": "mid",
-          "starts": 3,
-          "overall": 71,
+          "starts": 10,
+          "overall": 79,
           "source": "appearances"
+        },
+        {
+          "player": "Boubacar Kamara",
+          "position": "CDM",
+          "line": "mid",
+          "starts": 7,
+          "overall": 83,
+          "source": "signing"
         },
         {
           "player": "Ollie Watkins",
           "position": "FW",
           "line": "att",
-          "starts": 5,
+          "starts": 17,
           "overall": 84,
-          "source": "appearances"
-        },
-        {
-          "player": "John McGinn",
-          "position": "AMR",
-          "line": "att",
-          "starts": 4,
-          "overall": 81,
           "source": "appearances"
         },
         {
           "player": "Emiliano Buend\u00eda",
           "position": "AML",
           "line": "att",
-          "starts": 3,
+          "starts": 13,
           "overall": 77,
+          "source": "appearances"
+        },
+        {
+          "player": "John McGinn",
+          "position": "AMR",
+          "line": "att",
+          "starts": 10,
+          "overall": 81,
           "source": "appearances"
         }
       ]
@@ -1492,29 +1492,29 @@
     "home_team": "Brighton",
     "away_team": "Aston Villa",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.68,
-      "away": 1.2
+      "home": 1.58,
+      "away": 1.26
     },
     "outcome": {
-      "home": 0.483,
-      "draw": 0.248,
-      "away": 0.27
+      "home": 0.445,
+      "draw": 0.254,
+      "away": 0.301
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.116
+        "probability": 0.12
       },
       {
         "score": "2-1",
-        "probability": 0.095
+        "probability": 0.092
       },
       {
         "score": "1-0",
-        "probability": 0.091
+        "probability": 0.088
       }
     ]
   },
@@ -1526,79 +1526,79 @@
           "player": "Gianluigi Donnarumma",
           "position": "GK",
           "line": "gk",
-          "starts": 5,
+          "starts": 18,
           "overall": 89,
-          "source": "appearances"
-        },
-        {
-          "player": "Marc Guehi",
-          "position": "DC",
-          "line": "def",
-          "starts": 5,
-          "overall": 82,
           "source": "appearances"
         },
         {
           "player": "Matheus Nunes",
           "position": "DR",
           "line": "def",
-          "starts": 5,
+          "starts": 17,
           "overall": 79,
           "source": "appearances"
+        },
+        {
+          "player": "Marc Guehi",
+          "position": "DC",
+          "line": "def",
+          "starts": 15,
+          "overall": 82,
+          "source": "appearances"
+        },
+        {
+          "player": "R\u00faben Dias",
+          "position": "CB",
+          "line": "def",
+          "starts": 14,
+          "overall": 86,
+          "source": "signing"
         },
         {
           "player": "Abduqodir Khusanov",
           "position": "DC",
           "line": "def",
-          "starts": 4,
+          "starts": 12,
           "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "Nico O'Reilly",
+          "player": "Rayan Ait Nouri",
           "position": "DL",
           "line": "def",
-          "starts": 4,
-          "overall": 73,
-          "source": "appearances"
-        },
-        {
-          "player": "Mathis Cherki",
-          "position": "AMC",
-          "line": "mid",
-          "starts": 3,
+          "starts": 9,
           "overall": 81,
           "source": "appearances"
         },
         {
-          "player": "S\u00e1vio",
-          "position": "AMC",
+          "player": "Rodri",
+          "position": "DMC",
           "line": "mid",
-          "starts": 2,
-          "overall": 82,
+          "starts": 13,
+          "overall": 90,
           "source": "appearances"
+        },
+        {
+          "player": "Tijjani Reijnders",
+          "position": "CM",
+          "line": "mid",
+          "starts": 10,
+          "overall": 86,
+          "source": "signing"
         },
         {
           "player": "Phil Foden",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 2,
-          "overall": 85,
-          "source": "appearances"
-        },
-        {
-          "player": "Antoine Semenyo",
-          "position": "AMR",
+          "position": "RW",
           "line": "att",
-          "starts": 6,
-          "overall": 80,
-          "source": "appearances"
+          "starts": 17,
+          "overall": 85,
+          "source": "signing"
         },
         {
           "player": "Erling Haaland",
           "position": "FW",
           "line": "att",
-          "starts": 4,
+          "starts": 15,
           "overall": 90,
           "source": "appearances"
         },
@@ -1606,7 +1606,7 @@
           "player": "J\u00e9remy Doku",
           "position": "AML",
           "line": "att",
-          "starts": 4,
+          "starts": 8,
           "overall": 80,
           "source": "appearances"
         }
@@ -1616,7 +1616,7 @@
           "player": "Djordje Petrovic",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 19,
           "overall": 80,
           "source": "appearances"
         },
@@ -1624,80 +1624,80 @@
           "player": "Adrien Truffert",
           "position": "DL",
           "line": "def",
-          "starts": 6,
+          "starts": 19,
           "overall": 77,
           "source": "appearances"
         },
         {
-          "player": "James Hill",
-          "position": "DC",
+          "player": "Bafod\u00e9 Diakit\u00e9",
+          "position": "CB",
           "line": "def",
-          "starts": 6,
-          "overall": 71,
-          "source": "appearances"
+          "starts": 19,
+          "overall": 79,
+          "source": "signing"
         },
         {
           "player": "Adam Smith",
           "position": "DR",
           "line": "def",
-          "starts": 3,
+          "starts": 6,
           "overall": 73,
           "source": "appearances"
+        },
+        {
+          "player": "Tyler Adams",
+          "position": "CDM",
+          "line": "mid",
+          "starts": 18,
+          "overall": 79,
+          "source": "signing"
         },
         {
           "player": "Eli Junior Kroupi",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 15,
           "overall": 74,
-          "source": "appearances"
-        },
-        {
-          "player": "Alex Scott",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 5,
-          "overall": 74,
-          "source": "appearances"
-        },
-        {
-          "player": "Tyler Adams",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 3,
-          "overall": 79,
           "source": "appearances"
         },
         {
           "player": "Ryan Christie",
           "position": "DMC",
           "line": "mid",
-          "starts": 3,
+          "starts": 8,
           "overall": 79,
-          "source": "appearances"
-        },
-        {
-          "player": "Marcus Tavernier",
-          "position": "AML",
-          "line": "att",
-          "starts": 6,
-          "overall": 76,
           "source": "appearances"
         },
         {
           "player": "Evanilson",
           "position": "FW",
           "line": "att",
-          "starts": 6,
+          "starts": 18,
           "overall": 80,
+          "source": "appearances"
+        },
+        {
+          "player": "Marcus Tavernier",
+          "position": "AML",
+          "line": "att",
+          "starts": 14,
+          "overall": 76,
           "source": "appearances"
         },
         {
           "player": "Rayan",
           "position": "AMR",
           "line": "att",
-          "starts": 5,
+          "starts": 13,
           "overall": null,
+          "source": "appearances"
+        },
+        {
+          "player": "Amine Adli",
+          "position": "AML",
+          "line": "att",
+          "starts": 7,
+          "overall": 78,
           "source": "appearances"
         }
       ]
@@ -1709,28 +1709,28 @@
     "home_team": "Man City",
     "away_team": "Bournemouth",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 2.1,
-      "away": 0.97
+      "home": 2.18,
+      "away": 0.91
     },
     "outcome": {
-      "home": 0.631,
-      "draw": 0.207,
-      "away": 0.162
+      "home": 0.659,
+      "draw": 0.198,
+      "away": 0.143
     },
     "scorelines": [
       {
         "score": "2-0",
-        "probability": 0.102
+        "probability": 0.108
       },
       {
         "score": "2-1",
-        "probability": 0.099
+        "probability": 0.098
       },
       {
-        "score": "1-1",
+        "score": "1-0",
         "probability": 0.097
       }
     ]
@@ -1743,113 +1743,105 @@
           "player": "Nick Pope",
           "position": "GK",
           "line": "gk",
-          "starts": 5,
+          "starts": 14,
           "overall": 81,
           "source": "appearances"
         },
         {
-          "player": "Malick Thiaw",
-          "position": "DC",
+          "player": "Fabian Sch\u00e4r",
+          "position": "CB",
           "line": "def",
-          "starts": 6,
-          "overall": 78,
+          "starts": 18,
+          "overall": 82,
+          "source": "signing"
+        },
+        {
+          "player": "Lewis Hall",
+          "position": "DL",
+          "line": "def",
+          "starts": 16,
+          "overall": 80,
           "source": "appearances"
         },
         {
           "player": "Sven Botman",
           "position": "DC",
           "line": "def",
-          "starts": 6,
+          "starts": 13,
           "overall": 82,
           "source": "appearances"
         },
         {
           "player": "Dan Burn",
-          "position": "DL",
+          "position": "DC",
           "line": "def",
-          "starts": 4,
+          "starts": 10,
           "overall": 79,
-          "source": "appearances"
-        },
-        {
-          "player": "Lewis Hall",
-          "position": "DL",
-          "line": "def",
-          "starts": 4,
-          "overall": 80,
-          "source": "appearances"
-        },
-        {
-          "player": "Lewis Miley",
-          "position": "DR",
-          "line": "def",
-          "starts": 3,
-          "overall": 72,
           "source": "appearances"
         },
         {
           "player": "Jacob Ramsey",
           "position": "MC",
           "line": "mid",
-          "starts": 4,
+          "starts": 11,
           "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Joe Willock",
+          "player": "Joelinton",
           "position": "MC",
           "line": "mid",
-          "starts": 3,
-          "overall": 76,
+          "starts": 10,
+          "overall": 82,
           "source": "appearances"
         },
         {
           "player": "Nick Woltemade",
           "position": "AMC",
           "line": "mid",
-          "starts": 3,
+          "starts": 9,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "William Osula",
-          "position": "FW",
+          "player": "Joe Willock",
+          "position": "MC",
+          "line": "mid",
+          "starts": 8,
+          "overall": 76,
+          "source": "appearances"
+        },
+        {
+          "player": "Harvey Barnes",
+          "position": "FWL",
           "line": "att",
-          "starts": 6,
-          "overall": 68,
+          "starts": 11,
+          "overall": 80,
           "source": "appearances"
         },
         {
           "player": "Jacob Murphy",
           "position": "AMR",
           "line": "att",
-          "starts": 4,
+          "starts": 8,
           "overall": 81,
           "source": "appearances"
         }
       ],
       "away": [
         {
-          "player": "Giorgi Mamardashvili",
+          "player": "Alisson",
           "position": "GK",
           "line": "gk",
-          "starts": 3,
-          "overall": 84,
-          "source": "appearances"
-        },
-        {
-          "player": "Curtis Jones",
-          "position": "DR",
-          "line": "def",
-          "starts": 6,
-          "overall": 80,
+          "starts": 12,
+          "overall": 89,
           "source": "appearances"
         },
         {
           "player": "Virgil van Dijk",
           "position": "DC",
           "line": "def",
-          "starts": 6,
+          "starts": 19,
           "overall": 90,
           "source": "appearances"
         },
@@ -1857,65 +1849,73 @@
           "player": "Milos Kerkez",
           "position": "DL",
           "line": "def",
-          "starts": 2,
+          "starts": 12,
           "overall": 82,
+          "source": "appearances"
+        },
+        {
+          "player": "Ronald Araujo",
+          "position": "CB",
+          "line": "def",
+          "starts": 10,
+          "overall": 83,
+          "source": "signing"
+        },
+        {
+          "player": "Jeremie Frimpong",
+          "position": "DR",
+          "line": "def",
+          "starts": 9,
+          "overall": 83,
           "source": "appearances"
         },
         {
           "player": "Dominik Szoboszlai",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 18,
           "overall": 83,
-          "source": "appearances"
-        },
-        {
-          "player": "Alexis Mac Allister",
-          "position": "DMC",
-          "line": "mid",
-          "starts": 5,
-          "overall": 87,
           "source": "appearances"
         },
         {
           "player": "Ryan Gravenberch",
           "position": "DMC",
           "line": "mid",
-          "starts": 5,
+          "starts": 17,
           "overall": 85,
+          "source": "appearances"
+        },
+        {
+          "player": "Alexis Mac Allister",
+          "position": "DMC",
+          "line": "mid",
+          "starts": 16,
+          "overall": 87,
           "source": "appearances"
         },
         {
           "player": "Florian Wirtz",
           "position": "AMC",
           "line": "mid",
-          "starts": 3,
+          "starts": 13,
           "overall": 89,
           "source": "appearances"
         },
         {
-          "player": "Jeremie Frimpong",
-          "position": "AMC",
-          "line": "mid",
-          "starts": 2,
-          "overall": 83,
-          "source": "appearances"
-        },
-        {
           "player": "Cody Gakpo",
-          "position": "FW",
+          "position": "AML",
           "line": "att",
-          "starts": 6,
+          "starts": 19,
           "overall": 84,
           "source": "appearances"
         },
         {
-          "player": "Rio Ngumoha",
-          "position": "AML",
+          "player": "Alexander Isak",
+          "position": "ST",
           "line": "att",
-          "starts": 3,
-          "overall": 68,
-          "source": "appearances"
+          "starts": 8,
+          "overall": 88,
+          "source": "signing"
         }
       ]
     },
@@ -1926,25 +1926,25 @@
     "home_team": "Newcastle",
     "away_team": "Liverpool",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.52,
-      "away": 1.83
+      "home": 1.49,
+      "away": 1.81
     },
     "outcome": {
-      "home": 0.321,
-      "draw": 0.231,
-      "away": 0.448
+      "home": 0.315,
+      "draw": 0.233,
+      "away": 0.451
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.1
+        "probability": 0.102
       },
       {
         "score": "1-2",
-        "probability": 0.089
+        "probability": 0.09
       },
       {
         "score": "2-1",
@@ -1960,15 +1960,15 @@
           "player": "Bernd Leno",
           "position": "GK",
           "line": "gk",
-          "starts": 6,
+          "starts": 19,
           "overall": 80,
           "source": "appearances"
         },
         {
-          "player": "Calvin Bassey",
+          "player": "Joachim Andersen",
           "position": "DC",
           "line": "def",
-          "starts": 6,
+          "starts": 15,
           "overall": 78,
           "source": "appearances"
         },
@@ -1976,72 +1976,72 @@
           "player": "Timothy Castagne",
           "position": "DR",
           "line": "def",
-          "starts": 6,
+          "starts": 14,
           "overall": 76,
+          "source": "appearances"
+        },
+        {
+          "player": "Calvin Bassey",
+          "position": "DC",
+          "line": "def",
+          "starts": 13,
+          "overall": 78,
           "source": "appearances"
         },
         {
           "player": "Antonee Robinson",
           "position": "DL",
           "line": "def",
-          "starts": 4,
+          "starts": 13,
           "overall": 82,
-          "source": "appearances"
-        },
-        {
-          "player": "Joachim Andersen",
-          "position": "DC",
-          "line": "def",
-          "starts": 4,
-          "overall": 78,
           "source": "appearances"
         },
         {
           "player": "Ryan Sessegnon",
           "position": "DL",
           "line": "def",
-          "starts": 2,
+          "starts": 7,
           "overall": 75,
-          "source": "appearances"
-        },
-        {
-          "player": "Emile Smith-Rowe",
-          "position": "AMC",
-          "line": "mid",
-          "starts": 6,
-          "overall": 77,
           "source": "appearances"
         },
         {
           "player": "Sander Berge",
           "position": "DMC",
           "line": "mid",
-          "starts": 3,
+          "starts": 15,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "Tom Cairney",
+          "player": "Emile Smith-Rowe",
+          "position": "AMC",
+          "line": "mid",
+          "starts": 15,
+          "overall": 77,
+          "source": "appearances"
+        },
+        {
+          "player": "Alex Iwobi",
           "position": "DMC",
           "line": "mid",
-          "starts": 2,
-          "overall": 74,
+          "starts": 13,
+          "overall": 80,
           "source": "appearances"
         },
         {
           "player": "Rodrigo Muniz",
           "position": "FW",
           "line": "att",
-          "starts": 4,
+          "starts": 6,
           "overall": 75,
           "source": "appearances"
         },
         {
-          "player": "Alex Iwobi",
+          "player": "Oscar Bobb",
           "position": "AML",
           "line": "att",
-          "starts": 3,
-          "overall": 80,
+          "starts": 6,
+          "overall": 72,
           "source": "appearances"
         }
       ],
@@ -2050,7 +2050,7 @@
           "player": "Robert S\u00e1nchez",
           "position": "GK",
           "line": "gk",
-          "starts": 5,
+          "starts": 16,
           "overall": 78,
           "source": "appearances"
         },
@@ -2058,7 +2058,23 @@
           "player": "Malo Gusto",
           "position": "DR",
           "line": "def",
-          "starts": 5,
+          "starts": 15,
+          "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Trevoh Chalobah",
+          "position": "DC",
+          "line": "def",
+          "starts": 13,
+          "overall": 79,
+          "source": "appearances"
+        },
+        {
+          "player": "Wesley Fofana",
+          "position": "DC",
+          "line": "def",
+          "starts": 11,
           "overall": 79,
           "source": "appearances"
         },
@@ -2066,31 +2082,23 @@
           "player": "Jorrel Hato",
           "position": "DC",
           "line": "def",
-          "starts": 5,
+          "starts": 10,
           "overall": 78,
           "source": "appearances"
         },
         {
-          "player": "Wesley Fofana",
-          "position": "DC",
+          "player": "Reece James",
+          "position": "DR",
           "line": "def",
-          "starts": 5,
-          "overall": 79,
-          "source": "appearances"
-        },
-        {
-          "player": "Levi Colwill",
-          "position": "DC",
-          "line": "def",
-          "starts": 2,
-          "overall": 80,
+          "starts": 7,
+          "overall": 81,
           "source": "appearances"
         },
         {
           "player": "Enzo Fern\u00e1ndez",
           "position": "AMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 18,
           "overall": 84,
           "source": "appearances"
         },
@@ -2098,7 +2106,7 @@
           "player": "Mois\u00e9s Caicedo",
           "position": "DMC",
           "line": "mid",
-          "starts": 6,
+          "starts": 18,
           "overall": 87,
           "source": "appearances"
         },
@@ -2106,32 +2114,24 @@
           "player": "Cole Palmer",
           "position": "AMC",
           "line": "mid",
-          "starts": 5,
+          "starts": 17,
           "overall": 87,
-          "source": "appearances"
-        },
-        {
-          "player": "Pedro Neto",
-          "position": "AML",
-          "line": "att",
-          "starts": 4,
-          "overall": 80,
           "source": "appearances"
         },
         {
           "player": "Jo\u00e3o Pedro",
           "position": "FW",
           "line": "att",
-          "starts": 3,
+          "starts": 14,
           "overall": 79,
           "source": "appearances"
         },
         {
-          "player": "Liam Delap",
-          "position": "FW",
+          "player": "Pedro Neto",
+          "position": "AML",
           "line": "att",
-          "starts": 3,
-          "overall": 78,
+          "starts": 13,
+          "overall": 80,
           "source": "appearances"
         }
       ]
@@ -2143,16 +2143,16 @@
     "home_team": "Fulham",
     "away_team": "Chelsea",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-13T14:25:04+00:00",
+    "predicted_at": "2026-08-17T20:05:43+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.32,
-      "away": 1.39
+      "home": 1.3,
+      "away": 1.41
     },
     "outcome": {
-      "home": 0.352,
+      "home": 0.344,
       "draw": 0.265,
-      "away": 0.383
+      "away": 0.391
     },
     "scorelines": [
       {
@@ -2161,11 +2161,11 @@
       },
       {
         "score": "0-1",
-        "probability": 0.089
+        "probability": 0.09
       },
       {
         "score": "1-2",
-        "probability": 0.085
+        "probability": 0.086
       }
     ]
   }
