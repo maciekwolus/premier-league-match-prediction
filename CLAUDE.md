@@ -470,6 +470,35 @@ false departure silently deletes a real player: `Amad Diallo Traore` must match 
 selected** — a signing has no appearances to rank against the players who have them, so
 picking one would assert a team sheet rather than describe an expectation.
 
+**The expected XI is drawn from half a season, not six matches.** Six was too few and it
+failed hardest where it matters: predicting the opening round means the last six matches
+are all end-of-season fixtures, where sides rotate. Tottenham fielded reserve keeper Kinsky
+over Vicario and Liverpool fielded Mamardashvili over Alisson, and every club's squad mean
+came out below its real one. `RECENT_MATCHES` is 19; 19 against 38 barely differs, so the
+signal is real rather than a longer window flattering itself.
+
+**A signing can take a place, but only on a clear margin.** Appearances cannot see a
+transfer in — a new arrival has started nothing for this club, so the eleven picked around
+Youri Tielemans (85) at Man United. `squads.promote_signings` swaps a rated squad member in
+for the weakest player *in the same line* when he is better by `SIGNING_MARGIN` (2). The
+margin exists because ratings carry a point or two of noise and a zero threshold would
+churn the side on every ratings edition.
+
+**Recruiting must not reuse `is_in_squad`, and this was an ugly bug.** That function is
+generous on purpose because it answers the *departure* question, where a false match
+harmlessly keeps a player and a false miss deletes a real one. Run backwards to recruit,
+one shared surname token matches any player on earth: the first version put **Lautaro
+Martinez into Aston Villa** off Emiliano Martinez, Scott McTominay into Bournemouth, and
+Davinson Sanchez into two clubs at once. `_signing_candidates` demands full-name agreement
+and never fires on a single token. **The direction of a name check decides how strict it
+has to be** — the same comparison is right in one direction and dangerous in the other.
+
+**`rating_index` looks the whole league up, not one club.** Ratings are a September
+snapshot, so a summer signing is filed under the club he left — Tielemans is at Aston Villa
+in FC 26 and at Man United in FPL. A club-scoped lookup returned `overall: None` for exactly
+the players it existed to rate. Safety comes from `_rating_for` accepting a name only when
+exactly one player in the season matches it.
+
 **Two sources transliterate the same name differently, and containment cannot see it.**
 Understat writes `Yehor Yarmolyuk` where FPL writes `Yehor Yarmoliuk`, and `Yeremi Pino`
 where FPL has `Yéremy Pino Santos` — one letter each, and token comparison reads two

@@ -26,14 +26,27 @@ import pandas as pd
 
 from src.config import MANUAL_DIR
 from src.features.squad import STARTERS_PER_TEAM, line_of
+from src.matching.player_names import normalise
 from src.predict.suspensions import load_unavailable, unavailable_for
 from src.predict.transfers import departures
 
 MANUAL_RATINGS_CSV = MANUAL_DIR / "player_ratings_manual.csv"
 
 # How much history to read a club's preferred eleven from. Long enough to see through
-# rotation and a cup week, short enough to follow a change of shape.
-RECENT_MATCHES = 6
+# rotation, short enough to follow a change of shape.
+#
+# **Six was too few, and it failed hardest exactly where it matters.** Predicting the
+# opening round of a season means the last six matches are all end-of-season fixtures,
+# where sides rotate and dead rubbers are common - so the "most-used eleven" was the
+# rotation side, not the first choice. Measured on 2025/26: Tottenham fielded reserve
+# keeper Kinsky over Vicario and Liverpool fielded Mamardashvili over Alisson, and every
+# club's mean squad rating came out below its real one (Liverpool 83.5 against 86.0,
+# Tottenham 79.7 against 80.5).
+#
+# Half a season fixes it and 19 against 38 makes almost no difference, so the signal is
+# real rather than a longer window flattering itself: enough starts to separate a
+# first-choice player from a rotation one, recent enough to follow a change mid-season.
+RECENT_MATCHES = 19
 
 
 def load_manual_ratings() -> pd.DataFrame:
@@ -346,7 +359,141 @@ def expected_squad_players(
 
     from src.features.squad import starting_ratings
 
-    return starting_ratings(pd.DataFrame(rows), player_map, fifa), problems
+    rated = starting_ratings(pd.DataFrame(rows), player_map, fifa)
+    if squads is not None:
+        rated, signed = promote_signings(rated, fifa, squads, lookup_season)
+        problems.extend(signed)
+    return rated, problems
+
+
+# How much better than the man he displaces a signing has to be. Not zero: ratings carry
+# a point or two of noise, and swapping a whole XI around on that would churn the side
+# every time the ratings edition changed.
+SIGNING_MARGIN = 2
+
+
+def promote_signings(
+    rated: pd.DataFrame,
+    fifa: pd.DataFrame,
+    squads: dict[str, list[dict]],
+    lookup_season: str,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Let a signing take a place from a weaker player in the same line.
+
+    Appearances cannot see a transfer in: a player who has just joined has started
+    nothing for this club, so the appearance-based eleven fields whoever he replaced.
+    Youri Tielemans moved to Man United rated 85 and the expected eleven kept picking
+    around him.
+
+    **A rating is a weaker claim than a start, so it only wins by a clear margin** and
+    only within the same line - a signing does not displace a goalkeeper by being a
+    better midfielder. The result is still a description rather than a team sheet: an
+    average signing sits on the bench where he belongs, and only a clearly better one
+    takes a shirt.
+    """
+    if rated.empty or "overall" not in rated.columns:
+        return rated, []
+
+    pool = fifa[fifa["season"] == lookup_season]
+    notes: list[str] = []
+    replaced: list[int] = []
+    additions: list[dict] = []
+
+    # Matching a whole league's ratings against a squad list is the expensive step here,
+    # and it depends only on the club - so it is done once per club rather than once per
+    # fixture, which is the difference between seconds and minutes.
+    by_club: dict[str, pd.DataFrame] = {}
+
+    for (_match_id, team), side in rated.groupby(["match_id", "team"], sort=False):
+        squad = squads.get(team)
+        if not squad:
+            continue
+        if team not in by_club:
+            by_club[team] = _signing_candidates(pool, squad)
+        already = set(side["player"]) | set(side["fifa_player_name"].dropna())
+        candidates = by_club[team]
+        candidates = candidates[~candidates["player_name"].isin(already)]
+
+        for line, group in side.groupby("line"):
+            weakest = group.dropna(subset=["overall"]).nsmallest(1, "overall")
+            if weakest.empty:
+                continue
+            incumbent = weakest.iloc[0]
+            better = candidates[
+                (candidates["line"] == line)
+                & (candidates["overall"] > incumbent["overall"] + SIGNING_MARGIN)
+            ]
+            if better.empty:
+                continue
+
+            signing = better.nlargest(1, "overall").iloc[0]
+            candidates = candidates.drop(signing.name)
+            replaced.append(weakest.index[0])
+            row = dict(incumbent)
+            row.update(
+                {
+                    "player": signing["player_name"],
+                    "position": signing["position"],
+                    "overall": signing["overall"],
+                    "fifa_player_name": signing["player_name"],
+                    "xi_source": "signing",
+                }
+            )
+            additions.append(row)
+            notes.append(
+                f"{team}: {signing['player_name']} ({int(signing['overall'])}) comes in for "
+                f"{incumbent['player']} ({int(incumbent['overall'])})"
+            )
+
+    if not additions:
+        return rated, notes
+
+    kept = rated.drop(index=replaced)
+    return pd.concat([kept, pd.DataFrame(additions)], ignore_index=True), sorted(set(notes))
+
+
+def _signing_candidates(pool: pd.DataFrame, squad: list[dict]) -> pd.DataFrame:
+    """Every rated player in a club's current squad, however the ratings file them.
+
+    Looked up across the whole league rather than by club: ratings are a September
+    snapshot, so a summer signing is still filed under the club he left. Youri Tielemans
+    is in FC 26 at Aston Villa and in the FPL squad list at Man United.
+    """
+    if pool.empty:
+        return pool.head(0).assign(line=None, position=None)
+
+    # **Not ``is_in_squad``, and that is the whole difficulty here.** That function is
+    # deliberately generous because it answers the *departure* question, where a false
+    # match harmlessly keeps a player and a false miss silently deletes a real one. Run
+    # backwards to recruit, the same generosity is a disaster: a lone surname token
+    # matches any player on earth who shares it. The first version of this put Lautaro
+    # Martinez into Aston Villa off Emiliano Martinez, Scott McTominay into Bournemouth,
+    # and Davinson Sanchez into two clubs at once.
+    #
+    # Recruiting demands full-name agreement instead: every token of the shorter name
+    # present in the longer, and never on a single token.
+    squad_names = [
+        frozenset(normalise(player["full_name"]).split())
+        for player in squad
+        if normalise(player["full_name"])
+    ]
+
+    def signed_here(fifa_name) -> bool:
+        tokens = frozenset(normalise(str(fifa_name)).split())
+        if len(tokens) < 2:
+            return False
+        return any(
+            len(squad_name) >= 2 and (tokens <= squad_name or squad_name <= tokens)
+            for squad_name in squad_names
+        )
+
+    candidates = pool[pool["player_name"].map(signed_here)].copy()
+    if candidates.empty:
+        return candidates.assign(line=None, position=None)
+
+    candidates["position"] = candidates["positions"].astype(str).str.split(",").str[0].str.strip()
+    candidates["line"] = candidates["position"].map(FIFA_POSITION_LINES)
+    return candidates.dropna(subset=["line", "overall"])
 
 
 # Order a team sheet reads in, rather than by rating - a lineup with the keeper in the

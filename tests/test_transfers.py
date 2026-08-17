@@ -204,3 +204,54 @@ def test_an_unrated_arrival_is_still_reported():
     found = arrivals("Man United", squads, set(), fifa=index)
 
     assert found == [{"player": "Signing", "overall": None}]
+
+
+# ----------------------------------------------- recruiting is not the departure check
+
+
+def test_a_shared_surname_never_recruits_a_player():
+    """The bug that made the first version of signing-promotion unusable.
+
+    ``is_in_squad`` is generous on purpose: it answers "has this player left?", where a
+    false match harmlessly keeps someone and a false miss deletes a real player. Reused
+    to *recruit*, that generosity put Lautaro Martinez into Aston Villa's eleven off
+    Emiliano Martinez, and Davinson Sanchez into two clubs at once.
+    """
+    from src.predict.squads import _signing_candidates
+
+    villa = fpl_squads(bootstrap({"Aston Villa": [("Emiliano", "Martinez", "Martinez")]}))
+    pool = pd.DataFrame(
+        [
+            {"player_name": "Lautaro Martinez", "positions": "ST", "overall": 88},
+            {"player_name": "Emiliano Martinez", "positions": "GK", "overall": 84},
+        ]
+    )
+
+    found = set(_signing_candidates(pool, villa["Aston Villa"])["player_name"])
+
+    assert "Lautaro Martinez" not in found
+    assert "Emiliano Martinez" in found
+
+
+def test_a_genuine_signing_is_found_under_his_old_club():
+    """Ratings are a September snapshot, so a summer signing is filed at the club he
+    left - Tielemans is in FC 26 at Aston Villa and in FPL at Man United."""
+    from src.predict.squads import _signing_candidates
+
+    united = fpl_squads(bootstrap({"Man Utd": [("Youri", "Tielemans", "Tielemans")]}))
+    pool = pd.DataFrame([{"player_name": "Youri Tielemans", "positions": "CM", "overall": 85}])
+
+    found = _signing_candidates(pool, united["Man United"])
+
+    assert list(found["player_name"]) == ["Youri Tielemans"]
+    assert list(found["line"]) == ["mid"]
+
+
+def test_a_single_name_player_is_never_recruited():
+    """One token is not enough evidence in this direction, whatever it matches."""
+    from src.predict.squads import _signing_candidates
+
+    squad = fpl_squads(bootstrap({"Man Utd": [("", "Casemiro", "Casemiro")]}))
+    pool = pd.DataFrame([{"player_name": "Casemiro", "positions": "CDM", "overall": 84}])
+
+    assert _signing_candidates(pool, squad["Man United"]).empty
