@@ -1,10 +1,11 @@
 # Premier League Match Predictor — Project Plan
 
-> **All ten phases are complete.** The pipeline runs from raw downloads to a Streamlit
-> report: 2,660 matches, 77,278 player appearances, 98.6% of starters matched to ratings,
-> a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 441 tests, none needing network or
-> data.
+> **All phases are complete, and the project now runs unattended.** The pipeline runs
+> from raw downloads to a Streamlit report: 2,660 matches, 77,278 player appearances,
+> 98.6% of starters matched to ratings, a 99-column feature table, nine models benchmarked against the closing line, and
+> predictions for fixtures that have not been played. 487 tests, none needing network or
+> data. It is deployed, and a scheduled job predicts each round before kickoff and commits
+> it — see **Stage three** at the end of this file.
 >
 > The honest headline: **the bookmaker's closing line wins at RPS 0.1965, ahead of the
 > best model's 0.2027.** That is the expected result and the project is more trustworthy
@@ -20,6 +21,11 @@
 > suspensions come out of the cards already on disk, the twenty clubs and 380 fixtures of
 > the new season come from the Fantasy Premier League API, and four skills encode the
 > recurring workflows. Phase 16 remains as an optional experiment.
+>
+> **Stage three is complete: Phases 17–19.** The report is deployed and public, CI runs on
+> every push, and a daily job predicts each round before it kicks off and commits it. The
+> season being played is ingested as it happens, so the archive can be scored against
+> reality rather than only against the backtest.
 
 ## Goal
 
@@ -821,3 +827,100 @@ that has not started. Phase 16 is on the table as an optional experiment, delibe
 framed with a kill criterion — and its honest expectation is that the obvious version adds
 nothing. The other standing job is the seasonal one: as 2026/27 is played, keep predicting
 each round *before* it happens, because that record cannot be reconstructed afterwards.
+
+---
+
+# Stage three — going live
+
+> **Written after the fact, not before.** Phases 0–16 were planned and then built. This
+> stage happened the other way round: it came out of *using* the thing — wanting to show
+> it to someone, then wanting it to keep working without being driven by hand. It is
+> recorded here so this file stays the source of truth for scope rather than stopping at
+> the last thing that was planned.
+>
+> The seasonal job named above — "keep predicting each round before it happens" — is what
+> this stage automated, and doing so turned up four bugs that reading the code had not.
+
+## Phase 17 — CI and a public deployment *(done)*
+
+GitHub Actions runs lint, format and the full suite on every push and pull request, on
+Ubuntu rather than Windows on purpose: it is the platform the report deploys to, so a
+green run also says nothing depends on a Windows path. It installs `requirements.txt`
+only, which is what proves the two awkward dependencies are genuinely optional.
+
+The report is deployed on Streamlit Community Cloud, free, redeploying on every push.
+Requirements were split at this point — a small pin-free core, and `requirements-full.txt`
+for AutoGluon (~700 MB) and `understatapi` (which hard-pins urllib3 and idna).
+
+**What it cost:** the derived parquets had to be committed — around 6 MB — because FIFA
+ratings cannot be downloaded without a Kaggle account and re-scraping Understat weekly
+would be 2,660 requests at a small free site. Trimming them to the Premier League was
+tried and is wrong twice over: it blanks the promoted clubs, whose elevens come entirely
+from ratings, and it drops players whose September rating sits at the club they left.
+
+## Phase 18 — The scheduled round job *(done)*
+
+`.github/workflows/predict-round.yml` runs **daily** and predicts **weekly**. `--if-due`
+picks a round only when its first kickoff is within three days and it is not already
+stored; every other run does nothing and exits 0.
+
+**Nothing to do has to be a success.** A job that failed on the six quiet days would cry
+wolf until nobody read it, and a real failure would then go unnoticed too.
+
+It refuses in both directions, and both refusals are the design:
+
+- **Too early waits.** A stored round is never rewritten, so predicting a fortnight out is
+  a decision that cannot be taken back.
+- **A round that has already kicked off is never predicted.** If the job was down for the
+  whole window, the honest outcome is a missing round.
+
+It never passes `--force`.
+
+**Two bugs found by running it rather than reading it.** A newly stored round is an
+*untracked* file, and `git diff` does not report untracked files — the commit guard would
+have announced "nothing to commit" every week forever and never once failed. And the first
+real run committed `Update results` with **0 insertions and 0 deletions**, because pandas 3
+on the runner and pandas 2 on a laptop write different timestamp resolutions *and* pyarrow
+stamps its own version into every file. `config.write_parquet` now compares the data and
+leaves the file alone when nothing changed.
+
+## Phase 19 — The season being played *(done)*
+
+`matches.parquet` stopped at 2025/26, so a stored 2026/27 prediction could never be
+compared with what happened — which is the only reason to keep an archive. The season now
+ingests as a **partial** season while it is played, staying out of `SEASONS` so that
+lineups, ratings and the feature build still see seven complete seasons.
+
+**The check that protects a completed season is the count, and a partial season has none.**
+"Exactly 380 matches, 20 teams, 19 home and 19 away" catches almost any corruption by
+accident. Relaxing it to bounds removes that backstop, so one rule was added — no more than
+twenty clubs — and nothing else was relaxed. A missing score is still a failure, because
+football-data lists a match only once it has been played.
+
+**The URL is not proof of the division.** Checked in August 2026, football-data's 2026/27
+file at the *Premier League* address held twelve **National League** matches, every row
+stamped `Div=EC`. The team names are well-formed and this source needs no mapping table, so
+nothing would have objected — only "exactly 380" stood in the way, which is precisely the
+check a partial season relaxes. `Div` was not even read. It is now asserted for every
+season.
+
+Two related fixes came out of the same stretch: scoring now joins on
+`(season_slug, home_team, away_team)` rather than `match_id`, because a postponed match is
+recorded under the date it was actually played and the two ids never meet — worth 10 scored
+matches becoming 9, silently. And the closing line is backfilled for played fixtures,
+because a round predicted three weeks out carries no odds at all and the scorecard would
+otherwise show our RPS beside a permanent blank.
+
+## What is left
+
+Nothing to build. The remaining work is seasonal and dated:
+
+| When | What |
+|---|---|
+| Late September | EA FC 27 ships — place the CSV, point `UPCOMING_SEASON.fifa_edition` at it, re-run `load_fifa` → `player_names` → `features.build` |
+| May 2027 | Season ends — move 2026/27 out of `UPCOMING_SEASON` and into `SEASONS` |
+| August 2027 | Re-enable the scheduled workflow; GitHub disables it after 60 days of repository inactivity, which a summer break guarantees |
+
+The most valuable thing from here is not a feature. It is the scorecard filling up: a
+public, timestamped, never-rewritten record of predictions made before kickoff and scored
+against the closing line.

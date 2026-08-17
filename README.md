@@ -52,9 +52,11 @@ fixture, which become a full scoreline probability matrix.
 | Player ratings | FIFA 20–23 / EA Sports FC 24–26 |
 
 **Trained on 2019/20 through 2025/26 — 2,660 matches, 99 features, 9 models benchmarked.**
-It predicts **2026/27**, a season with no results yet: the twenty clubs and all 380
-fixtures come from the Fantasy Premier League API, and clubs promoted into the division
-get an eleven built from ratings, since there is no history here to read one from.
+It predicts **2026/27**: the twenty clubs and all 380 fixtures come from the Fantasy
+Premier League API rather than from results that do not exist yet, and clubs promoted into
+the division get an eleven built from ratings, since there is no history here to read one
+from. Results are ingested as the season is played, which is what lets the report score
+itself.
 
 Squads are kept honest against reality rather than against last season. Expected XIs come
 from who a club has actually been starting, then anyone the **Fantasy Premier League squad
@@ -139,7 +141,7 @@ cd C:\repositories\premier-league-match-prediction
 |---|---|
 | [SETUP.md](SETUP.md) | Install and run the whole app, step by step |
 | [COMMANDS.md](COMMANDS.md) | Every command and flag, plus what the error messages mean |
-| [PLAN.md](PLAN.md) | The build plan, both stages, and where each phase landed |
+| [PLAN.md](PLAN.md) | The build plan, all three stages, and where each phase landed |
 | [CLAUDE.md](CLAUDE.md) | Architecture contracts, leakage rules, and the data quirks worth knowing |
 | [SKILLS.md](SKILLS.md) | The four Claude Code skills in this repo, and when to reach for each |
 
@@ -153,19 +155,22 @@ src/evaluate/     scoring, walk-forward backtesting, the bookmaker benchmark
 src/predict/      fixtures, expected XIs, squad currency, and the prediction archive
 src/report/       shaping predictions for display
 app.py            the Streamlit report
-tests/            441 tests, no network access and no reading of data/
+tests/            487 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, ratings, absences, fixtures (committed)
 ```
 
-**Status: complete.** Stage one built the pipeline; stage two made it survive a live
-season — archived predictions, a scored history, suspensions, and squads for clubs the
-data has never seen. Almost no data is committed: it is gitignored and rebuilt from source.
+**Status: complete, and running unattended.** Stage one built the pipeline; stage two made
+it survive a live season — archived predictions, a scored history, suspensions, and squads
+for clubs the data has never seen; stage three put it online and left it alone, with a
+daily job that predicts each round before kickoff, commits it, and redeploys the page.
+Only what the deployed site and that job need is committed; the rest is gitignored and
+rebuilt from source.
 
 ## Built with
 
 **Python 3.12.** [requirements.txt](requirements.txt) is small, quick and free of hard
 version pins — which is what makes it safe to deploy. The two awkward dependencies are
-separate, in [requirements-full.txt](requirements-full.txt), and all 441 tests pass with
+separate, in [requirements-full.txt](requirements-full.txt), and all 487 tests pass with
 both absent. This is what each one is here for.
 
 | | | |
@@ -178,7 +183,7 @@ both absent. This is what each one is here for.
 | **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
 | | `autogluon.tabular` | Gradient boosting *(separate: ~700 MB)*. `compare --fast` runs without it |
 | **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
-| **Tooling** | `pytest`, `ruff` | 441 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
+| **Tooling** | `pytest`, `ruff` | 487 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
 
 **No neural network was written by hand** — that was a constraint from the start.
 Dixon-Coles is a well-defined statistical model fitted with `scipy.optimize`, and AutoGluon
