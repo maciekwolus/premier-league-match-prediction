@@ -402,14 +402,26 @@ def promote_signings(
     # Matching a whole league's ratings against a squad list is the expensive step here,
     # and it depends only on the club - so it is done once per club rather than once per
     # fixture, which is the difference between seconds and minutes.
-    by_club: dict[str, pd.DataFrame] = {}
+    by_club = {team: _signing_candidates(pool, squad) for team, squad in squads.items()}
+
+    # A name two clubs both claim belongs to neither. FIFA lists one "Joao Pedro", at
+    # Chelsea; Brighton's squad contains "Joao Pedro Loureiro da Costa", a different
+    # player entirely, and containment handed Chelsea's man to Brighton as well. Any name
+    # that resolves to more than one club is ambiguous by definition, and the safe answer
+    # for a signing is to leave the appearance-based eleven alone.
+    claims: dict[str, set[str]] = {}
+    for team, frame in by_club.items():
+        for name in frame["player_name"]:
+            claims.setdefault(name, set()).add(team)
+    contested = {name for name, teams in claims.items() if len(teams) > 1}
+    if contested:
+        by_club = {
+            team: frame[~frame["player_name"].isin(contested)] for team, frame in by_club.items()
+        }
 
     for (_match_id, team), side in rated.groupby(["match_id", "team"], sort=False):
-        squad = squads.get(team)
-        if not squad:
+        if team not in by_club or by_club[team].empty:
             continue
-        if team not in by_club:
-            by_club[team] = _signing_candidates(pool, squad)
         already = set(side["player"]) | set(side["fifa_player_name"].dropna())
         candidates = by_club[team]
         candidates = candidates[~candidates["player_name"].isin(already)]

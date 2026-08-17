@@ -493,6 +493,15 @@ Davinson Sanchez into two clubs at once. `_signing_candidates` demands full-name
 and never fires on a single token. **The direction of a name check decides how strict it
 has to be** — the same comparison is right in one direction and dangerous in the other.
 
+**A name two clubs both claim belongs to neither.** FIFA lists one `João Pedro`, at
+Chelsea; Brighton's squad contains `João Pedro Loureiro da Costa`, a different player whose
+web name is Costinha. Containment gave Chelsea's man to Brighton as well, and he started
+for both clubs in the same round. `promote_signings` resolves every club's candidates first
+and drops any name that lands in more than one — ambiguous by definition, and the safe
+answer for a signing is to leave the appearance-based eleven alone. **Check for a player
+appearing in two XIs after any change to squad matching**; it is the symptom that shows up
+in the output rather than in a test.
+
 **`rating_index` looks the whole league up, not one club.** Ratings are a September
 snapshot, so a summer signing is filed under the club he left — Tielemans is at Aston Villa
 in FC 26 and at Man United in FPL. A club-scoped lookup returned `overall: None` for exactly

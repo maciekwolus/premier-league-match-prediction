@@ -255,3 +255,42 @@ def test_a_single_name_player_is_never_recruited():
     pool = pd.DataFrame([{"player_name": "Casemiro", "positions": "CDM", "overall": 84}])
 
     assert _signing_candidates(pool, squad["Man United"]).empty
+
+
+def test_a_name_two_clubs_both_claim_is_given_to_neither():
+    """FIFA lists one "Joao Pedro", at Chelsea. Brighton's squad contains "Joao Pedro
+    Loureiro da Costa" - a different player - and containment handed Chelsea's man to
+    Brighton as well, so he started for both clubs in the same round."""
+    from src.predict.squads import promote_signings
+
+    squads = fpl_squads(
+        bootstrap(
+            {
+                "Chelsea": [("João Pedro", "Junqueira de Jesus", "João Pedro")],
+                "Brighton": [("João Pedro", "Loureiro da Costa", "Costinha")],
+            }
+        )
+    )
+    fifa = pd.DataFrame(
+        [{"season": "2025/26", "player_name": "João Pedro", "positions": "ST", "overall": 90}]
+    )
+    rated = pd.DataFrame(
+        [
+            {
+                "match_id": "m1",
+                "team": team,
+                "player": f"{team} forward",
+                "position": "FW",
+                "line": "att",
+                "overall": 70,
+                "fifa_player_name": None,
+                "xi_source": "appearances",
+            }
+            for team in ("Chelsea", "Brighton")
+        ]
+    )
+
+    result, notes = promote_signings(rated, fifa, squads, "2025/26")
+
+    assert "João Pedro" not in set(result["player"])
+    assert notes == []

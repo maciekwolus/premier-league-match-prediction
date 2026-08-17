@@ -190,7 +190,7 @@
     "home_team": "Ipswich",
     "away_team": "Liverpool",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 0.91,
@@ -407,7 +407,7 @@
     "home_team": "Newcastle",
     "away_team": "Bournemouth",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.67,
@@ -624,7 +624,7 @@
     "home_team": "Brentford",
     "away_team": "Sunderland",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.44,
@@ -727,12 +727,12 @@
           "source": "appearances"
         },
         {
-          "player": "Jo\u00e3o Pedro",
-          "position": "ST",
+          "player": "Diego G\u00f3mez",
+          "position": "AMR",
           "line": "att",
           "starts": 13,
-          "overall": 79,
-          "source": "signing"
+          "overall": 73,
+          "source": "appearances"
         },
         {
           "player": "Yankuba Minteh",
@@ -841,28 +841,28 @@
     "home_team": "Brighton",
     "away_team": "Leeds",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
-      "home": 1.82,
-      "away": 1.06
+      "home": 1.78,
+      "away": 1.09
     },
     "outcome": {
-      "home": 0.547,
-      "draw": 0.236,
-      "away": 0.217
+      "home": 0.533,
+      "draw": 0.24,
+      "away": 0.227
     },
     "scorelines": [
       {
         "score": "1-1",
-        "probability": 0.112
-      },
-      {
-        "score": "1-0",
-        "probability": 0.099
+        "probability": 0.113
       },
       {
         "score": "2-1",
+        "probability": 0.098
+      },
+      {
+        "score": "1-0",
         "probability": 0.098
       }
     ]
@@ -1058,7 +1058,7 @@
     "home_team": "Fulham",
     "away_team": "Crystal Palace",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.35,
@@ -1275,7 +1275,7 @@
     "home_team": "Man City",
     "away_team": "Coventry",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 3.15,
@@ -1492,7 +1492,7 @@
     "home_team": "Nott'm Forest",
     "away_team": "Tottenham",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.67,
@@ -1709,7 +1709,7 @@
     "home_team": "Hull",
     "away_team": "Aston Villa",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.07,
@@ -1926,7 +1926,7 @@
     "home_team": "Everton",
     "away_team": "Man United",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 1.16,
@@ -2143,7 +2143,7 @@
     "home_team": "Arsenal",
     "away_team": "Chelsea",
     "model": "dixon-coles-squad",
-    "predicted_at": "2026-08-17T20:01:34+00:00",
+    "predicted_at": "2026-08-17T20:06:10+00:00",
     "mode": "upcoming",
     "expected_goals": {
       "home": 2.0,
