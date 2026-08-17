@@ -17,7 +17,7 @@ import sys
 
 import pandas as pd
 
-from src.config import FINAL_DIR
+from src.config import FINAL_DIR, write_parquet
 from src.data.clean_lineups import LINEUPS_PARQUET, UNDERSTAT_MATCHES_PARQUET
 from src.data.clean_matches import MATCHES_PARQUET
 from src.data.load_fifa import FIFA_PLAYERS_PARQUET
@@ -204,7 +204,7 @@ def main() -> int:
     features = build()
 
     FINAL_DIR.mkdir(parents=True, exist_ok=True)
-    features.to_parquet(FEATURES_PARQUET, index=False)
+    write_parquet(features, FEATURES_PARQUET)
 
     print(f"\nwritten to {FEATURES_PARQUET}")
     return 0

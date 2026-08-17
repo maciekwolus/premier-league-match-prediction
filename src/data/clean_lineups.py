@@ -27,7 +27,7 @@ import sys
 
 import pandas as pd
 
-from src.config import MATCHES_PER_SEASON, PROCESSED_DIR, SEASONS, Season
+from src.config import MATCHES_PER_SEASON, PROCESSED_DIR, SEASONS, Season, write_parquet
 from src.data.clean_matches import MATCHES_PARQUET
 from src.data.fetch_lineups import load_season_matches, roster_path
 from src.matching.team_names import understat_to_football_data
@@ -298,8 +298,8 @@ def main() -> int:
     understat_matches, lineups = build()
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
-    understat_matches.to_parquet(UNDERSTAT_MATCHES_PARQUET, index=False)
-    lineups.to_parquet(LINEUPS_PARQUET, index=False)
+    write_parquet(understat_matches, UNDERSTAT_MATCHES_PARQUET)
+    write_parquet(lineups, LINEUPS_PARQUET)
 
     print(f"\nwritten to {UNDERSTAT_MATCHES_PARQUET}")
     print(f"written to {LINEUPS_PARQUET}")
