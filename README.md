@@ -1,10 +1,17 @@
 # Premier League Match Prediction
 
+### [→ See this week's predictions](https://mk-premier-league-match-prediction.streamlit.app/)
+
 [![CI](https://github.com/maciekwolus/premier-league-match-prediction/actions/workflows/ci.yml/badge.svg)](https://github.com/maciekwolus/premier-league-match-prediction/actions/workflows/ci.yml)
+[![Predict the next round](https://github.com/maciekwolus/premier-league-match-prediction/actions/workflows/predict-round.yml/badge.svg)](https://github.com/maciekwolus/premier-league-match-prediction/actions/workflows/predict-round.yml)
 
 Predicts the **scoreline** of upcoming Premier League fixtures, with probabilities — and
 shows every prediction next to the bookmaker's line, so it is obvious whether the model is
 actually adding anything.
+
+**The site updates itself.** A scheduled job predicts each round a few days before it kicks
+off, commits it, and the page redeploys — so what you are looking at was written *before*
+those matches were played, and is never rewritten afterwards.
 
 ```
 Crystal Palace vs Arsenal     0-1 (14%) · 0-2 (13%) · 1-1 (11%)
@@ -110,8 +117,12 @@ that is a failure whatever the score says.
 
 ## Running it
 
-**[SETUP.md](SETUP.md) — how to install and run the whole app**, from a fresh clone to the
-report on screen.
+It is already running at
+**[mk-premier-league-match-prediction.streamlit.app](https://mk-premier-league-match-prediction.streamlit.app/)** —
+nothing to install if you only want to look at it.
+
+To run it yourself: **[SETUP.md](SETUP.md) — how to install and run the whole app**, from a
+fresh clone to the report on screen.
 
 Already built? Then it is two lines, and the `cd` is the one people skip:
 
