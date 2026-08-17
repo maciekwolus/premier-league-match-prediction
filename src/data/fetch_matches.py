@@ -15,7 +15,14 @@ import sys
 
 import requests
 
-from src.config import MATCHES_PER_SEASON, RAW_MATCHES_DIR, SEASONS, SEASONS_BY_LABEL, Season
+from src.config import (
+    MATCHES_PER_SEASON,
+    RAW_MATCHES_DIR,
+    SEASONS,
+    SEASONS_BY_LABEL,
+    UPCOMING_SEASON,
+    Season,
+)
 
 TIMEOUT_SECONDS = 30
 
@@ -33,7 +40,12 @@ def download_season(season: Season, force: bool = False) -> tuple[bool, str]:
     """
     destination = raw_path(season)
 
-    if destination.exists() and not force:
+    # A finished season's file never changes, so the cache is the whole point. The season
+    # being *played* changes every week, and caching it is actively harmful: before the
+    # season starts football-data serves a placeholder at this address holding another
+    # division's matches, and a cached copy of that would keep clean_matches skipping the
+    # season for months after the real fixtures appeared.
+    if destination.exists() and not force and season != UPCOMING_SEASON:
         return False, f"{season.label}  cached ({destination.name})"
 
     try:
@@ -50,6 +62,11 @@ def download_season(season: Season, force: bool = False) -> tuple[bool, str]:
     destination.write_text(text, encoding="utf-8", newline="")
 
     rows = _count_data_rows(text)
+    # A season still being played is *meant* to be short, so the count is reported
+    # rather than flagged. Whether the file holds the right division is checked in
+    # clean_matches, which is the stage that can refuse to write.
+    if season == UPCOMING_SEASON:
+        return True, f"{season.label}  downloaded, {rows} matches so far (in progress)"
     warning = "" if rows == MATCHES_PER_SEASON else f"  <-- expected {MATCHES_PER_SEASON}"
     return True, f"{season.label}  downloaded, {rows} matches{warning}"
 
@@ -71,14 +88,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--force", action="store_true", help="re-download even if the file exists")
     args = parser.parse_args(argv)
 
+    # The season being played is fetchable by name and included by default, even though
+    # it is not in SEASONS. football-data updates its file within a day or two of each
+    # round, and those results are what let the report score a stored prediction.
+    known_seasons = {**SEASONS_BY_LABEL, UPCOMING_SEASON.label: UPCOMING_SEASON}
+
     if args.season:
         try:
-            seasons = [SEASONS_BY_LABEL[label] for label in args.season]
+            seasons = [known_seasons[label] for label in args.season]
         except KeyError as exc:
-            known = ", ".join(s.label for s in SEASONS)
+            known = ", ".join(known_seasons)
             parser.error(f"unknown season {exc}. Known seasons: {known}")
     else:
-        seasons = list(SEASONS)
+        seasons = [*SEASONS, UPCOMING_SEASON]
 
     failures = 0
     for season in seasons:

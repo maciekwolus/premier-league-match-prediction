@@ -396,9 +396,65 @@ def test_results_are_keyed_by_fixture_when_read_from_disk(tmp_path):
 
     results = actual_results(path)
 
-    assert results[fixture_key("2025_26", "Arsenal", "Chelsea")] == {
-        "home_goals": 2,
-        "away_goals": 1,
-    }
+    played = results[fixture_key("2025_26", "Arsenal", "Chelsea")]
+    assert (played["home_goals"], played["away_goals"]) == (2, 1)
+    # A source without the odds columns still loads and still says who won.
+    assert played["bookmaker"] is None
     # The unplayed fixture is absent rather than present with nulls.
     assert fixture_key("2025_26", "Everton", "Fulham") not in results
+
+
+# ------------------------------------------------- odds that arrive after the forecast
+
+
+def priced_parquet(path, odds=(2.0, 3.5, 4.0)):
+    """One played, priced fixture on disk."""
+    pd.DataFrame(
+        {
+            "season": ["2026/27"],
+            "home_team": ["Arsenal"],
+            "away_team": ["m1"],
+            "home_goals": pd.array([2], dtype="Int64"),
+            "away_goals": pd.array([1], dtype="Int64"),
+            "odds_close_avg_home": [odds[0]],
+            "odds_close_avg_draw": [odds[1]],
+            "odds_close_avg_away": [odds[2]],
+        }
+    ).to_parquet(path)
+    return path
+
+
+def test_a_round_predicted_before_the_market_formed_still_gets_compared(tmp_path):
+    """All four stored 2026/27 rounds carry odds for 0 of 10 fixtures: they were predicted
+    weeks ahead, and the market does not price that far out. Without filling the closing
+    line in afterwards the season's scorecard would show our score beside a blank."""
+    results = actual_results(priced_parquet(tmp_path / "m.parquet"))
+    unpriced = prediction("m1", bookmaker=None)
+    assert "bookmaker" not in unpriced
+
+    card = scorecard(attach_results([unpriced], results))
+
+    assert card["compared"] == 1
+    assert card["market_rps"] is not None
+
+
+def test_odds_recorded_at_prediction_time_are_never_overwritten(tmp_path):
+    """What we actually saw beats what the line closed at. Replacing it would quietly
+    rewrite the record of what was known when the forecast was made."""
+    results = actual_results(priced_parquet(tmp_path / "m.parquet"))
+    as_seen = prediction("m1", bookmaker=(0.6, 0.25, 0.15))
+
+    attached = attach_results([as_seen], results)
+
+    assert attached[0]["bookmaker"] == {"home": 0.6, "draw": 0.25, "away": 0.15}
+
+
+def test_an_unplayed_fixture_gets_no_odds_backfilled(tmp_path):
+    """The market comparison is a scoring view. A fixture with no result must not pick up
+    a closing line, or the card would show an edge against a match already decided."""
+    results = actual_results(priced_parquet(tmp_path / "m.parquet"))
+
+    attached = attach_results([prediction("not played", bookmaker=None)], results)
+
+    assert "bookmaker" not in attached[0]
+    assert "actual" not in attached[0]

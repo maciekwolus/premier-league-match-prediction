@@ -219,9 +219,40 @@ the fixtures being predicted before appending them — otherwise a `match_id` ap
 and the join fans out into several conflicting predictions for one fixture.
 
 **`UPCOMING_SEASON` in `config.py` is deliberately outside `SEASONS`.** Every ingestion
-stage treats that tuple as "seasons with complete data" and would demand a results file
-and a ratings edition that do not exist yet. Move the season into `SEASONS` once it has
-finished.
+stage treats that tuple as "seasons with complete data" and would demand a ratings edition
+that does not exist yet. Move the season into `SEASONS` once it has finished.
+
+**Its *results* are ingested anyway, as a partial season.** `clean_matches.build` appends
+`UPCOMING_SEASON` when football-data has started publishing it, so the report can score a
+stored prediction against what actually happened — which is the only reason the archive is
+worth keeping. The season stays out of `SEASONS`: lineups, ratings and the feature build
+still see seven complete seasons, and only the match table gains rows.
+
+**What protects a completed season is the count check, and a partial season has none.**
+"Exactly 380 matches, 20 teams, 19 home and 19 away" catches almost any corruption *by
+accident*. Relaxing it to bounds removes that backstop, so `validate_season(partial=True)`
+keeps everything else and adds one rule: **no more than twenty clubs**. A missing score is
+still a failure, deliberately — football-data lists a match only once it has been played,
+so a row without one is corrupt rather than a fixture still to come. Upcoming fixtures
+reach the pipeline from FPL, never from here.
+
+**The URL is not proof of the division, and this nearly went unnoticed.** Checked in August
+2026, football-data's 2026/27 file at the *Premier League* address held twelve **National
+League** matches — Altrincham, Tamworth, Aldershot — every row stamped `Div=EC`. Nothing in
+`clean_matches` would have objected: the names are well-formed, and this is the one source
+that needs no mapping table, so a mis-mapped name cannot raise. Only "exactly 380" stood in
+the way — the very check a partial season relaxes. `Div` was not even in `COLUMN_MAP`. It is
+now read and asserted for every season, and a wrong-division file is skipped with a message
+rather than ingested. **The in-progress season is also never served from cache**, or a
+cached copy of that placeholder would keep the season skipped for months.
+
+**Odds arrive after a distant prediction, and the scorecard now backfills them.** A round
+predicted three weeks out carries no bookmaker line, because the market has not formed —
+all four stored 2026/27 rounds were priced 0 of 10. Left alone, the season's scorecard would
+show our RPS beside a permanent blank, which is the one comparison the page exists to make.
+`actual_results` therefore reads `odds_close_avg_*` from `matches.parquet` and
+`attach_results` fills them in **only for played fixtures, and never over odds the
+prediction already recorded** — what we actually saw beats what the line closed at.
 
 **Per-team features are computed on a team-match table**, two rows per fixture rather
 than one. `features/form.py` builds it, and `features/build.py` pivots it back to one row

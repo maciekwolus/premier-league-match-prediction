@@ -83,8 +83,10 @@ SEASONS_BY_CODE: dict[str, Season] = {s.code: s for s in SEASONS}
 SEASONS_BY_LABEL: dict[str, Season] = {s.label: s for s in SEASONS}
 
 # The season being predicted, kept out of SEASONS because every ingestion stage treats
-# that tuple as "seasons with complete data" and would demand a results file and a
-# ratings edition that do not exist yet.
+# that tuple as "seasons with complete data" and would demand a ratings edition that does
+# not exist yet. Its *results* are still ingested, as a partial season - see
+# `clean_matches.load_in_progress` - because scoring a stored prediction against what
+# happened is the only reason to keep the archive at all.
 #
 # `fifa_edition` deliberately points at the *previous* game: a season starts in August
 # and its own edition is not published until late September, so the newest ratings that
