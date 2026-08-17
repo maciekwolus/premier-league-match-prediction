@@ -18,9 +18,10 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 
 from src.data.clean_matches import MATCHES_PARQUET
-from src.evaluate.metrics import OUTCOMES, ranked_probability_score
+from src.evaluate.metrics import OUTCOMES, implied_probabilities, ranked_probability_score
 
 # Below this a round's scoring is reported but flagged as too small to read anything into.
 # A Premier League round is 10 matches, so this is deliberately above one round: the point
@@ -49,25 +50,63 @@ def _key_of(match: dict) -> tuple[str, str, str]:
     )
 
 
+ODDS_COLUMNS = ("odds_close_avg_home", "odds_close_avg_draw", "odds_close_avg_away")
+
+
 def actual_results(path=None) -> dict[tuple[str, str, str], dict]:
     """Final scores keyed by fixture, for matches that have been played.
 
     Unplayed fixtures are absent rather than present with nulls, so a caller checking
     membership gets the right answer without also testing for NaN.
+
+    Each entry also carries the **closing** market probabilities where the source has
+    them. A round predicted weeks ahead has no odds in it - the market has not formed
+    that far out - so all four stored 2026/27 rounds were priced 0 of 10, and without
+    this the season's scorecard would show our score beside a blank forever. Closing
+    odds are the project's benchmark everywhere else, and they only exist once a match
+    is close, so this is where they have to come from.
     """
-    matches = pd.read_parquet(
-        path or MATCHES_PARQUET,
-        columns=["season", "home_team", "away_team", "home_goals", "away_goals"],
-    )
+    source = path or MATCHES_PARQUET
+    required = ["season", "home_team", "away_team", "home_goals", "away_goals"]
+
+    # Odds are read only if the source has them. A table built before this column set
+    # existed is still perfectly good for saying who won, and should not fail to load
+    # over a column that only affects the comparison.
+    available = set(pq.ParquetFile(source).schema.names)
+    odds = [column for column in ODDS_COLUMNS if column in available]
+
+    matches = pd.read_parquet(source, columns=[*required, *odds])
     played = matches.dropna(subset=["home_goals", "away_goals"])
-    return {
+
+    priced = played.dropna(subset=odds) if len(odds) == len(ODDS_COLUMNS) else played.iloc[0:0]
+    market = {}
+    if not priced.empty:
+        probabilities = implied_probabilities(*(priced[column] for column in ODDS_COLUMNS))
+        market = {
+            fixture_key(season.replace("/", "_"), home, away): {
+                "home": round(float(row[0]), 3),
+                "draw": round(float(row[1]), 3),
+                "away": round(float(row[2]), 3),
+            }
+            for season, home, away, row in zip(
+                priced["season"],
+                priced["home_team"],
+                priced["away_team"],
+                probabilities,
+                strict=True,
+            )
+        }
+
+    results = {}
+    for row in played.itertuples():
         # matches.parquet spells a season "2025/26"; the archive uses the slug form.
-        fixture_key(row.season.replace("/", "_"), row.home_team, row.away_team): {
+        key = fixture_key(row.season.replace("/", "_"), row.home_team, row.away_team)
+        results[key] = {
             "home_goals": int(row.home_goals),
             "away_goals": int(row.away_goals),
+            "bookmaker": market.get(key),
         }
-        for row in played.itertuples()
-    }
+    return results
 
 
 def outcome_of(home_goals: int, away_goals: int) -> str:
@@ -97,6 +136,11 @@ def attach_results(predictions: list[dict], results: dict | None = None) -> list
                 "score": f"{home}-{away}",
                 "outcome": outcome_of(home, away),
             }
+            # A prediction made before the market formed carries no odds. Fill them in
+            # from the closing line now that the match has been played - never overwrite
+            # odds the prediction already recorded, which are what we actually saw.
+            if not match.get("bookmaker") and actual.get("bookmaker"):
+                match["bookmaker"] = actual["bookmaker"]
         attached.append(match)
     return attached
 

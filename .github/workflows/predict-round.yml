@@ -72,24 +72,44 @@ jobs:
             --if-due "${{ github.event.inputs.lead_days || '3' }}" \
             --offline
 
-      - name: Commit the round
+      # Results, so the report can score what it predicted. Every season is fetched
+      # because clean_matches rebuilds the whole table, and the raw CSVs are not in the
+      # repo - seven of the eight are static files that never change again, so this is
+      # cheap. The season in progress is never served from cache.
+      #
+      # clean_matches validates and raises rather than writing a suspect table, which is
+      # what makes this safe to run unattended: it refuses a file holding the wrong
+      # division, and refuses a partial season with more than twenty clubs in it.
+      - name: Refresh results
+        run: |
+          python -m src.data.fetch_matches
+          python -m src.data.clean_matches
+
+      - name: Commit the round and any new results
         run: |
           # `git status --porcelain`, not `git diff`: a newly stored round is an
           # *untracked* file, which git diff does not report at all - so this step would
           # have announced "nothing to commit" every single week and never once failed.
-          changes=$(git status --porcelain data/final/rounds)
+          tracked="data/final/rounds data/processed/matches.parquet"
+          changes=$(git status --porcelain -- $tracked)
           if [ -z "$changes" ]; then
-            echo "No new round was stored; nothing to commit."
+            echo "No new round and no new results; nothing to commit."
             exit 0
           fi
 
-          round=$(echo "$changes" | awk '{print $NF}' | head -1)
-          echo "Committing $round"
+          echo "$changes"
+          round=$(echo "$changes" | awk '{print $NF}' | grep 'rounds/' | head -1 || true)
+          if [ -n "$round" ]; then
+            message="Predict $(basename "$(dirname "$round")")/$(basename "$round" .json)"
+          else
+            message="Update results"
+          fi
+          echo "Committing: $message"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/final/rounds
-          git commit -m "Predict $(basename "$(dirname "$round")")/$(basename "$round" .json)"
+          git add $tracked
+          git commit -m "$message"
 
           # Someone may have pushed while this ran. Rebase rather than force: the round
           # file is new, so there is nothing to conflict with.

@@ -168,7 +168,7 @@ For a season that has not started, two more stages supply the clubs and the sche
 
 | Stage | What it does | Flags |
 |---|---|---|
-| `fetch_matches` | Download results and odds | `--season "2025/26"` (repeatable), `--force` |
+| `fetch_matches` | Download results and odds, **including the season in progress** | `--season "2025/26"` (repeatable), `--force` |
 | `clean_matches` | Validate and join into `matches.parquet` | — |
 | `fetch_lineups` | Download Understat rosters | `--season`, `--force`, `--stage {matches,rosters,all}`, `--delay N` |
 | `clean_lineups` | Build `lineups.parquet` | — |
@@ -180,6 +180,13 @@ For a season that has not started, two more stages supply the clubs and the sche
 
 **`fetch_lineups` makes about 2,660 requests** and takes a while — run it in the background
 and leave it. Downloads are cached, so a re-run is cheap unless you pass `--force`.
+
+**The season being played is fetched every time, never from cache**, because it gains
+matches weekly. `clean_matches` adds it as a *partial* season: fewer than 380 matches is
+expected, but no more than twenty clubs, no club playing more than 19 at home, and every
+row must still carry a score. It is skipped with a message until football-data actually
+publishes Premier League matches for it — before a season starts, the file at that address
+has held **another division's** results, which is why the division is now checked.
 
 **`load_fifa` will not run without files you have to place by hand.** The ratings come from
 Kaggle, which needs an account, so they cannot be downloaded here — see
