@@ -72,6 +72,38 @@ jobs:
             --if-due "${{ github.event.inputs.lead_days || '3' }}" \
             --offline
 
+      # **Published before results are attempted, and the order is the point.** A round is
+      # predicted from the FPL schedule and owes football-data nothing, but the two used to
+      # share a commit step that ran last - so when football-data went down for four days
+      # in September 2026 and returned 503 for all eight seasons, the job died before
+      # committing and a perfectly good prediction was thrown away with it. Worse, a fresh
+      # runner starts from the repo, so nothing was resumed: had the outage outlasted the
+      # window, the round would have gone unpredicted forever, because a round that has
+      # kicked off is never predicted.
+      #
+      # Results are a *later* enrichment of a round already on the record. They can wait
+      # for the upstream to come back; publishing cannot.
+      - name: Commit the round
+        run: |
+          # `git status --porcelain`, not `git diff`: a newly stored round is an
+          # *untracked* file, which git diff does not report at all - so this step would
+          # have announced "nothing to commit" every single week and never once failed.
+          changes=$(git status --porcelain -- data/final/rounds)
+          if [ -z "$changes" ]; then
+            echo "No new round was stored; nothing to commit."
+            exit 0
+          fi
+
+          round=$(echo "$changes" | awk '{print $NF}' | head -1)
+          echo "Committing $round"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/final/rounds
+          git commit -m "Predict $(basename "$(dirname "$round")")/$(basename "$round" .json)"
+          git pull --rebase --autostash
+          git push
+
       # Results, so the report can score what it predicted. Every season is fetched
       # because clean_matches rebuilds the whole table, and the raw CSVs are not in the
       # repo - seven of the eight are static files that never change again, so this is
@@ -80,38 +112,26 @@ jobs:
       # clean_matches validates and raises rather than writing a suspect table, which is
       # what makes this safe to run unattended: it refuses a file holding the wrong
       # division, and refuses a partial season with more than twenty clubs in it.
+      #
+      # This step is still allowed to fail the job. An upstream that stays down means the
+      # scorecard is quietly going stale, which is worth a red run - it just must not cost
+      # us the prediction, which by now is already pushed.
       - name: Refresh results
         run: |
           python -m src.data.fetch_matches
           python -m src.data.clean_matches
 
-      - name: Commit the round and any new results
+      - name: Commit any new results
         run: |
-          # `git status --porcelain`, not `git diff`: a newly stored round is an
-          # *untracked* file, which git diff does not report at all - so this step would
-          # have announced "nothing to commit" every single week and never once failed.
-          tracked="data/final/rounds data/processed/matches.parquet"
-          changes=$(git status --porcelain -- $tracked)
+          changes=$(git status --porcelain -- data/processed/matches.parquet)
           if [ -z "$changes" ]; then
-            echo "No new round and no new results; nothing to commit."
+            echo "No new results; nothing to commit."
             exit 0
           fi
 
-          echo "$changes"
-          round=$(echo "$changes" | awk '{print $NF}' | grep 'rounds/' | head -1 || true)
-          if [ -n "$round" ]; then
-            message="Predict $(basename "$(dirname "$round")")/$(basename "$round" .json)"
-          else
-            message="Update results"
-          fi
-          echo "Committing: $message"
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $tracked
-          git commit -m "$message"
-
-          # Someone may have pushed while this ran. Rebase rather than force: the round
-          # file is new, so there is nothing to conflict with.
+          git add data/processed/matches.parquet
+          git commit -m "Update results"
           git pull --rebase --autostash
           git push

@@ -136,6 +136,16 @@ is *untracked*, so `git diff` does not see it** and a `git diff --quiet` guard w
 repo**, since FIFA ratings cannot be downloaded without a Kaggle account and re-scraping
 Understat weekly would be 2,660 requests at a small free site.
 
+**The round is committed before results are fetched, and the order is load-bearing.**
+A prediction comes from the FPL schedule and owes football-data nothing, but the two once
+shared a commit step that ran after the results refresh. football-data returned 503 for
+four days in September 2026, the job died before committing, and a good prediction went
+with it. A fresh runner starts from the repo, so nothing resumes — had the outage outlasted
+the three-day window, the round would have been missed permanently, because **a round that
+has kicked off is never predicted**. Results are a later enrichment of a round already on
+the record: they can wait for an upstream to come back, publishing cannot. The results step
+is still allowed to fail the job, because a scorecard going quietly stale is worth a red run.
+
 **A committed parquet must never depend on which machine wrote it — use `config.write_parquet`.**
 Writing one with `to_parquet` directly makes the scheduled job commit `Update results` with
 **0 insertions and 0 deletions every single day**, redeploy the site for nothing, and bury
