@@ -26,7 +26,7 @@ from src.data.clean_matches import MATCHES_PARQUET
 from src.data.gameweeks import assign_gameweeks
 from src.data.load_fifa import FIFA_PLAYERS_PARQUET
 from src.evaluate.metrics import implied_probabilities
-from src.features.build import FEATURES_PARQUET, NO_DIFFERENCE, TEAM_FEATURES
+from src.features.build import NO_DIFFERENCE, TEAM_FEATURES, training_history
 from src.features.form import build_team_matches
 from src.features.squad import aggregate_ratings
 from src.matching.player_names import PLAYER_MAP_PARQUET
@@ -189,7 +189,12 @@ def predict(
     fixtures: pd.DataFrame, model_name: str = DEFAULT_MODEL, mode: str = "upcoming"
 ) -> list[dict]:
     """Train on everything known, then predict the given fixtures."""
-    history = pd.read_parquet(FEATURES_PARQUET)
+    # Everything played, the season in progress included - a club's strength in October is
+    # not what it was in May, and a promoted club has no parameter at all until its own
+    # results supply one. Cut off at the round's first kickoff: these fixtures must never
+    # be among the matches the model learned from, which is live for --replay and
+    # --gameweek N, both of which predict rounds that have already been played.
+    history = training_history(before=pd.to_datetime(fixtures["date"]).min())
 
     model = load_model(model_name)
     model.fit(history)
@@ -430,12 +435,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"stored {len(round_predictions)} fixture(s) as {path.relative_to(ROUNDS_DIR)}")
 
     if not args.replay and UPCOMING_SEASON.fifa_edition != "EA FC 27":
+        # Deliberately not claiming this is the newest edition published. EA ships in late
+        # September, so for most of a season that claim is false - and a note reporting
+        # nothing to do, when there is something to do, is worse than no note at all.
         print(
-            f"\nNote: {UPCOMING_SEASON.label} is using {UPCOMING_SEASON.fifa_edition} ratings, "
-            f"the newest edition that exists, so a summer signing is still rated at their "
-            f"old club. Departures are taken from the FPL squad lists above and need "
-            f"nothing; a signing FIFA has never rated goes in "
-            f"data/manual/player_ratings_manual.csv."
+            f"\nNote: {UPCOMING_SEASON.label} is using {UPCOMING_SEASON.fifa_edition} "
+            f"ratings, carried forward, so a summer signing is still rated at the club he "
+            f"left. EA ships each edition in late September: once EA FC 27 is out, place "
+            f"the CSV in data/raw/fifa/, point UPCOMING_SEASON.fifa_edition at it and "
+            f"re-run load_fifa -> player_names -> features.build. Departures come from the "
+            f"FPL squad lists above and need nothing; a signing FIFA has never rated goes "
+            f"in data/manual/player_ratings_manual.csv."
         )
 
     return 0
