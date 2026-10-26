@@ -3,7 +3,7 @@
 > **All phases are complete, and the project now runs unattended.** The pipeline runs
 > from raw downloads to a Streamlit report: 2,660 matches, 77,278 player appearances,
 > 98.6% of starters matched to ratings, a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 487 tests, none needing network or
+> predictions for fixtures that have not been played. 505 tests, none needing network or
 > data. It is deployed, and a scheduled job predicts each round before kickoff and commits
 > it — see **Stage three** at the end of this file.
 >
@@ -911,13 +911,23 @@ matches becoming 9, silently. And the closing line is backfilled for played fixt
 because a round predicted three weeks out carries no odds at all and the scorecard would
 otherwise show our RPS beside a permanent blank.
 
+And once the season was actually being played, the models were still being fitted as
+though it were not. `features.parquet` holds complete seasons only — the feature build
+needs lineups and ratings that an in-progress season has none of — so an October round was
+forecast from each club's strength in May, and the two promoted clubs, absent from all
+seven training seasons, were handed the league average and could not be told apart at all.
+Training on the played matches as well is worth 0.2087 → 0.2033 walk-forward over 2,280
+matches, more than twice the squad-quality channel, and it commits *more* rather than
+hedging. The first attempt to measure it on this season's 70 matches said the opposite,
+which is the small-sample caveat the report shows readers turned back on ourselves.
+
 ## What is left
 
 Nothing to build. The remaining work is seasonal and dated:
 
 | When | What |
 |---|---|
-| Late September | EA FC 27 ships — place the CSV, point `UPCOMING_SEASON.fifa_edition` at it, re-run `load_fifa` → `player_names` → `features.build` |
+| **Overdue** | EA FC 27 has shipped — place the CSV, point `UPCOMING_SEASON.fifa_edition` at it, re-run `load_fifa` → `player_names` → `features.build`. Until then 2026/27 is rated on FC 26 carried forward, so every summer signing sits at the club he left |
 | May 2027 | Season ends — move 2026/27 out of `UPCOMING_SEASON` and into `SEASONS` |
 | August 2027 | Re-enable the scheduled workflow; GitHub disables it after 60 days of repository inactivity, which a summer break guarantees |
 

@@ -23,7 +23,7 @@ scored against reality, suspensions derived from cards already on disk, squads f
 season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
 17–19) put it online and left it running**: CI, a public Streamlit deployment, a daily
 job that predicts each round before kickoff and commits it, and ingestion of the season
-as it is played. All three are complete and 487 tests cover them. Phase 16 is planned and
+as it is played. All three are complete and 505 tests cover them. Phase 16 is planned and
 deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
 stay visually distinct.
 
@@ -255,6 +255,61 @@ that does not exist yet. Move the season into `SEASONS` once it has finished.
 stored prediction against what actually happened — which is the only reason the archive is
 worth keeping. The season stays out of `SEASONS`: lineups, ratings and the feature build
 still see seven complete seasons, and only the match table gains rows.
+
+**And the models train on those rows, which is worth 0.0053 RPS to the deployed model.**
+`features.parquet` holds complete seasons only — the feature build needs lineups and
+ratings, and a season being played has neither — but **a model that learns from results
+does not need them**. Training on the frozen table means forecasting an October round
+from each club's strength as it was in May, and for a promoted club it is worse than
+stale: Coventry and Hull have no row in seven seasons, so `_lookup` hands both the league
+mean and the model cannot tell them apart *all season*, however they are actually doing.
+`features.build.training_history` appends every played match the feature table lacks,
+carrying `MATCH_COLUMNS` and leaving the engineered features null, which the models
+already treat as "no information". Measured walk-forward over 2,280 matches it improves
+all four and degrades none — dixon-coles 0.2118→0.2049, dixon-coles-squad 0.2087→0.2033,
+poisson-glm 0.2039→0.2034, baseline-elo 0.2051→0.2046 — and it is **not** buying that by
+hedging: the 1-1 share falls 53.8%→50.8% and distinct top scorelines rise 11→16, with the
+exact-hit rate the one thing slightly down, 11.1%→10.4%. The gain tracks how much of the
+season has been played, nothing in round 1 and 0.0124 across the closing rounds, which is
+the signature of a real effect rather than a lucky sample. **It keys on which `match_id`s
+the feature table already holds, not on a season name**, so it needs no telling when the
+season ends — rebuild the features and the append becomes empty by itself.
+
+**That append needs the round being predicted kept out, and a date cutoff alone does not
+do it.** Appending everything played is safe only for a round that has not been — and two
+of the three ways in predict one that has: `--replay` takes the most recent *played* round,
+which now comes from the season in progress, and `--gameweek N` can name any round at all.
+Train on its result and the model is fitted on the matches it is forecasting, the output
+looks entirely normal, and with `--force` that goes into the archive. So `training_history`
+takes `exclude`, the `match_id`s being predicted, dropped outright — the same thing
+`features_for` already does, for the same reason.
+
+**The cutoff is compared by day, because the two sides are not the same quantity.**
+`matches.parquet` stores dates at midnight; FPL fixtures carry real kickoff times. A raw
+`date < first_kickoff` therefore admits every match played on the round's first calendar
+day: measured on the live repo, `--gameweek 6` pulled **six of its own ten fixtures** into
+training with their results, `--gameweek 7` five, and `--replay` escaped only by the
+coincidence that its dates come from the match table and so are also midnight. Normalising
+makes the comparison well defined and errs towards withholding. **The reason this survived
+a green suite is that every cutoff test passed a date-only string** — the one case where the
+comparison is accidentally safe — so there is now a test that passes a kickoff time. This is
+`test_model_contract`'s rule, that rewriting the test set's results must not change a
+prediction, reaching the training table.
+
+**A widened `bool` column must come back numeric, not nullable-boolean.** Concatenating
+nulls onto `is_promoted_home` yields `object`, which `models.base.feature_columns` admits
+as neither numeric nor boolean — so the GLM and the GBM would silently lose two of their 85
+columns, no error and no warning. Casting to pandas' nullable `boolean` passes that check
+but fails later: both models push every feature through `.astype("float64")`, and on pandas
+2.x a nullable boolean holding `pd.NA` raises there instead of converting, which
+`requirements.txt` permits at `pandas>=2.2`. Plain float is numeric on every version.
+
+**A 70-match sample said the opposite, and believing it would have been the mistake.**
+Over the eight stored rounds of 2026/27 this change *looks* like a 0.0102 loss. Seven
+rounds is exactly the region where the measured effect is 0.0018, so that number is noise
+— the same lesson the report's own small-sample caveat exists to teach, and it applies to
+decisions about the model, not just to what the page shows. Measure a change like this on
+the backtest, where there are 2,280 matches, and let the live season check it afterwards.
 
 **What protects a completed season is the count check, and a partial season has none.**
 "Exactly 380 matches, 20 teams, 19 home and 19 away" catches almost any corruption *by

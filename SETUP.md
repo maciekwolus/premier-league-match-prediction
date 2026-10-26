@@ -143,7 +143,7 @@ pip install -r requirements-full.txt
   it, `compare` says so and names both this command and `--fast`, rather than failing
   partway through a backtest.
 
-All 487 tests pass with both absent, which is why they are separable at all.
+All 505 tests pass with both absent, which is why they are separable at all.
 
 ### 5. Build the data
 
@@ -389,8 +389,11 @@ reported rather than silently ignored. Both files feed the expected XI that squa
 features are built from, so an edit changes the prediction.
 
 A new season also starts before its own ratings edition exists: 2026/27 begins in August,
-EA FC 27 arrives in late September. `UPCOMING_SEASON` in `src/config.py` therefore points
-at the newest edition that does exist. Change that one line when the new one is published.
+EA FC 27 arrives in late September. `UPCOMING_SEASON` in `src/config.py` therefore carries
+the previous edition forward — it currently reads `EA FC 26`, so **every summer signing is
+rated at the club he left**. Once the new edition is published, place its CSV in
+`data/raw/fifa/`, change that one line, and re-run `load_fifa` → `player_names` →
+`features.build`. The prediction run prints a reminder until you do.
 
 ### 11. Read the report
 

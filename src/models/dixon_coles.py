@@ -27,6 +27,13 @@ from scipy.optimize import minimize
 # year, so a match from two seasons ago counts about a quarter of one from last month.
 # Squads turn over every summer, which is what the decay is really modelling - but decay
 # too fast and the fit is starved, since a single season gives a team only 38 matches.
+#
+# Re-swept after the season in progress joined the training table, since that adds matches
+# newer than anything the rate was first chosen against. It is still the optimum and the
+# curve around it is smooth, so leave it alone: 0.0009 gives 0.2036, 0.0014 0.2034, 0.0018
+# 0.2033, 0.0024 0.2034, 0.0030 0.2037, and no decay at all 0.2047, walk-forward over the
+# usual 2,280 matches. A single minimum on a smooth curve is a finding; chasing the fourth
+# decimal across a jagged one would just be fitting the backtest.
 DEFAULT_XI = 0.0018
 
 # Attack and defence are only identified up to a constant: add c to every attack and

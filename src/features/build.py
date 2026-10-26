@@ -200,6 +200,102 @@ def build(strict: bool = True) -> pd.DataFrame:
     return features
 
 
+def training_history(
+    before=None, exclude=None, features_path=None, matches_path=None
+) -> pd.DataFrame:
+    """Everything with a result that a model may learn from, the season in progress included.
+
+    ``features.parquet`` deliberately holds the complete seasons only: the feature build
+    needs lineups and ratings, and an in-progress season has neither. But **a model that
+    learns from results does not need them**, and withholding the season being played
+    means predicting an October round from each club's strength as it was in May - with a
+    promoted club not merely stale but absent, inheriting the league average all season
+    however it is actually doing.
+
+    So the played matches the feature table does not have are appended with their results
+    and nothing else. Only the columns the match table legitimately carries come across
+    (``MATCH_COLUMNS`` - pre-kickoff facts and the result), and the engineered features
+    stay null, which every model here already copes with: Dixon-Coles reads goals and
+    dates and so uses these rows in full, while the GLM imputes the medians it imputes for
+    any missing column anyway.
+
+    **Measured walk-forward over 2,280 matches, and it improves all four models while
+    degrading none** - dixon-coles 0.2118 to 0.2049, dixon-coles-squad 0.2087 to 0.2033,
+    poisson-glm 0.2039 to 0.2034, baseline-elo 0.2051 to 0.2046. For the model the report
+    shows that is 0.0053, against the 0.0031 the whole squad-quality channel buys. The
+    gain tracks how much of the season has been played - nothing at all in round 1, 0.0040
+    by the middle, 0.0124 across the closing rounds - which is the signature of a real
+    effect rather than a lucky sample, since that is exactly when a table frozen in May is
+    most out of date.
+
+    Beware the small sample: over the 70 matches of 2026/27 played so far this *looks* like
+    a 0.0102 loss. Seven rounds is the region where the true effect is 0.0018, so that
+    number is noise, and tuning on it would be the mistake this project keeps warning about.
+
+    **Two guards keep the round being predicted out, and one of them is not enough.**
+    Appending every played match is safe only for a round that has not been played, and two
+    of the three ways in predict one that has: ``--replay`` takes the most recent *played*
+    round, which now comes from the season in progress, and ``--gameweek N`` can name any
+    round at all. Train on its result and the model is fitted on the matches it is about to
+    forecast - the output looks entirely normal, and with ``--force`` it would overwrite the
+    archive with it.
+
+    ``exclude`` is the exact guard: the ``match_id``s being predicted, dropped outright.
+    This mirrors what ``predict.gameweek.features_for`` already does for the same reason.
+
+    ``before`` is the second, for *later* rounds rather than this one, and it is deliberately
+    **compared by day**. The match table stores dates at midnight while FPL fixtures carry
+    real kickoff times, so a raw comparison is between two different quantities: predicting
+    the round that starts 10 October at 14:00 admitted all six matches stored as 10 October
+    00:00, their results included - six of ten fixtures leaking. Normalising makes the
+    comparison well defined and errs towards withholding, which is the safe direction. The
+    date-only cutoff a test or a replay happens to pass is *why* that went unnoticed, so
+    there is now a test that passes a kickoff time.
+    """
+    history = pd.read_parquet(features_path or FEATURES_PARQUET)
+
+    source = matches_path or MATCHES_PARQUET
+    if not source.exists():
+        return history
+
+    matches = pd.read_parquet(source)
+    # Keyed on what the feature table already holds rather than on a season name, so this
+    # needs no telling when the in-progress season ends: rebuild the features and the
+    # append silently becomes empty.
+    extra = matches[
+        ~matches["match_id"].isin(history["match_id"])
+        & matches["home_goals"].notna()
+        & matches["away_goals"].notna()
+    ]
+    if exclude is not None:
+        extra = extra[~extra["match_id"].isin(pd.Index(exclude))]
+    if before is not None:
+        extra = extra[extra["date"] < pd.Timestamp(before).normalize()]
+    if extra.empty:
+        return history
+
+    carried = [column for column in MATCH_COLUMNS if column in extra.columns]
+    aligned = extra[carried].reindex(columns=history.columns)
+    combined = pd.concat([history, aligned], ignore_index=True)
+
+    # **A bool column widened by the nulls becomes ``object``, and ``object`` is silently
+    # dropped.** ``models.base.feature_columns`` admits a column only if it is numeric or
+    # boolean, so letting ``is_promoted_home`` arrive here as object would quietly delete
+    # a real feature from the GLM and the GBM - no error, no warning, just two fewer
+    # columns than the model was measured with.
+    #
+    # Float rather than the nullable ``boolean``, which would also satisfy that check:
+    # ``poisson_glm`` and ``gbm`` put every feature through ``.astype("float64")``, and on
+    # pandas 2.x a nullable boolean holding ``pd.NA`` raises there rather than converting.
+    # requirements.txt allows pandas>=2.2, so that would be a crash on a supported install.
+    # 1.0/0.0/NaN is numeric on every version, and is what the measurement actually used.
+    for column in history.columns:
+        if pd.api.types.is_bool_dtype(history[column]):
+            combined[column] = pd.to_numeric(combined[column], errors="coerce")
+
+    return combined.sort_values("date", ignore_index=True, kind="stable")
+
+
 def main() -> int:
     features = build()
 
