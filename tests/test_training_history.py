@@ -221,6 +221,79 @@ def test_a_boolean_feature_is_not_widened_into_being_dropped():
             features_path=root / "f.parquet", matches_path=root / "m.parquet"
         )
 
-    assert pd.api.types.is_bool_dtype(history["is_promoted_home"])
+    # numeric, not necessarily bool - see training_history on why float rather than the
+    # nullable boolean dtype. What matters is that feature_columns still admits it.
     assert "is_promoted_home" in feature_columns(history)
     assert feature_columns(history) == feature_columns(complete)
+
+
+# -------------------------------------------- the round being predicted, kept out properly
+
+
+def test_a_kickoff_time_cutoff_does_not_admit_the_same_day(tables):
+    """The leak the date-only tests above could never catch.
+
+    The match table stores dates at midnight; FPL fixtures carry real kickoff times. So
+    comparing one against the other admits every match played on the round's first day -
+    measured on the real repo, predicting the round that starts 10 October at 14:00 pulled
+    all six matches stored as 10 October 00:00 into training, results and all.
+    """
+    features_path, matches_path = tables
+
+    history = training_history(
+        before="2026-08-15 14:00",
+        features_path=features_path,
+        matches_path=matches_path,
+    )
+
+    assert not (history["season"] == "2026/27").any(), (
+        "a match stored at midnight on the cutoff day must not count as earlier than a "
+        "14:00 kickoff that same day"
+    )
+
+
+def test_the_predicted_fixtures_are_excluded_outright(tables):
+    """The exact guard, which does not depend on date granularity at all.
+
+    ``features_for`` already drops history for the fixtures being predicted; this is the
+    same rule for the training table. With it, a round cannot be trained on its own result
+    even if the cutoff is wrong or absent.
+    """
+    features_path, matches_path = tables
+
+    history = training_history(
+        exclude=["2026_27_20260815_coventry_hull"],
+        features_path=features_path,
+        matches_path=matches_path,
+    )
+    stored = set(history["match_id"])
+
+    assert "2026_27_20260815_coventry_hull" not in stored
+    # the other played match is untouched
+    assert "2026_27_20260822_hull_coventry" in stored
+
+
+def test_excluding_a_fixture_overrides_a_cutoff_that_would_admit_it(tables):
+    """Belt and braces: even a cutoff generous enough to let the round through cannot,
+    because the ids are dropped first."""
+    features_path, matches_path = tables
+
+    history = training_history(
+        before="2027-01-01",
+        exclude=["2026_27_20260815_coventry_hull", "2026_27_20260822_hull_coventry"],
+        features_path=features_path,
+        matches_path=matches_path,
+    )
+
+    assert not (history["season"] == "2026/27").any()
+
+
+def test_a_widened_boolean_stays_numeric_for_every_pandas(tables):
+    """``poisson_glm`` and ``gbm`` push every feature through ``.astype("float64")``, and a
+    nullable boolean holding ``pd.NA`` raises there on pandas 2.x - a supported install."""
+    features_path, matches_path = tables
+
+    history = training_history(features_path=features_path, matches_path=matches_path)
+
+    assert pd.api.types.is_numeric_dtype(history["is_promoted_home"])
+    history[["is_promoted_home", "is_promoted_away"]].astype("float64")

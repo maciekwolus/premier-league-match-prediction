@@ -194,7 +194,9 @@ def predict(
     # results supply one. Cut off at the round's first kickoff: these fixtures must never
     # be among the matches the model learned from, which is live for --replay and
     # --gameweek N, both of which predict rounds that have already been played.
-    history = training_history(before=pd.to_datetime(fixtures["date"]).min())
+    history = training_history(
+        before=pd.to_datetime(fixtures["date"]).min(), exclude=fixtures["match_id"]
+    )
 
     model = load_model(model_name)
     model.fit(history)

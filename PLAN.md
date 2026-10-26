@@ -3,7 +3,7 @@
 > **All phases are complete, and the project now runs unattended.** The pipeline runs
 > from raw downloads to a Streamlit report: 2,660 matches, 77,278 player appearances,
 > 98.6% of starters matched to ratings, a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 501 tests, none needing network or
+> predictions for fixtures that have not been played. 505 tests, none needing network or
 > data. It is deployed, and a scheduled job predicts each round before kickoff and commits
 > it — see **Stage three** at the end of this file.
 >

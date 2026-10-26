@@ -23,7 +23,7 @@ scored against reality, suspensions derived from cards already on disk, squads f
 season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
 17–19) put it online and left it running**: CI, a public Streamlit deployment, a daily
 job that predicts each round before kickoff and commits it, and ingestion of the season
-as it is played. All three are complete and 501 tests cover them. Phase 16 is planned and
+as it is played. All three are complete and 505 tests cover them. Phase 16 is planned and
 deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
 stay visually distinct.
 
@@ -275,15 +275,34 @@ the signature of a real effect rather than a lucky sample. **It keys on which `m
 the feature table already holds, not on a season name**, so it needs no telling when the
 season ends — rebuild the features and the append becomes empty by itself.
 
-**That append needs a cutoff, and without one the leak is invisible.** `training_history`
-takes `before` and the prediction path passes the round's own first kickoff. Appending
-everything played is safe only for a round that has not been — and two of the three ways
-in predict one that has: `--replay` takes the most recent *played* round, which now comes
-from the season in progress, and `--gameweek N` can name any stored round. Train on all of
-it and the model learns the result of the very round it is forecasting, the output looks
-entirely normal, and the archive stops meaning anything. This is the `test_model_contract`
-rule — rewriting the test set's results must not change a prediction — reaching the
-training table, so it is pinned by its own test rather than left to care.
+**That append needs the round being predicted kept out, and a date cutoff alone does not
+do it.** Appending everything played is safe only for a round that has not been — and two
+of the three ways in predict one that has: `--replay` takes the most recent *played* round,
+which now comes from the season in progress, and `--gameweek N` can name any round at all.
+Train on its result and the model is fitted on the matches it is forecasting, the output
+looks entirely normal, and with `--force` that goes into the archive. So `training_history`
+takes `exclude`, the `match_id`s being predicted, dropped outright — the same thing
+`features_for` already does, for the same reason.
+
+**The cutoff is compared by day, because the two sides are not the same quantity.**
+`matches.parquet` stores dates at midnight; FPL fixtures carry real kickoff times. A raw
+`date < first_kickoff` therefore admits every match played on the round's first calendar
+day: measured on the live repo, `--gameweek 6` pulled **six of its own ten fixtures** into
+training with their results, `--gameweek 7` five, and `--replay` escaped only by the
+coincidence that its dates come from the match table and so are also midnight. Normalising
+makes the comparison well defined and errs towards withholding. **The reason this survived
+a green suite is that every cutoff test passed a date-only string** — the one case where the
+comparison is accidentally safe — so there is now a test that passes a kickoff time. This is
+`test_model_contract`'s rule, that rewriting the test set's results must not change a
+prediction, reaching the training table.
+
+**A widened `bool` column must come back numeric, not nullable-boolean.** Concatenating
+nulls onto `is_promoted_home` yields `object`, which `models.base.feature_columns` admits
+as neither numeric nor boolean — so the GLM and the GBM would silently lose two of their 85
+columns, no error and no warning. Casting to pandas' nullable `boolean` passes that check
+but fails later: both models push every feature through `.astype("float64")`, and on pandas
+2.x a nullable boolean holding `pd.NA` raises there instead of converting, which
+`requirements.txt` permits at `pandas>=2.2`. Plain float is numeric on every version.
 
 **A 70-match sample said the opposite, and believing it would have been the mistake.**
 Over the eight stored rounds of 2026/27 this change *looks* like a 0.0102 loss. Seven

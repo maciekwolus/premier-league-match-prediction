@@ -200,7 +200,9 @@ def build(strict: bool = True) -> pd.DataFrame:
     return features
 
 
-def training_history(before=None, features_path=None, matches_path=None) -> pd.DataFrame:
+def training_history(
+    before=None, exclude=None, features_path=None, matches_path=None
+) -> pd.DataFrame:
     """Everything with a result that a model may learn from, the season in progress included.
 
     ``features.parquet`` deliberately holds the complete seasons only: the feature build
@@ -230,12 +232,25 @@ def training_history(before=None, features_path=None, matches_path=None) -> pd.D
     a 0.0102 loss. Seven rounds is the region where the true effect is 0.0018, so that
     number is noise, and tuning on it would be the mistake this project keeps warning about.
 
-    ``before`` drops anything kicking off at or after that moment, and the prediction path
-    always passes the round's own first kickoff. Appending blindly is safe only for a round
-    that has not been played: ``--replay`` and ``--gameweek N`` both predict rounds that
-    *have*, and ``replay_fixtures`` now draws from the in-progress season, so without the
-    cutoff a replayed round would be trained on its own result. That is the one thing the
-    archive must never do, and it is invisible in the output.
+    **Two guards keep the round being predicted out, and one of them is not enough.**
+    Appending every played match is safe only for a round that has not been played, and two
+    of the three ways in predict one that has: ``--replay`` takes the most recent *played*
+    round, which now comes from the season in progress, and ``--gameweek N`` can name any
+    round at all. Train on its result and the model is fitted on the matches it is about to
+    forecast - the output looks entirely normal, and with ``--force`` it would overwrite the
+    archive with it.
+
+    ``exclude`` is the exact guard: the ``match_id``s being predicted, dropped outright.
+    This mirrors what ``predict.gameweek.features_for`` already does for the same reason.
+
+    ``before`` is the second, for *later* rounds rather than this one, and it is deliberately
+    **compared by day**. The match table stores dates at midnight while FPL fixtures carry
+    real kickoff times, so a raw comparison is between two different quantities: predicting
+    the round that starts 10 October at 14:00 admitted all six matches stored as 10 October
+    00:00, their results included - six of ten fixtures leaking. Normalising makes the
+    comparison well defined and errs towards withholding, which is the safe direction. The
+    date-only cutoff a test or a replay happens to pass is *why* that went unnoticed, so
+    there is now a test that passes a kickoff time.
     """
     history = pd.read_parquet(features_path or FEATURES_PARQUET)
 
@@ -252,8 +267,10 @@ def training_history(before=None, features_path=None, matches_path=None) -> pd.D
         & matches["home_goals"].notna()
         & matches["away_goals"].notna()
     ]
+    if exclude is not None:
+        extra = extra[~extra["match_id"].isin(pd.Index(exclude))]
     if before is not None:
-        extra = extra[extra["date"] < pd.Timestamp(before)]
+        extra = extra[extra["date"] < pd.Timestamp(before).normalize()]
     if extra.empty:
         return history
 
@@ -265,10 +282,16 @@ def training_history(before=None, features_path=None, matches_path=None) -> pd.D
     # dropped.** ``models.base.feature_columns`` admits a column only if it is numeric or
     # boolean, so letting ``is_promoted_home`` arrive here as object would quietly delete
     # a real feature from the GLM and the GBM - no error, no warning, just two fewer
-    # columns than the model was measured with. The nullable dtype still reads as boolean.
+    # columns than the model was measured with.
+    #
+    # Float rather than the nullable ``boolean``, which would also satisfy that check:
+    # ``poisson_glm`` and ``gbm`` put every feature through ``.astype("float64")``, and on
+    # pandas 2.x a nullable boolean holding ``pd.NA`` raises there rather than converting.
+    # requirements.txt allows pandas>=2.2, so that would be a crash on a supported install.
+    # 1.0/0.0/NaN is numeric on every version, and is what the measurement actually used.
     for column in history.columns:
         if pd.api.types.is_bool_dtype(history[column]):
-            combined[column] = combined[column].astype("boolean")
+            combined[column] = pd.to_numeric(combined[column], errors="coerce")
 
     return combined.sort_values("date", ignore_index=True, kind="stable")
 
