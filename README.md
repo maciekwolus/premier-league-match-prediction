@@ -201,7 +201,7 @@ src/predict/      fixtures, expected XIs, squad currency, and the prediction arc
 src/report/       shaping predictions for display
 src/betting/      the simulated 10 zł bets: prices, settlement, the backtest and the tracker
 app.py            the Streamlit report
-tests/            554 tests, no network access and no reading of data/
+tests/            553 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, ratings, absences, fixtures (committed)
 ```
 
@@ -216,7 +216,7 @@ rebuilt from source.
 
 **Python 3.12.** [requirements.txt](requirements.txt) is small, quick and free of hard
 version pins — which is what makes it safe to deploy. The two awkward dependencies are
-separate, in [requirements-full.txt](requirements-full.txt), and all 554 tests pass with
+separate, in [requirements-full.txt](requirements-full.txt), and all 553 tests pass with
 both absent. This is what each one is here for.
 
 | | | |
@@ -229,7 +229,7 @@ both absent. This is what each one is here for.
 | **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
 | | `autogluon.tabular` | Gradient boosting *(separate: ~700 MB)*. `compare --fast` runs without it |
 | **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
-| **Tooling** | `pytest`, `ruff` | 554 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
+| **Tooling** | `pytest`, `ruff` | 553 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
 
 **No neural network was written by hand** — that was a constraint from the start.
 Dixon-Coles is a well-defined statistical model fitted with `scipy.optimize`, and AutoGluon

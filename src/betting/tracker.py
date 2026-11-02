@@ -14,12 +14,7 @@ import sys
 
 import pandas as pd
 
-from src.betting.prices import (
-    BOOKMAKER,
-    CORRECT_SCORE_OVERROUND,
-    OVERROUND_RANGE,
-    closing_prices,
-)
+from src.betting.prices import BOOKMAKER, closing_prices
 from src.betting.simulate import (
     BACKTEST_PARQUET,
     MARKETS,
@@ -29,7 +24,6 @@ from src.betting.simulate import (
     both_markets,
     by_round,
     priced,
-    settle,
 )
 from src.config import UPCOMING_SEASON
 from src.predict.archive import available_rounds, load_round
@@ -101,32 +95,16 @@ def tracker(season_slug: str, root=None, results=None, prices=None) -> dict:
 
 
 def history(path=None) -> dict | None:
-    """The six-season backtest, or None on a checkout that does not have it."""
+    """The backtest in total, or None on a checkout that does not have it.
+
+    Only the total is kept. The page shows the live season alone, and this exists so that a
+    lucky balance there can be set against something larger than itself.
+    """
     source = path or BACKTEST_PARQUET
     if not source.exists():
         return None
 
-    bets = pd.read_parquet(source)
-    return {
-        "seasons": [
-            {"season": slug.replace("_", "/"), **both_markets(rows)}
-            for slug, rows in bets.groupby("season_slug", sort=True)
-        ],
-        "total": both_markets(bets),
-        # The one number here that rests on a judgement, so show what it is worth.
-        "overrounds": [
-            {
-                "overround": overround,
-                "balance": settle(
-                    bets.assign(
-                        price_score=bets["price_score"] * CORRECT_SCORE_OVERROUND / overround
-                    ),
-                    "score",
-                )["balance"],
-            }
-            for overround in OVERROUND_RANGE
-        ],
-    }
+    return {"total": both_markets(pd.read_parquet(source))}
 
 
 def signed(amount: float) -> str:

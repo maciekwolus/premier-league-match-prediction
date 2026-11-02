@@ -142,7 +142,7 @@ each run's summary page.
 .venv\Scripts\python.exe -m src.betting.backtest
 ```
 
-Rebuilds `data/final/betting_backtest.parquet`, the six seasons behind the tracker. It
+Rebuilds `data/final/betting_backtest.parquet`, the six-season total the tracker quotes. It
 refits the deployed model before every round, 228 fits, and takes several minutes. Rerun it
 only when the model changes, and check the RPS it prints: it should match the deployed
 model's walk-forward 0.2028.
@@ -257,7 +257,7 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 554 tests, about twelve seconds |
+| `-m pytest` | All 553 tests, about twelve seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |

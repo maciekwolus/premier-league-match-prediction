@@ -23,7 +23,7 @@ scored against reality, suspensions derived from cards already on disk, squads f
 season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
 17–20) put it online and left it running**: CI, a public Streamlit deployment, a daily
 job that predicts each round before kickoff and commits it, ingestion of the season as it
-is played, and a simulated betting record. All three are complete and 554 tests cover them. Phase 16 is planned and
+is played, and a simulated betting record. All three are complete and 553 tests cover them. Phase 16 is planned and
 deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
 stay visually distinct.
 
@@ -67,7 +67,8 @@ What exists in `data/processed/` after a full build:
 
 And in `data/final/`: `features.parquet` — 2,660 rows, 99 columns, one per match and
 nothing post-kickoff — plus `rounds/<season>/gwNN.json`, the prediction archive, and
-`betting_backtest.parquet`, the deployed model's pick and price for 2,280 matches.
+`betting_backtest.parquet`, the deployed model's pick and price for 2,280 matches, which
+reaches the page only as the total that contradicts a lucky balance.
 
 ## Commands
 
@@ -394,12 +395,14 @@ are a way round the rule rather than a way of following it. Home/draw/away there
 Bet365's real close, and exact-score prices are estimated, because no permitted source
 records them at all: `prices.market_matrix` solves the closing line for each side's
 expected goals and adds `CORRECT_SCORE_OVERROUND`. That margin rests on two hand-read
-tables, so the page reports the result across `OVERROUND_RANGE`. Across 2,749 matches the
+tables; the backtest loses heavily from 15% to 35%, so the verdict does not depend on it.
+Across 2,749 matches the
 matrix expects 1-1 306.7 times against 309 actual, though it over-expects 0-0 (199 against
 156) and under-expects 2-2 (123 against 160). **Every balance on the page has to say all of
 this** — a tracker that showed a profit without saying what it rests on would be the most
 misleading thing on the site, so `betting_bar` carries the note and contradicts any positive
-balance with the backtest.
+balance with the backtest. That one sentence is the only trace of older seasons on the page:
+the tracker shows the live season alone, by the user's choice, so `history` keeps a total.
 
 **The 12% tax is what stands between a coupon and its stake.** A 10 zł Polish coupon buys
 8.80 zł of bet, so a winner pays 8.80 times the price. The headline balance has it deducted

@@ -650,23 +650,8 @@ def _money_table(headers: list[str], rows: list[list[str]], total: list[str] | N
     )
 
 
-def _season_line(label: str, row: dict) -> list[str]:
-    """One season of the backtest: hit rate, balance and return for each market."""
-    outcome, score = row["outcome"], row["score"]
-    return [
-        label,
-        f"{row['matches']:,}",
-        f"{outcome['won'] / outcome['bets']:.1%}",
-        _money(outcome["balance"]),
-        f"{outcome['roi']:+.1%}",
-        f"{score['won'] / score['bets']:.1%}",
-        _money(score["balance"]),
-        f"{score['roi']:+.1%}",
-    ]
-
-
-def betting_detail(record: dict, past: dict | None) -> str:
-    """Every round of the season, then the same two bets over the backtest."""
+def betting_detail(record: dict) -> str:
+    """Every round of the season, then what the prices rest on."""
     sections = []
 
     if record["rounds"]:
@@ -707,28 +692,6 @@ def betting_detail(record: dict, past: dict | None) -> str:
             sections.append(
                 f'<div class="pl-money-key">{record["pending"]} MORE AWAITING A RESULT</div>'
             )
-
-    if past:
-        sections.append(
-            '<div class="pl-money-key">THE SAME BETS, WALKED FORWARD THROUGH THE BACKTEST</div>'
-        )
-        sections.append(
-            _money_table(
-                ["SEASON", "BETS", "1X2 HIT", "1X2", "RETURN", "EXACT HIT", "EXACT", "RETURN"],
-                [_season_line(row["season"], row) for row in past["seasons"]],
-                _season_line("TOTAL", past["total"]),
-            )
-        )
-        margins = ", ".join(
-            f"{entry['balance']:+,.0f} zł at {entry['overround'] - 1:.0%}"
-            for entry in past["overrounds"]
-        )
-        sections.append(
-            '<div class="pl-notice pl-notice-quiet">The exact-score column rests on an assumed '
-            f"bookmaker margin, so here is what that assumption is worth: {margins}. The "
-            "backtest uses the XI that really started, which a live round has to guess, so "
-            "it is slightly kinder than the real record above.</div>"
-        )
 
     sections.append(f'<div class="pl-notice pl-notice-quiet">{PRICE_NOTE}</div>')
     return "".join(sections)
