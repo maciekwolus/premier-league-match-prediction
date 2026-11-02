@@ -127,6 +127,26 @@ fifteen minutes.
 **Expect the bookmaker to win.** It scores 0.1965 and no model here beats it. A model that
 did should be suspected of leakage before it is believed.
 
+## Check the betting tracker
+
+```bash
+.venv\Scripts\python.exe -m src.betting.tracker
+```
+
+Prints where ten złoty a match stands this season, round by round, for home/draw/away and
+for the exact score. Nothing needs running to keep it up to date: the report works it out
+from the stored rounds and `matches.parquet`, and the scheduled job puts this same table on
+each run's summary page.
+
+```bash
+.venv\Scripts\python.exe -m src.betting.backtest
+```
+
+Rebuilds `data/final/betting_backtest.parquet`, the six seasons behind the tracker. It
+refits the deployed model before every round, 228 fits, and takes several minutes. Rerun it
+only when the model changes, and check the RPS it prints: it should match the deployed
+model's walk-forward 0.2033.
+
 ---
 
 ## Rebuild the data
@@ -237,7 +257,7 @@ putting every other match at risk.
 
 | Command | Scope |
 |---|---|
-| `-m pytest` | All 505 tests, about twelve seconds |
+| `-m pytest` | All 536 tests, about twelve seconds |
 | `-m pytest tests/test_config.py` | One file |
 | `-m pytest tests/test_config.py::test_slug` | One test |
 | `-m pytest -k slugify` | Everything matching a keyword |

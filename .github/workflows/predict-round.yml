@@ -135,3 +135,11 @@ jobs:
           git commit -m "Update results"
           git pull --rebase --autostash
           git push
+
+      # Bets are settled by the results committed above: the report works the balance out
+      # from the archive and that table, so there is nothing to write back here. This only
+      # puts the balance on the run's summary page. Still reported when the refresh failed,
+      # because the balance as of the last good results is exactly what you want to see.
+      - name: Report the betting tracker
+        if: ${{ !cancelled() }}
+        run: python -m src.betting.tracker >> "$GITHUB_STEP_SUMMARY"

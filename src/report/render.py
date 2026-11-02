@@ -12,6 +12,8 @@ import re
 from html import escape
 from pathlib import Path
 
+from src.betting.prices import BOOKMAKER
+from src.betting.simulate import MARKETS, STAKE, STAKE_TAX
 from src.report.badges import badge_data_uri
 from src.report.results import verdict
 from src.report.view import (
@@ -23,6 +25,16 @@ from src.report.view import (
 )
 
 OUTCOME_LABELS = {"home": "H", "draw": "D", "away": "A"}
+
+MARKET_NAMES = {"outcome": "home/draw/away", "score": "exact score"}
+
+# On the page wherever a balance is, so a figure cannot be read away from what it rests
+# on. This was meant to be a Polish bookmaker, and the reader should know it is not.
+PRICE_NOTE = (
+    f"<b>Simulation, and not Polish prices.</b> Home/draw/away uses {BOOKMAKER} closing odds. "
+    "Exact-score odds are estimated from that line with a 25% bookmaker margin, because no "
+    "source we may use records them. Each stake loses the 12% Polish tax first."
+)
 
 # Shown in the empty state, so the reader can paste a cd that is right for their machine
 # rather than one copied from whoever wrote the docs.
@@ -547,3 +559,176 @@ def summary_bar(summary: dict, repeated: float) -> str:
         for key, value, hint in items
     )
     return f'<div class="pl-statbar">{cells}</div>'
+
+
+def _money(amount: float) -> str:
+    """A signed amount, coloured by which side of zero it landed on."""
+    tone = "pl-gain" if amount > 0 else "pl-loss" if amount < 0 else ""
+    return f'<span class="{tone}">{amount:+,.2f}&nbsp;zł</span>'
+
+
+def betting_bar(record: dict, past: dict | None) -> str:
+    """Where ten zloty a match would stand this season, in both markets.
+
+    Written to be hard to misread, because a page showing a profit is the one most likely
+    to be believed without a second look. It therefore always says the prices are not
+    Polish and that the exact-score ones are estimated, and any balance above zero is
+    contradicted out loud with the backtest, the same rule the scorecard follows when a
+    small sample happens to beat the market.
+    """
+    total = record["total"]
+    outcome, score = total["outcome"], total["score"]
+    if not total["matches"]:
+        return ""
+
+    cells = [
+        (
+            "IF WE HAD BET",
+            f"{STAKE:.0f} ZŁ × {total['matches']}",
+            "Ten zloty on every settled match this season, in each market. Rounds "
+            "predicted before kick-off only, and every fixture, so nothing is hand-picked.",
+        ),
+        (
+            "HOME/DRAW/AWAY",
+            _money(outcome["balance"]),
+            f"Won {outcome['won']} of {outcome['bets']} at {BOOKMAKER} closing odds, after "
+            f"the {STAKE_TAX:.0%} stake tax. Without the tax: "
+            f"{outcome['untaxed_balance']:+,.2f} zł.",
+        ),
+        (
+            "EXACT SCORE (EST.)",
+            _money(score["balance"]),
+            f"Won {score['won']} of {score['bets']} at estimated prices, after the "
+            f"{STAKE_TAX:.0%} stake tax. Without the tax: "
+            f"{score['untaxed_balance']:+,.2f} zł.",
+        ),
+        (
+            "STAKED EACH",
+            f"{outcome['staked']:,.0f} ZŁ",
+            "What each market has put on so far. The two are separate bets, so the "
+            "combined outlay is double this.",
+        ),
+    ]
+    rendered = "".join(
+        f'<div class="pl-stat" title="{escape(hint)}">'
+        f'<span class="pl-stat-key">{key}</span>'
+        f'<span class="pl-stat-val">{value}</span></div>'
+        for key, value, hint in cells
+    )
+
+    contradiction = ""
+    ahead = [market for market in MARKETS if total[market]["balance"] > 0]
+    if ahead and past:
+        losses = " and ".join(
+            f"{MARKET_NAMES[market]} lost {abs(past['total'][market]['balance']):,.0f} zł"
+            for market in ahead
+        )
+        contradiction = (
+            " <b>A balance above zero here should not be believed:</b> over "
+            f"{past['total']['matches']:,} backtested matches, {losses}."
+        )
+
+    caveat = (
+        '<div class="pl-notice pl-notice-quiet">'
+        f"<b>{total['matches']} bets is not a sample.</b> Luck alone moves these balances by "
+        f"about {outcome['luck']:,.0f} zł (home/draw/away) and {score['luck']:,.0f} zł "
+        f"(exact score).{contradiction} {PRICE_NOTE}</div>"
+    )
+    return f'<div class="pl-statbar pl-scorecard pl-betting">{rendered}</div>{caveat}'
+
+
+def _money_table(headers: list[str], rows: list[list[str]], total: list[str] | None = None) -> str:
+    head = "".join(f"<th>{header}</th>" for header in headers)
+    body = "".join("<tr>" + "".join(f"<td>{cell}</td>" for cell in row) + "</tr>" for row in rows)
+    foot = ""
+    if total:
+        foot = '<tr class="pl-money-total">' + "".join(f"<td>{cell}</td>" for cell in total)
+        foot += "</tr>"
+    return (
+        '<div class="pl-money-scroll"><table class="pl-money">'
+        f"<tr>{head}</tr>{body}{foot}</table></div>"
+    )
+
+
+def _season_line(label: str, row: dict) -> list[str]:
+    """One season of the backtest: hit rate, balance and return for each market."""
+    outcome, score = row["outcome"], row["score"]
+    return [
+        label,
+        f"{row['matches']:,}",
+        f"{outcome['won'] / outcome['bets']:.1%}",
+        _money(outcome["balance"]),
+        f"{outcome['roi']:+.1%}",
+        f"{score['won'] / score['bets']:.1%}",
+        _money(score["balance"]),
+        f"{score['roi']:+.1%}",
+    ]
+
+
+def betting_detail(record: dict, past: dict | None) -> str:
+    """Every round of the season, then the same two bets over the backtest."""
+    sections = []
+
+    if record["rounds"]:
+        rows = [
+            [
+                f"GW {row['gameweek']}",
+                str(row["matches"]),
+                f"{row['outcome']['won']}/{row['outcome']['bets']}",
+                _money(row["outcome"]["balance"]),
+                _money(row["outcome"]["running"]),
+                f"{row['score']['won']}/{row['score']['bets']}",
+                _money(row["score"]["balance"]),
+                _money(row["score"]["running"]),
+            ]
+            for row in record["rounds"]
+        ]
+        outcome, score = record["total"]["outcome"], record["total"]["score"]
+        total = [
+            "TOTAL",
+            str(record["total"]["matches"]),
+            f"{outcome['won']}/{outcome['bets']}",
+            _money(outcome["balance"]),
+            "",
+            f"{score['won']}/{score['bets']}",
+            _money(score["balance"]),
+            "",
+        ]
+        heading = f"{escape(record['season'])}, ROUND BY ROUND"
+        sections.append(f'<div class="pl-money-key">{heading}</div>')
+        sections.append(
+            _money_table(
+                ["ROUND", "BETS", "1X2 WON", "1X2", "SO FAR", "EXACT WON", "EXACT", "SO FAR"],
+                rows,
+                total,
+            )
+        )
+        if record["pending"]:
+            sections.append(
+                f'<div class="pl-money-key">{record["pending"]} MORE AWAITING A RESULT</div>'
+            )
+
+    if past:
+        sections.append(
+            '<div class="pl-money-key">THE SAME BETS, WALKED FORWARD THROUGH THE BACKTEST</div>'
+        )
+        sections.append(
+            _money_table(
+                ["SEASON", "BETS", "1X2 HIT", "1X2", "RETURN", "EXACT HIT", "EXACT", "RETURN"],
+                [_season_line(row["season"], row) for row in past["seasons"]],
+                _season_line("TOTAL", past["total"]),
+            )
+        )
+        margins = ", ".join(
+            f"{entry['balance']:+,.0f} zł at {entry['overround'] - 1:.0%}"
+            for entry in past["overrounds"]
+        )
+        sections.append(
+            '<div class="pl-notice pl-notice-quiet">The exact-score column rests on an assumed '
+            f"bookmaker margin, so here is what that assumption is worth: {margins}. The "
+            "backtest uses the XI that really started, which a live round has to guess, so "
+            "it is slightly kinder than the real record above.</div>"
+        )
+
+    sections.append(f'<div class="pl-notice pl-notice-quiet">{PRICE_NOTE}</div>')
+    return "".join(sections)

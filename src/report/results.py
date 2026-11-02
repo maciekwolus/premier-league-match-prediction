@@ -145,6 +145,19 @@ def attach_results(predictions: list[dict], results: dict | None = None) -> list
     return attached
 
 
+def predicted_outcome(match: dict) -> str | None:
+    """H, D or A: whichever of the three the prediction made most likely."""
+    probabilities = match.get("outcome") or {}
+    ordered = [probabilities.get(key, 0.0) for key in ("home", "draw", "away")]
+    return OUTCOMES[int(np.argmax(ordered))] if any(ordered) else None
+
+
+def predicted_score(match: dict) -> str | None:
+    """The scoreline the prediction put first."""
+    scorelines = match.get("scorelines") or []
+    return scorelines[0]["score"] if scorelines else None
+
+
 def verdict(match: dict) -> dict | None:
     """How one prediction fared, or None if the match has not been played.
 
@@ -155,17 +168,12 @@ def verdict(match: dict) -> dict | None:
     if not actual:
         return None
 
-    scorelines = match.get("scorelines") or []
-    top_score = scorelines[0]["score"] if scorelines else None
-
-    probabilities = match.get("outcome") or {}
-    ordered = [probabilities.get(key, 0.0) for key in ("home", "draw", "away")]
-    predicted_outcome = OUTCOMES[int(np.argmax(ordered))] if any(ordered) else None
+    top_score = predicted_score(match)
 
     return {
         "score": actual["score"],
         "exact": top_score == actual["score"],
-        "outcome": predicted_outcome == actual["outcome"],
+        "outcome": predicted_outcome(match) == actual["outcome"],
         "predicted_score": top_score,
     }
 
