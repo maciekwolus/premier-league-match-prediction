@@ -3,7 +3,7 @@
 > **All phases are complete, and the project now runs unattended.** The pipeline runs
 > from raw downloads to a Streamlit report: 2,660 matches, 77,278 player appearances,
 > 98.6% of starters matched to ratings, a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 535 tests, none needing network or
+> predictions for fixtures that have not been played. 553 tests, none needing network or
 > data. It is deployed, and a scheduled job predicts each round before kickoff and commits
 > it — see **Stage three** at the end of this file.
 >
@@ -921,6 +921,11 @@ matches, more than twice the squad-quality channel, and it commits *more* rather
 hedging. The first attempt to measure it on this season's 70 matches said the opposite,
 which is the small-sample caveat the report shows readers turned back on ourselves.
 
+It also meant fitting a debutant on one match, which the betting backtest exposed as a 10-0
+and which turned out to be seven fixtures on the expected-goals floor across five seasons. A
+prior on barely-seen clubs, fading out by half a season, removes them and takes the deployed
+model to 0.2028 without touching established fixtures.
+
 ## Phase 20 — The betting tracker *(done)*
 
 Whether the model can beat the market with real money on it is a sharper question than RPS,
@@ -929,7 +934,7 @@ likely and one on its leading scoreline, on every fixture, with Poland's 12% sta
 deducted. The report shows both balances per round and in total for the live season, and
 the scheduled job writes the same table to each run's summary.
 
-The backtest answers the headline: over 2,280 matches, -16.4% on home/draw/away and -37.9%
+The backtest answers the headline: over 2,280 matches, -16.7% on home/draw/away and -36.2%
 on the exact score. **The prices are the open item.** It was meant to use a Polish
 bookmaker. OddsPortal holds STS's prices, but its robots.txt disallows every archived
 season and its terms forbid copying without written permission, so it was not collected. No

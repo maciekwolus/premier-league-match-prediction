@@ -126,6 +126,11 @@ Hull appear in none of the seven training seasons, so both were handed the leagu
 and the model could not tell them apart. It is not bought by hedging, either — the 1-1
 share *falls* and the number of distinct scorelines rises.
 
+Learning from a season as it is played does mean fitting a promoted club on one match, which
+once produced a 10-0. Clubs seen only a handful of times are now held towards the league
+average, an effect that fades out by half a season, so established sides are left alone. That
+takes the deployed model to **0.2028**, and its real value is what can no longer be published.
+
 Worth noting how that was settled, since the first answer was wrong: measured over the
 eight rounds of 2026/27 played so far, the change looks like a **loss**. Seventy matches
 is the region where the real effect is a twentieth of the noise, which is the same reason
@@ -138,15 +143,15 @@ the report refuses to let a good round speak for itself.
 
 | Season | Home/draw/away | Hit | Exact score *(estimated prices)* | Hit |
 |---|---:|---:|---:|---:|
-| 2020/21 | -687 zł | 51.3% | -1,927 zł | 8.4% |
-| 2021/22 | -566 zł | 54.2% | -1,998 zł | 8.4% |
-| 2022/23 | -650 zł | 52.6% | -1,678 zł | 9.7% |
-| 2023/24 | -461 zł | 57.4% | -835 zł | 12.4% |
-| 2024/25 | -443 zł | 55.5% | -940 zł | 12.1% |
-| 2025/26 | -936 zł | 46.3% | -1,272 zł | 11.1% |
-| **Total** | **-3,744 zł (-16.4%)** | 52.9% | **-8,649 zł (-37.9%)** | 10.4% |
+| 2020/21 | -706 zł | 51.1% | -1,741 zł | 9.2% |
+| 2021/22 | -612 zł | 53.9% | -1,998 zł | 8.4% |
+| 2022/23 | -680 zł | 52.4% | -1,621 zł | 10.0% |
+| 2023/24 | -461 zł | 57.4% | -903 zł | 12.1% |
+| 2024/25 | -443 zł | 55.5% | -776 zł | 12.9% |
+| 2025/26 | -904 zł | 46.8% | -1,218 zł | 11.3% |
+| **Total** | **-3,807 zł (-16.7%)** | 52.9% | **-8,257 zł (-36.2%)** | 10.7% |
 
-Even with the tax removed, home/draw/away still loses 5.0%, about what a bookmaker's margin
+Even with the tax removed, home/draw/away still loses 5.3%, about what a bookmaker's margin
 takes on its own, so the picks add little beyond the favourite the market already prices.
 The report runs the same two bets on every live round, and the balance updates itself as
 results come in.
@@ -154,7 +159,7 @@ results come in.
 **These are not Polish bookmaker prices.** The aim was STS, but the only archive holding its
 prices forbids automated collection, so home/draw/away uses Bet365's real closing odds and
 exact-score odds are **estimated** from that line with a 25% bookmaker margin. That
-assumption moves the exact-score total between -7,418 zł at 15% and -9,697 zł at 35%, and
+assumption moves the exact-score total between -6,993 zł at 15% and -9,335 zł at 35%, and
 it stays a heavy loss throughout.
 
 ## Running it
@@ -196,7 +201,7 @@ src/predict/      fixtures, expected XIs, squad currency, and the prediction arc
 src/report/       shaping predictions for display
 src/betting/      the simulated 10 zł bets: prices, settlement, the backtest and the tracker
 app.py            the Streamlit report
-tests/            535 tests, no network access and no reading of data/
+tests/            553 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, ratings, absences, fixtures (committed)
 ```
 
@@ -211,7 +216,7 @@ rebuilt from source.
 
 **Python 3.12.** [requirements.txt](requirements.txt) is small, quick and free of hard
 version pins — which is what makes it safe to deploy. The two awkward dependencies are
-separate, in [requirements-full.txt](requirements-full.txt), and all 535 tests pass with
+separate, in [requirements-full.txt](requirements-full.txt), and all 553 tests pass with
 both absent. This is what each one is here for.
 
 | | | |
@@ -224,7 +229,7 @@ both absent. This is what each one is here for.
 | **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
 | | `autogluon.tabular` | Gradient boosting *(separate: ~700 MB)*. `compare --fast` runs without it |
 | **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
-| **Tooling** | `pytest`, `ruff` | 535 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
+| **Tooling** | `pytest`, `ruff` | 553 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
 
 **No neural network was written by hand** — that was a constraint from the start.
 Dixon-Coles is a well-defined statistical model fitted with `scipy.optimize`, and AutoGluon

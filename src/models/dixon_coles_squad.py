@@ -34,8 +34,10 @@ from scipy.optimize import minimize
 
 from src.models.dixon_coles import (
     MIN_LAMBDA,
+    PRIOR_STRENGTH,
     SUM_TO_ZERO_PENALTY,
     DixonColesModel,
+    strength_prior,
 )
 
 SQUAD_COLUMNS = ("home_squad_overall_mean", "away_squad_overall_mean")
@@ -51,8 +53,17 @@ class SquadDixonColesModel(DixonColesModel):
 
     name = "dixon-coles-squad"
 
-    def __init__(self, xi: float | None = None, max_iterations: int = 500) -> None:
-        super().__init__(**({} if xi is None else {"xi": xi}), max_iterations=max_iterations)
+    def __init__(
+        self,
+        xi: float | None = None,
+        max_iterations: int = 500,
+        prior_strength: float = PRIOR_STRENGTH,
+    ) -> None:
+        super().__init__(
+            **({} if xi is None else {"xi": xi}),
+            max_iterations=max_iterations,
+            prior_strength=prior_strength,
+        )
         self.club_baseline: dict[str, float] = {}
         self.league_baseline: float = 0.0
         self.squad_attack: float = 0.0
@@ -125,6 +136,7 @@ class SquadDixonColesModel(DixonColesModel):
         home_goals = matches["home_goals"].to_numpy(dtype=float)
         away_goals = matches["away_goals"].to_numpy(dtype=float)
         weights = self._weights(matches["date"])
+        precision = self._prior_precision(home, away, weights, count)
 
         delta_home = self._deviations(matches, "home")
         delta_away = self._deviations(matches, "away")
@@ -137,7 +149,17 @@ class SquadDixonColesModel(DixonColesModel):
         result = minimize(
             self._negative_log_likelihood,
             start,
-            args=(home, away, home_goals, away_goals, weights, count, delta_home, delta_away),
+            args=(
+                home,
+                away,
+                home_goals,
+                away_goals,
+                weights,
+                count,
+                delta_home,
+                delta_away,
+                precision,
+            ),
             method="L-BFGS-B",
             jac=True,
             options={"maxiter": self.max_iterations},
@@ -190,6 +212,7 @@ class SquadDixonColesModel(DixonColesModel):
         count: int,
         delta_home: np.ndarray,
         delta_away: np.ndarray,
+        precision: np.ndarray,
     ) -> tuple[float, np.ndarray]:
         attack = parameters[:count]
         defence = parameters[count : 2 * count]
@@ -214,7 +237,9 @@ class SquadDixonColesModel(DixonColesModel):
         )
 
         total = attack.sum()
-        penalty = SUM_TO_ZERO_PENALTY * total**2
+        prior_attack, pull_attack = strength_prior(attack, precision)
+        prior_defence, pull_defence = strength_prior(defence, precision)
+        penalty = SUM_TO_ZERO_PENALTY * total**2 + prior_attack + prior_defence
 
         residual_home = weights * (lambda_home - home_goals)
         residual_away = weights * (lambda_away - away_goals)
@@ -225,7 +250,8 @@ class SquadDixonColesModel(DixonColesModel):
         gradient_defence = np.bincount(away, residual_home, count) + np.bincount(
             home, residual_away, count
         )
-        gradient_attack = gradient_attack + 2 * SUM_TO_ZERO_PENALTY * total
+        gradient_attack = gradient_attack + 2 * SUM_TO_ZERO_PENALTY * total + pull_attack
+        gradient_defence = gradient_defence + pull_defence
 
         # Each squad coefficient appears in both lambdas, with the sign flipping between
         # a side's own deviation and its opponent's.

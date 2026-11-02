@@ -23,7 +23,7 @@ scored against reality, suspensions derived from cards already on disk, squads f
 season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
 17–20) put it online and left it running**: CI, a public Streamlit deployment, a daily
 job that predicts each round before kickoff and commits it, ingestion of the season as it
-is played, and a simulated betting record. All three are complete and 535 tests cover them. Phase 16 is planned and
+is played, and a simulated betting record. All three are complete and 553 tests cover them. Phase 16 is planned and
 deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
 stay visually distinct.
 
@@ -45,7 +45,7 @@ Backtest results, walk-forward over 2,280 matches (RPS, lower is better):
 | baseline-elo | 0.2051 |
 | gbm | 0.2068 |
 | dixon-coles-squad | 0.2087 |
-| dixon-coles | 0.2118 |
+| dixon-coles | 0.2119 |
 | baseline-team-average | 0.2199 |
 | baseline-league-average | 0.2346 |
 
@@ -225,7 +225,7 @@ problems and an empty list means clean. Follow this shape for new sources.
 `dixon_coles_squad.py` adds `(this XI's mean overall − the club's usual mean)`, because a
 club's attack parameter and its average squad rating explain the same variation and
 compete if both are levels. The deviation is the part results cannot see: whether a side
-is fielding better or worse than it normally does. It earns its place — RPS 0.2118 to
+is fielding better or worse than it normally does. It earns its place — RPS 0.2119 to
 0.2087 over plain Dixon-Coles, with fewer repeated scorelines — and it is the only model
 that uses the FIFA pipeline *and* commits to a scoreline. A club with no history is
 measured against the league instead, which is where absolute rating is the right quantity.
@@ -321,6 +321,42 @@ rounds is exactly the region where the measured effect is 0.0018, so that number
 decisions about the model, not just to what the page shows. Measure a change like this on
 the backtest, where there are 2,280 matches, and let the live season check it afterwards.
 
+**Training on the season in progress means fitting a club on one match, so a barely-seen club
+is held to the league mean and the hold fades out.** Maximum likelihood has no answer for a
+debutant: one that fails to score has a best-fit attack of minus infinity, one that keeps a
+clean sheet the same for its defence. It surfaced as a single 10-0, Leeds v Fulham in round 2
+of 2020/21, 10.27 expected goals to 0.05, and **the 10-0 was the rare end of a common bug**.
+Seven fixtures sat on `MIN_LAMBDA` in five seasons of six, and only that one needed two
+debutants: Burnley got 0.05 at home because Sunderland had kept one clean sheet. The trigger
+is any debutant blanking in round 1, so it would have come back in August 2027 regardless.
+Nothing published is affected, 2026/27 running 0.51 to 3.22. `strength_prior` is a Gaussian
+penalty around the league mean at `PRIOR_STRENGTH` (5), scaled down to nothing at
+`PRIOR_FADES_BY` (19) time-weighted matches. It sits in **both** likelihoods, because
+`SquadDixonColesModel` has its own: a prior added only to the parent would pass its tests and
+never reach the deployed model.
+
+Measured with `src.betting.backtest` over 2,280 matches, RPS 0.2033→0.2028, peak 10.27→4.64,
+floor fixtures 7→0, and dixon-coles 0.2049→0.2044 from a peak of 12.10. **Do not quote that
+RPS as a proven gain**: the paired 95% interval is -0.0013 to +0.0001, 2020/21 itself ends
+0.0001 worse, and the fix earns its place by removing nonsense from an archive that cannot be
+corrected. The checks that matter are where it acts: 0.2583→0.1990 where a club has under two
+weighted matches, 0.2029→0.2028 where both are past 19, and between those established clubs
+1-1 stays at 53.8% (2 of 2,051 fixtures) with the spread no narrower. Distinct top scorelines
+fall 16→13, which looks like lost commitment and is not: the three that went are `10-0`,
+`1-4` and `2-2`, picked once each in rounds 2–3 of 2020/21 for clubs with one or two matches.
+
+**Three obvious fixes were tried and are wrong.** A cap on lambda removes the 10-0 and leaves
+all seven floor fixtures, because it treats the symptom. A ridge on every club wins on RPS,
+0.2024, and is the hedge this project keeps refusing: 1-1 between established clubs goes 53.7%
+to 60.6%. A taper reaching out to 38 matches does the same more slowly. **And peak lambda is
+the wrong way to choose a strength.** Strength 2 clears both tails, and the first version
+stopped there, until a test bound failed and the fixture turned out still to say 88% where
+the market closed at 57%. RPS cannot choose either, since it is flat from 5 to 12 while 1-1
+on the thinnest fixtures climbs 43.8%→52.1%. So the market's own top scoreline is the
+reference, 1-1 on 41.7% of those fixtures against 54.6% elsewhere, and 5 is the weakest
+strength on the plateau, at 43.8% with Leeds v Fulham at 66%. `compare` barely notices, moving
+only clubs returning after years away: squad holds at 0.2087, dixon-coles moves 0.21182→0.21188.
+
 **What protects a completed season is the count check, and a partial season has none.**
 "Exactly 380 matches, 20 teams, 19 home and 19 away" catches almost any corruption *by
 accident*. Relaxing it to bounds removes that backstop, so `validate_season(partial=True)`
@@ -371,22 +407,22 @@ the tracker shows the live season alone, by the user's choice, so `history` keep
 **The 12% tax is what stands between a coupon and its stake.** A 10 zł Polish coupon buys
 8.80 zł of bet, so a winner pays 8.80 times the price. The headline balance has it deducted
 and the untaxed figure sits beside it, for promotions where the bookmaker absorbs the tax.
-It is worth more than the model is: across the backtest home/draw/away is -16.4% with the
-tax and -5.0% without. Replays never count, since nobody could have placed that bet, and a
+It is worth more than the model is: across the backtest home/draw/away is -16.7% with the
+tax and -5.3% without. Replays never count, since nobody could have placed that bet, and a
 postponed fixture is staked once, through `once_per_fixture`.
 
 **The betting backtest has to train the way live does, or it scores a model nobody can
 run.** `backtest.walk_forward` refits before every round, 228 fits, and strips the season
 in progress down to `MATCH_COLUMNS`, as `training_history` does. Leaving the real squad
-columns on those rows printed 0.2025, better than the deployed 0.2033 and for a reason that
-cannot exist live. **The printed RPS is the check that it is the deployed model**, so read
-it after any rerun. One flattery remains and cannot be removed: a historical squad rating
+columns on those rows printed 0.2025, better than the 0.2033 deployed then and for a reason
+that cannot exist live. **The printed RPS is the check that it is the deployed model**, 0.2028
+today, so read it after any rerun. One flattery remains and cannot be removed: a historical squad rating
 comes from the XI that started, where a live round guesses it.
 
-**Sanity-check a mean, not only the tests.** 535 tests passed with an average exact-score
+**Sanity-check a mean, not only the tests.** 536 tests passed with an average exact-score
 price of 100.55, which was the model naming 10-0 for Leeds v Fulham in round 2 of 2020/21:
-two promoted clubs with one match each, 10.27 expected goals. Nothing published is affected,
-the next highest round-2 peak is 3.56, and the bet lost, but no test would have shown it.
+two promoted clubs with one match each, 10.27 expected goals. No test would have shown it, and
+the average is 7.01 now that the fit has a prior.
 
 **Per-team features are computed on a team-match table**, two rows per fixture rather
 than one. `features/form.py` builds it, and `features/build.py` pivots it back to one row

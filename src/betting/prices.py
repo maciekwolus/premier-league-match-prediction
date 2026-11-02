@@ -36,7 +36,7 @@ PRICE_COLUMNS = ("odds_close_home", "odds_close_draw", "odds_close_away")
 # away. Read off two whole correct-score tables on OddsPortal: 1.25 for one book on Arsenal
 # v Brighton in May 2021, and 1.15 for the *best* of four books on Southampton v
 # Arsenal in May 2025, which is flattering because nobody offers the best of four. Two
-# matches is thin: across the backtest, 15% gives -7,418 zl and 35% gives -9,697 zl, so the
+# matches is thin: across the backtest, 15% gives -6,993 zl and 35% gives -9,335 zl, so the
 # verdict survives the guess even though the exact figure does not.
 CORRECT_SCORE_OVERROUND = 1.25
 

@@ -338,7 +338,7 @@ def test_rewriting_a_rounds_results_cannot_change_its_own_picks(recorded):
 
 def test_the_season_in_progress_trains_without_squad_ratings(recorded):
     """The live path has no ratings for it, and using them scored 0.2025 for a model nobody
-    can run, against the deployed 0.2033."""
+    can run, against the 0.2033 deployed at the time."""
     walk_forward(synthetic_features(), recorded)
 
     last = recorded.fits[-1]
