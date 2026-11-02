@@ -143,7 +143,7 @@ pip install -r requirements-full.txt
   it, `compare` says so and names both this command and `--fast`, rather than failing
   partway through a backtest.
 
-All 553 tests pass with both absent, which is why they are separable at all.
+All 558 tests pass with both absent, which is why they are separable at all.
 
 ### 5. Build the data
 

@@ -26,14 +26,14 @@ from src.report.view import (
 
 OUTCOME_LABELS = {"home": "H", "draw": "D", "away": "A"}
 
-MARKET_NAMES = {"outcome": "home/draw/away", "score": "exact score"}
+MARKET_NAMES = {"outcome": "home/draw/away", "score": "exact score", "top3": "top three"}
 
 # On the page wherever a balance is, so a figure cannot be read away from what it rests
 # on. This was meant to be a Polish bookmaker, and the reader should know it is not.
 PRICE_NOTE = (
     f"<b>Simulation, and not Polish prices.</b> Home/draw/away uses {BOOKMAKER} closing odds. "
-    "Exact-score odds are estimated from that line with a 25% bookmaker margin, because no "
-    "source we may use records them. Each stake loses the 12% Polish tax first."
+    "Exact-score odds, top three included, are estimated from that line with a 25% margin, "
+    "because no source we may use records them. Each stake loses the 12% Polish tax first."
 )
 
 # Shown in the empty state, so the reader can paste a cd that is right for their machine
@@ -568,7 +568,7 @@ def _money(amount: float) -> str:
 
 
 def betting_bar(record: dict, past: dict | None) -> str:
-    """Where ten zloty a match would stand this season, in both markets.
+    """Where ten zloty a bet would stand this season, in every market.
 
     Written to be hard to misread, because a page showing a profit is the one most likely
     to be believed without a second look. It therefore always says the prices are not
@@ -577,7 +577,7 @@ def betting_bar(record: dict, past: dict | None) -> str:
     small sample happens to beat the market.
     """
     total = record["total"]
-    outcome, score = total["outcome"], total["score"]
+    outcome, score, top3 = (total[market] for market in MARKETS)
     if not total["matches"]:
         return ""
 
@@ -585,8 +585,8 @@ def betting_bar(record: dict, past: dict | None) -> str:
         (
             "IF WE HAD BET",
             f"{STAKE:.0f} ZŁ × {total['matches']}",
-            "Ten zloty on every settled match this season, in each market. Rounds "
-            "predicted before kick-off only, and every fixture, so nothing is hand-picked.",
+            "Ten zloty a bet on every settled match this season. Rounds predicted before "
+            "kick-off only, and every fixture, so nothing is hand-picked.",
         ),
         (
             "HOME/DRAW/AWAY",
@@ -603,10 +603,18 @@ def betting_bar(record: dict, past: dict | None) -> str:
             f"{score['untaxed_balance']:+,.2f} zł.",
         ),
         (
-            "STAKED EACH",
-            f"{outcome['staked']:,.0f} ZŁ",
-            "What each market has put on so far. The two are separate bets, so the "
-            "combined outlay is double this.",
+            "TOP 3 SCORES (EST.)",
+            _money(top3["balance"]),
+            f"Ten zloty on each of the three likeliest scorelines, so three bets a match. "
+            f"{top3['won']} of {top3['bets']} won at estimated prices, after the "
+            f"{STAKE_TAX:.0%} stake tax. Without the tax: {top3['untaxed_balance']:+,.2f} zł.",
+        ),
+        (
+            "STAKED",
+            f"{sum(total[market]['staked'] for market in MARKETS):,.0f} ZŁ",
+            f"Across all three: {outcome['staked']:,.0f} zł on home/draw/away, "
+            f"{score['staked']:,.0f} zł on the exact score and {top3['staked']:,.0f} zł on the "
+            "top three.",
         ),
     ]
     rendered = "".join(
@@ -631,8 +639,9 @@ def betting_bar(record: dict, past: dict | None) -> str:
     caveat = (
         '<div class="pl-notice pl-notice-quiet">'
         f"<b>{total['matches']} bets is not a sample.</b> Luck alone moves these balances by "
-        f"about {outcome['luck']:,.0f} zł (home/draw/away) and {score['luck']:,.0f} zł "
-        f"(exact score).{contradiction} {PRICE_NOTE}</div>"
+        f"about {outcome['luck']:,.0f} zł (home/draw/away), {score['luck']:,.0f} zł "
+        f"(exact score) and {top3['luck']:,.0f} zł (top three).{contradiction} "
+        f"{PRICE_NOTE}</div>"
     )
     return f'<div class="pl-statbar pl-scorecard pl-betting">{rendered}</div>{caveat}'
 
@@ -659,31 +668,49 @@ def betting_detail(record: dict) -> str:
             [
                 f"GW {row['gameweek']}",
                 str(row["matches"]),
-                f"{row['outcome']['won']}/{row['outcome']['bets']}",
-                _money(row["outcome"]["balance"]),
-                _money(row["outcome"]["running"]),
-                f"{row['score']['won']}/{row['score']['bets']}",
-                _money(row["score"]["balance"]),
-                _money(row["score"]["running"]),
+                *[
+                    cell
+                    for market in MARKETS
+                    for cell in (
+                        f"{row[market]['won']}/{row[market]['bets']}",
+                        _money(row[market]["balance"]),
+                        _money(row[market]["running"]),
+                    )
+                ],
             ]
             for row in record["rounds"]
         ]
-        outcome, score = record["total"]["outcome"], record["total"]["score"]
+        totals = record["total"]
         total = [
             "TOTAL",
-            str(record["total"]["matches"]),
-            f"{outcome['won']}/{outcome['bets']}",
-            _money(outcome["balance"]),
-            "",
-            f"{score['won']}/{score['bets']}",
-            _money(score["balance"]),
-            "",
+            str(totals["matches"]),
+            *[
+                cell
+                for market in MARKETS
+                for cell in (
+                    f"{totals[market]['won']}/{totals[market]['bets']}",
+                    _money(totals[market]["balance"]),
+                    "",
+                )
+            ],
         ]
         heading = f"{escape(record['season'])}, ROUND BY ROUND"
         sections.append(f'<div class="pl-money-key">{heading}</div>')
         sections.append(
             _money_table(
-                ["ROUND", "BETS", "1X2 WON", "1X2", "SO FAR", "EXACT WON", "EXACT", "SO FAR"],
+                [
+                    "ROUND",
+                    "MATCHES",
+                    "1X2 WON",
+                    "1X2",
+                    "SO FAR",
+                    "EXACT WON",
+                    "EXACT",
+                    "SO FAR",
+                    "TOP 3 WON",
+                    "TOP 3",
+                    "SO FAR",
+                ],
                 rows,
                 total,
             )

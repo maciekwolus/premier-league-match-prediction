@@ -41,8 +41,10 @@ def bets_frame(*bets: tuple[float, bool]) -> pd.DataFrame:
             "gameweek": range(1, len(bets) + 1),
             "price_outcome": [price for price, _ in bets],
             "price_score": [price for price, _ in bets],
+            "price_top3": [price for price, _ in bets],
             "won_outcome": [won for _, won in bets],
             "won_score": [won for _, won in bets],
+            "won_top3": [won for _, won in bets],
         }
     )
 
@@ -54,6 +56,7 @@ def stored(
     outcome: tuple[float, float, float] = (0.5, 0.3, 0.2),
     mode: str = "upcoming",
     predicted_at: str = "2026-08-13T06:00:00+00:00",
+    others: tuple[str, str] = ("7-7", "8-8"),
 ) -> dict:
     return {
         "match_id": f"{SEASON}_{gameweek}_arsenal_{away}",
@@ -63,7 +66,11 @@ def stored(
         "away_team": away,
         "mode": mode,
         "predicted_at": predicted_at,
-        "scorelines": [{"score": score, "probability": 0.12}],
+        "scorelines": [
+            {"score": score, "probability": 0.12},
+            {"score": others[0], "probability": 0.1},
+            {"score": others[1], "probability": 0.08},
+        ],
         "outcome": {"home": outcome[0], "draw": outcome[1], "away": outcome[2]},
     }
 
@@ -107,14 +114,29 @@ def test_no_bets_settle_to_nothing_rather_than_dividing_by_zero():
     assert (settled["bets"], settled["balance"], settled["roi"]) == (0, 0, None)
 
 
-def test_rounds_carry_a_running_balance_that_ends_at_the_total():
-    bets = bets_frame((2.0, True), (3.0, False), (4.0, True))
+def test_rounds_carry_a_running_balance_that_ends_exactly_at_the_total():
+    # Prices that each settle to a half-grosz: added up after rounding, these drift.
+    bets = bets_frame(*[(1.2345, True), (1.2345, True), (1.2345, True), (1.2345, True)])
     rounds = by_round(bets)
 
-    assert [row["gameweek"] for row in rounds] == [1, 2, 3]
-    assert rounds[-1]["outcome"]["running"] == pytest.approx(
-        both_markets(bets)["outcome"]["balance"]
-    )
+    assert [row["gameweek"] for row in rounds] == [1, 2, 3, 4]
+    totals = both_markets(bets)
+    for market in ("outcome", "score", "top3"):
+        assert rounds[-1][market]["running"] == totals[market]["balance"]
+
+
+def test_the_top_three_stakes_three_bets_a_match():
+    settled = settle(bets_frame((8.0, False)), "top3")
+    assert settled["bets"] == 3
+    assert settled["staked"] == 30
+    assert settled["balance"] == -30
+
+
+def test_a_top_three_hit_wins_one_bet_and_loses_the_other_two():
+    settled = settle(bets_frame((8.0, True)), "top3")
+    assert settled["won"] == 1
+    assert settled["returned"] == pytest.approx(70.40)
+    assert settled["balance"] == pytest.approx(40.40)
 
 
 def test_luck_grows_with_the_number_of_bets():
@@ -181,6 +203,7 @@ def test_the_picks_are_settled_on_the_outcome_and_the_score():
                 "away_team": "Hull",
                 "pick_outcome": "H",
                 "pick_score": "1-1",
+                "pick_scores": "1-1,2-1,2-0",
                 "home_goals": 2,
                 "away_goals": 0,
             }
@@ -192,6 +215,26 @@ def test_the_picks_are_settled_on_the_outcome_and_the_score():
     assert row["price_outcome"] == 2.0
     assert bool(row["won_outcome"]) is True
     assert bool(row["won_score"]) is False
+    assert bool(row["won_top3"]) is True
+    assert row["price_top3"] == estimated_score_price(*LINE, 2, 0)
+
+
+def test_a_score_outside_the_three_wins_nothing(tmp_path):
+    save_round([stored("Hull", score="1-1", others=("2-1", "2-0"))], SEASON, 1, tmp_path)
+    record = tracker(SEASON, tmp_path, result("Hull", 4, 4), line_for("Hull"))
+
+    assert record["total"]["top3"]["won"] == 0
+    assert record["total"]["top3"]["balance"] == -30
+
+
+def test_the_second_and_third_scorelines_count(tmp_path):
+    save_round([stored("Hull", score="1-1", others=("2-1", "2-0"))], SEASON, 1, tmp_path)
+    record = tracker(SEASON, tmp_path, result("Hull", 2, 0), line_for("Hull"))
+
+    assert record["total"]["score"]["won"] == 0
+    assert record["total"]["top3"]["won"] == 1
+    expected = estimated_score_price(*LINE, 2, 0) * 8.8 - 30
+    assert record["total"]["top3"]["balance"] == pytest.approx(expected, abs=0.01)
 
 
 def test_a_replayed_round_is_not_a_bet_anyone_could_have_placed(tmp_path):
@@ -311,6 +354,15 @@ def test_the_first_season_is_never_bet_on(recorded):
     assert len(picks) == 12
 
 
+def test_the_backtest_picks_three_scorelines_led_by_the_first(recorded):
+    picks = walk_forward(synthetic_features(), recorded)
+
+    for row in picks.itertuples():
+        scores = row.pick_scores.split(",")
+        assert len(set(scores)) == 3
+        assert scores[0] == row.pick_score
+
+
 def test_a_round_is_never_trained_on_itself_or_anything_later(recorded):
     features = synthetic_features()
     walk_forward(features, recorded)
@@ -381,6 +433,7 @@ def test_the_bar_says_these_are_not_polish_prices_and_are_estimated(tmp_path):
     bar = betting_bar(lucky_record(tmp_path), None)
     assert "not Polish prices" in bar
     assert "estimated" in bar
+    assert "TOP 3 SCORES (EST.)" in bar
 
 
 def test_a_profit_is_contradicted_by_the_backtest(tmp_path):
@@ -409,6 +462,7 @@ def test_the_detail_lists_every_round_and_no_older_season(tmp_path):
     assert "GW 1" in detail
     assert "not Polish prices" in detail
     assert "2025/26" not in detail
+    assert "TOP 3 WON" in detail
 
 
 def test_the_run_summary_says_what_the_prices_are(tmp_path):
@@ -416,6 +470,7 @@ def test_the_run_summary_says_what_the_prices_are(tmp_path):
     assert "not a Polish bookmaker" in summary
     assert "estimated" in summary
     assert "| GW 1 |" in summary
+    assert "Top three scores" in summary
 
 
 # ---------------------------------------------------------------- connected

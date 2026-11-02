@@ -62,8 +62,8 @@ Squads are kept honest against reality rather than against last season. Expected
 from who a club has actually been starting, then anyone the **Fantasy Premier League squad
 lists** no longer show at that club is dropped — Casemiro played all of 2025/26 for Man
 United and was still being picked a year after leaving. Suspensions come out of cards
-already on disk. Signings are reported but never selected, because a player with no
-appearances cannot be ranked against the players who have them.
+already on disk. A signing has no appearances to rank against, so one takes a place only
+when rated clearly above the weakest player in the same line.
 
 Every prediction is **archived the moment it is made and never rewritten**, because the
 only interesting question about a forecast is what it said *before* the match — and that
@@ -113,14 +113,14 @@ matches, lower is better:
 
 A model that beat the closing line should be suspected of data leakage before it is
 believed. Two things worth noticing: **plain Elo beats AutoGluon on 85 features**, and the
-report deliberately does *not* use the best-scoring model — `poisson-glm` wins on RPS by
-hedging, which makes it call 1-1 in 74% of matches. When the deliverable is a scoreline,
+report deliberately does *not* use the best model without odds — `poisson-glm` wins on RPS
+by hedging, which makes it call 1-1 in 74% of matches. When the deliverable is a scoreline,
 that is a failure whatever the score says.
 
 **The table above trains every model on complete seasons only, so they are compared on
 equal footing — the deployed model does better than its row.** It also learns from the
-season being played, which is worth 0.2087 → **0.2033** over the same 2,280 matches, more
-than twice what the whole squad-quality channel buys. A frozen table forecasts October
+season being played, which is worth 0.2087 → **0.2033** over the same 2,280 matches, nearly
+twice what the whole squad-quality channel buys. A frozen table forecasts October
 from each club's strength in May, and a promoted club is worse than stale: Coventry and
 Hull appear in none of the seven training seasons, so both were handed the league average
 and the model could not tell them apart. It is not bought by hedging, either — the 1-1
@@ -132,35 +132,49 @@ average, an effect that fades out by half a season, so established sides are lef
 takes the deployed model to **0.2028**, and its real value is what can no longer be published.
 
 Worth noting how that was settled, since the first answer was wrong: measured over the
-eight rounds of 2026/27 played so far, the change looks like a **loss**. Seventy matches
+first eight rounds of 2026/27, the change looks like a **loss**. Seventy matches
 is the region where the real effect is a twentieth of the noise, which is the same reason
 the report refuses to let a good round speak for itself.
 
 ## Would it have made money?
 
-**No, in either market, in any season.** Ten złoty on the model's call for every one of the
-2,280 backtested matches, 22,800 zł staked per market, with Poland's 12% stake tax deducted:
+**No, in any of the three bets, in any season.** Every one of the 2,280 backtested matches
+gets all three, with Poland's 12% stake tax deducted: 10 zł on the outcome the model rates
+most likely, 10 zł on its leading scoreline, and 10 zł on **each** of its three likeliest
+scorelines. That last one is three bets and 30 zł a match, of which at most one can win, so
+it stakes 68,400 zł where the other two stake 22,800 zł each.
 
-| Season | Home/draw/away | Hit | Exact score *(estimated prices)* | Hit |
-|---|---:|---:|---:|---:|
-| 2020/21 | -706 zł | 51.1% | -1,741 zł | 9.2% |
-| 2021/22 | -612 zł | 53.9% | -1,998 zł | 8.4% |
-| 2022/23 | -680 zł | 52.4% | -1,621 zł | 10.0% |
-| 2023/24 | -461 zł | 57.4% | -903 zł | 12.1% |
-| 2024/25 | -443 zł | 55.5% | -776 zł | 12.9% |
-| 2025/26 | -904 zł | 46.8% | -1,218 zł | 11.3% |
-| **Total** | **-3,807 zł (-16.7%)** | 52.9% | **-8,257 zł (-36.2%)** | 10.7% |
+| Season | Home/draw/away | Hit | Exact score *(estimated prices)* | Hit | Top three *(estimated prices, 30 zł a match)* | Hit |
+|---|---:|---:|---:|---:|---:|---:|
+| 2020/21 | -706 zł | 51.1% | -1,741 zł | 9.2% | -4,550 zł (-39.9%) | 27.9% |
+| 2021/22 | -612 zł | 53.9% | -1,998 zł | 8.4% | -3,209 zł (-28.1%) | 33.2% |
+| 2022/23 | -680 zł | 52.4% | -1,621 zł | 10.0% | -3,756 zł (-32.9%) | 31.1% |
+| 2023/24 | -461 zł | 57.4% | -903 zł | 12.1% | -4,408 zł (-38.7%) | 26.3% |
+| 2024/25 | -443 zł | 55.5% | -776 zł | 12.9% | -3,077 zł (-27.0%) | 31.6% |
+| 2025/26 | -904 zł | 46.8% | -1,218 zł | 11.3% | -3,821 zł (-33.5%) | 30.0% |
+| **Total** | **-3,807 zł (-16.7%)** | 52.9% | **-8,257 zł (-36.2%)** | 10.7% | **-22,821 zł (-33.4%)** | 30.0% |
+
+Compare these by return, not by balance, because the top three stakes three times as much.
+One of its scorelines lands in 30.0% of matches against 10.7% for the single score, nearly
+three times as often, but that is what the prices already charge for: 684 of its 6,840 bets
+won, and per złoty it is only slightly better, -33.4% against -36.2%. On three times the
+stake, that makes it the largest loss of the three. It is not a safer way to win.
 
 Even with the tax removed, home/draw/away still loses 5.3%, about what a bookmaker's margin
 takes on its own, so the picks add little beyond the favourite the market already prices.
-The report runs the same two bets on every live round, and the balance updates itself as
-results come in.
+The exact score still loses 27.5% and the top three 24.3%.
+
+That table is this README's record of the backtest, and it is not on the site. The report
+runs the same three bets on every live round and shows the current season only, and the
+balance updates itself as results come in. If a balance climbs above zero, one sentence
+quotes the backtest's loss beside it, so a lucky run does not get to speak for itself.
 
 **These are not Polish bookmaker prices.** The aim was STS, but the only archive holding its
-prices forbids automated collection, so home/draw/away uses Bet365's real closing odds and
-exact-score odds are **estimated** from that line with a 25% bookmaker margin. That
-assumption moves the exact-score total between -6,993 zł at 15% and -9,335 zł at 35%, and
-it stays a heavy loss throughout.
+prices forbids automated collection, so home/draw/away uses Bet365's real closing odds, and
+exact-score and top-three odds are **estimated** from that line with a 25% bookmaker margin.
+Neither is a price anyone was actually quoted. That assumption moves the exact-score total
+between -6,993 zł at 15% and -9,335 zł at 35%, and the top three between -18,857 zł and
+-26,197 zł, and both stay heavy losses throughout.
 
 ## Running it
 
@@ -201,7 +215,7 @@ src/predict/      fixtures, expected XIs, squad currency, and the prediction arc
 src/report/       shaping predictions for display
 src/betting/      the simulated 10 zł bets: prices, settlement, the backtest and the tracker
 app.py            the Streamlit report
-tests/            553 tests, no network access and no reading of data/
+tests/            558 tests, no network access and no reading of data/
 data/manual/      hand-written overrides: names, ratings, absences, fixtures (committed)
 ```
 
@@ -216,7 +230,7 @@ rebuilt from source.
 
 **Python 3.12.** [requirements.txt](requirements.txt) is small, quick and free of hard
 version pins — which is what makes it safe to deploy. The two awkward dependencies are
-separate, in [requirements-full.txt](requirements-full.txt), and all 553 tests pass with
+separate, in [requirements-full.txt](requirements-full.txt), and all 558 tests pass with
 both absent. This is what each one is here for.
 
 | | | |
@@ -229,13 +243,13 @@ both absent. This is what each one is here for.
 | **Models** | `scipy` | Optimises Dixon-Coles — the model the report actually uses |
 | | `autogluon.tabular` | Gradient boosting *(separate: ~700 MB)*. `compare --fast` runs without it |
 | **Report** | `streamlit` | The page. Cards are hand-written HTML; Streamlit does layout |
-| **Tooling** | `pytest`, `ruff` | 553 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
+| **Tooling** | `pytest`, `ruff` | 558 tests, lint and format — run on every push by [GitHub Actions](.github/workflows/ci.yml) |
 
 **No neural network was written by hand** — that was a constraint from the start.
 Dixon-Coles is a well-defined statistical model fitted with `scipy.optimize`, and AutoGluon
 handles the machine learning behind a `.fit()`.
 
-**Not used, deliberately.** No database: parquet files are faster at this size and diff
-cleanly. No web framework: the report is a single Streamlit script. **Every data source is
+**Not used, deliberately.** No database: parquet files are faster at this size and need
+no server. No web framework: the report is a single Streamlit script. **Every data source is
 free**, and the one that needs an account — Kaggle, for the player ratings — is placed by
 hand rather than automated around, because credentials are the user's to handle.

@@ -152,10 +152,15 @@ def predicted_outcome(match: dict) -> str | None:
     return OUTCOMES[int(np.argmax(ordered))] if any(ordered) else None
 
 
+def predicted_scores(match: dict) -> list[str]:
+    """Every scoreline the prediction listed, most likely first."""
+    return [entry["score"] for entry in match.get("scorelines") or []]
+
+
 def predicted_score(match: dict) -> str | None:
     """The scoreline the prediction put first."""
-    scorelines = match.get("scorelines") or []
-    return scorelines[0]["score"] if scorelines else None
+    scores = predicted_scores(match)
+    return scores[0] if scores else None
 
 
 def verdict(match: dict) -> dict | None:
