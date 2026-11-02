@@ -209,9 +209,9 @@ def numerical_gradient(objective, parameters: np.ndarray, step: float = 1e-6) ->
     for position in range(len(parameters)):
         shift = np.zeros_like(parameters)
         shift[position] = step
-        gradient[position] = (objective(parameters + shift)[0] - objective(parameters - shift)[0]) / (
-            2 * step
-        )
+        gradient[position] = (
+            objective(parameters + shift)[0] - objective(parameters - shift)[0]
+        ) / (2 * step)
     return gradient
 
 

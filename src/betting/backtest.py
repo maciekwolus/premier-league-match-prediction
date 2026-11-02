@@ -4,7 +4,7 @@ The live archive starts in August 2026, so 2020/21 to 2025/26 have to be reconst
 That is done the way the model actually runs rather than the way ``evaluate.compare`` runs
 it: **refitted before every round on everything played so far**, the season in progress
 included. Fitting once per season would simulate a model nobody deployed, and measured
-over these matches that gap is worth 0.0054 RPS. It costs 228 fits instead of 6.
+over these matches that gap is worth 0.0058 RPS. It costs 228 fits instead of 6.
 
 One difference from live cannot be removed: a historical squad rating comes from the XI
 that really started, where a live round has to guess it. That flatters these seasons

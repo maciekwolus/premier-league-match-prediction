@@ -143,7 +143,7 @@ pip install -r requirements-full.txt
   it, `compare` says so and names both this command and `--fast`, rather than failing
   partway through a backtest.
 
-All 536 tests pass with both absent, which is why they are separable at all.
+All 554 tests pass with both absent, which is why they are separable at all.
 
 ### 5. Build the data
 
@@ -292,7 +292,7 @@ walk-forward validation — train on seasons 1..n, test on n+1, never a random s
 | baseline-elo | 0.2051 | 53.1% |
 | gbm | 0.2068 | 52.9% |
 | dixon-coles-squad | 0.2087 | 51.7% |
-| dixon-coles | 0.2118 | 50.2% |
+| dixon-coles | 0.2119 | 50.1% |
 | baseline-team-average | 0.2199 | 48.6% |
 | baseline-league-average | 0.2346 | 43.1% |
 
@@ -314,7 +314,7 @@ best also produce the least interesting scorelines:
 | poisson-glm | **0.2039** | 74% of matches | 9 |
 | gbm | 0.2068 | 65% | 11 |
 | **dixon-coles-squad** | 0.2087 | **54%** | **11** |
-| dixon-coles | 0.2118 | 60% | 11 |
+| dixon-coles | 0.2119 | 60% | 11 |
 
 Take Crystal Palace against Arsenal, with the market pricing the away win at 51%.
 `poisson-glm` expects 1.27 goals to 1.63 and calls it **1-1**. The Dixon-Coles models
