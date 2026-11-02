@@ -371,15 +371,10 @@ def test_a_checkout_without_the_backtest_still_works(tmp_path):
     assert history(tmp_path / "missing.parquet") is None
 
 
-def test_history_totals_every_season(tmp_path):
+def test_history_keeps_only_the_total(tmp_path):
     past = history(backtest_file(tmp_path))
-    assert [row["season"] for row in past["seasons"]] == ["2024/25", "2025/26"]
     assert past["total"]["matches"] == 4
-
-
-def test_a_thinner_margin_never_makes_the_exact_score_balance_worse(tmp_path):
-    balances = [entry["balance"] for entry in history(backtest_file(tmp_path))["overrounds"]]
-    assert balances == sorted(balances, reverse=True)
+    assert "seasons" not in past
 
 
 def test_the_bar_says_these_are_not_polish_prices_and_are_estimated(tmp_path):
@@ -409,11 +404,11 @@ def test_a_season_with_nothing_settled_shows_no_bar(tmp_path):
     assert betting_bar(tracker(SEASON, tmp_path, {}, {}), None) == ""
 
 
-def test_the_detail_lists_every_round_and_the_backtest(tmp_path):
-    detail = betting_detail(lucky_record(tmp_path), history(backtest_file(tmp_path)))
+def test_the_detail_lists_every_round_and_no_older_season(tmp_path):
+    detail = betting_detail(lucky_record(tmp_path))
     assert "GW 1" in detail
-    assert "2025/26" in detail
     assert "not Polish prices" in detail
+    assert "2025/26" not in detail
 
 
 def test_the_run_summary_says_what_the_prices_are(tmp_path):

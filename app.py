@@ -178,9 +178,9 @@ def main() -> None:
     record = tracker(selected["season_slug"])
     past = history()
     st.markdown(betting_bar(record, past), unsafe_allow_html=True)
-    if record["rounds"] or past:
+    if record["rounds"]:
         with st.expander("💰  BETTING TRACKER, ROUND BY ROUND", expanded=False):
-            st.markdown(betting_detail(record, past), unsafe_allow_html=True)
+            st.markdown(betting_detail(record), unsafe_allow_html=True)
 
     render_grid(predictions)
 
