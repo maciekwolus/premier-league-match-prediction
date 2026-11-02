@@ -454,7 +454,7 @@ h1 {{
 
 /* ------------------------------------------------------------ betting tracker */
 
-.pl-betting .pl-stat {{ flex-basis: 25%; }}
+.pl-betting .pl-stat {{ flex-basis: 20%; }}
 .pl-gain {{ color: {UP}; }}
 .pl-loss {{ color: {DOWN}; }}
 .pl-money-key {{

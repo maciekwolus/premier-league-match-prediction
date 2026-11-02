@@ -32,9 +32,14 @@ from src.report.results import (
     once_per_fixture,
     predicted_outcome,
     predicted_score,
+    predicted_scores,
 )
 
-LABELS = {"outcome": "Home/draw/away", "score": "Exact score (estimated prices)"}
+LABELS = {
+    "outcome": "Home/draw/away",
+    "score": "Exact score (estimated prices)",
+    "top3": "Top three scores (estimated prices)",
+}
 
 
 def stored_bets(
@@ -70,6 +75,7 @@ def stored_bets(
                 "away_team": match["away_team"],
                 "pick_outcome": predicted_outcome(match),
                 "pick_score": predicted_score(match),
+                "pick_scores": ",".join(predicted_scores(match)),
                 "home_goals": match["actual"]["home_goals"],
                 "away_goals": match["actual"]["away_goals"],
             }
@@ -116,7 +122,7 @@ def format_summary(record: dict, past: dict | None) -> str:
     lines = [
         f"## Betting tracker, {record['season']}",
         "",
-        f"{STAKE:.0f} zł on every match, {STAKE_TAX:.0%} stake tax deducted. Prices are "
+        f"{STAKE:.0f} zł a bet on every match, {STAKE_TAX:.0%} stake tax deducted. Prices are "
         f"{BOOKMAKER} closing odds, not a Polish bookmaker's, and exact-score prices are "
         "estimated.",
         "",
@@ -133,16 +139,16 @@ def format_summary(record: dict, past: dict | None) -> str:
     if record["rounds"]:
         lines += [
             "",
-            "| Round | Home/draw/away | Running | Exact score | Running |",
-            "|---|---:|---:|---:|---:|",
+            "| Round | Home/draw/away | Running | Exact score | Running | Top three | Running |",
+            "|---|---:|---:|---:|---:|---:|---:|",
         ]
         for row in record["rounds"]:
-            outcome, score = row["outcome"], row["score"]
-            lines.append(
-                f"| GW {row['gameweek']} | {signed(outcome['balance'])} "
-                f"| {signed(outcome['running'])} | {signed(score['balance'])} "
-                f"| {signed(score['running'])} |"
-            )
+            cells = [
+                cell
+                for market in MARKETS
+                for cell in (signed(row[market]["balance"]), signed(row[market]["running"]))
+            ]
+            lines.append(f"| GW {row['gameweek']} | {' | '.join(cells)} |")
 
     if record["pending"]:
         lines += ["", f"Waiting on a result: {record['pending']}."]
@@ -154,7 +160,8 @@ def format_summary(record: dict, past: dict | None) -> str:
             "",
             f"Backtest over {total['matches']:,} matches: home/draw/away "
             f"{signed(total['outcome']['balance'])}, exact score "
-            f"{signed(total['score']['balance'])}.",
+            f"{signed(total['score']['balance'])}, top three scores "
+            f"{signed(total['top3']['balance'])}.",
         ]
     return "\n".join(lines)
 

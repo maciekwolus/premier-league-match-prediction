@@ -4,11 +4,11 @@
 tracker was meant to use STS. OddsPortal does hold STS's closing prices, but its robots.txt
 disallows every archived season for every crawler and its terms forbid copying without
 written permission, so that archive was not collected. No API found offers Polish prices
-for the correct-score market. The two markets therefore rest on different evidence:
+for the correct-score market. The markets therefore rest on two kinds of evidence:
 
 - **Home/draw/away is a real price**: Bet365's close, from football-data, which any bettor
   could have taken. A Polish book's margin differs a little, but the number is not invented.
-- **Exact score is an estimate.** No source available here records a correct-score price
+- **Exact scores are an estimate.** No source available here records a correct-score price
   for these matches at all, so one is derived from the same closing line (below) and
   labelled ``estimated`` wherever it reaches a page.
 

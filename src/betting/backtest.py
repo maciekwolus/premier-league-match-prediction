@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 from src.betting.prices import closing_prices
-from src.betting.simulate import BACKTEST_PARQUET, priced
+from src.betting.simulate import BACKTEST_PARQUET, TOP_SCORES, priced
 from src.config import write_parquet
 from src.data.gameweeks import assign_gameweeks
 from src.evaluate.metrics import OUTCOMES, ranked_probability_score
@@ -63,7 +63,7 @@ def walk_forward(features: pd.DataFrame, make_model=SquadDixonColesModel) -> pd.
             ):
                 matrix = score_matrix(home, away)
                 probabilities = outcome_probabilities(matrix)
-                top_home, top_away, _ = top_scorelines(matrix, 1)[0]
+                top = [f"{home}-{away}" for home, away, _ in top_scorelines(matrix, TOP_SCORES)]
                 rows.append(
                     {
                         "season_slug": season.replace("/", "_"),
@@ -74,7 +74,8 @@ def walk_forward(features: pd.DataFrame, make_model=SquadDixonColesModel) -> pd.
                         "prob_draw": probabilities[1],
                         "prob_away": probabilities[2],
                         "pick_outcome": OUTCOMES[int(np.argmax(probabilities))],
-                        "pick_score": f"{top_home}-{top_away}",
+                        "pick_score": top[0],
+                        "pick_scores": ",".join(top),
                         "home_goals": int(match.home_goals),
                         "away_goals": int(match.away_goals),
                     }

@@ -23,7 +23,7 @@ scored against reality, suspensions derived from cards already on disk, squads f
 season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
 17–20) put it online and left it running**: CI, a public Streamlit deployment, a daily
 job that predicts each round before kickoff and commits it, ingestion of the season as it
-is played, and a simulated betting record. All three are complete and 553 tests cover them. Phase 16 is planned and
+is played, and a simulated betting record. All three are complete and 558 tests cover them. Phase 16 is planned and
 deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
 stay visually distinct.
 
@@ -384,10 +384,10 @@ show our RPS beside a permanent blank, which is the one comparison the page exis
 prediction already recorded** — what we actually saw beats what the line closed at.
 
 **The betting tracker prices the same picks the scorecard grades, and they are not Polish
-prices.** `src/betting/` puts a simulated 10 zł on every fixture, once on the most likely
-outcome and once on the leading scoreline, and `results.predicted_outcome` and
-`predicted_score` are shared with `verdict` so the money and the hit counts cannot describe
-different picks. The aim was STS, and **do not collect it from OddsPortal**: its archive
+prices.** `src/betting/` puts a simulated 10 zł on every fixture, on the most likely
+outcome, on the leading scoreline, and on each of the three leading scorelines, and
+`results.predicted_outcome` and `predicted_score` are shared with `verdict` so the money and
+the hit counts cannot describe different picks. The aim was STS, and **do not collect it from OddsPortal**: its archive
 does hold STS's 1X2 and correct-score closes, and its `/h2h/` links dodge the year patterns,
 but robots.txt disallows `*-2024*` back to `*-1998*` for every crawler and its terms forbid
 copying without written permission. Those year-free links serve the same archive, so they
@@ -410,6 +410,15 @@ and the untaxed figure sits beside it, for promotions where the bookmaker absorb
 It is worth more than the model is: across the backtest home/draw/away is -16.7% with the
 tax and -5.3% without. Replays never count, since nobody could have placed that bet, and a
 postponed fixture is staked once, through `once_per_fixture`.
+
+**The top three is three bets, not one safer bet.** It stakes 30 zł a match
+(`BETS_PER_MATCH`) and at most one of the three can win, so `won` counts winning bets out of
+`bets`, and a match hit pays at the price of the score that came in, which is the only one
+`priced` looks up. Over the backtest it hits in 30.0% of matches, three times the single
+score's 10.7%, and that is exactly what the prices already charge for: -33.4% per złoty
+against -36.2%, on three times the stake, so it loses 22,821 zł where the single score loses
+8,257 zł. Compare the markets by return, never by balance, or the top three looks worst
+purely for staking most.
 
 **The betting backtest has to train the way live does, or it scores a model nobody can
 run.** `backtest.walk_forward` refits before every round, 228 fits, and strips the season
