@@ -15,7 +15,10 @@ from __future__ import annotations
 
 import streamlit as st
 
+from src.betting.tracker import history, tracker
 from src.report.render import (
+    betting_bar,
+    betting_detail,
     empty_notice,
     legend_html,
     match_card,
@@ -169,6 +172,15 @@ def main() -> None:
         scorecard_bar(card, selected["season_slug"].replace("_", "/")),
         unsafe_allow_html=True,
     )
+
+    # Under the record rather than instead of it: the balance is the same picks priced in
+    # money. The detail stays collapsed for the same reason the legend does.
+    record = tracker(selected["season_slug"])
+    past = history()
+    st.markdown(betting_bar(record, past), unsafe_allow_html=True)
+    if record["rounds"] or past:
+        with st.expander("💰  BETTING TRACKER, ROUND BY ROUND", expanded=False):
+            st.markdown(betting_detail(record, past), unsafe_allow_html=True)
 
     render_grid(predictions)
 

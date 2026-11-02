@@ -3,7 +3,7 @@
 > **All phases are complete, and the project now runs unattended.** The pipeline runs
 > from raw downloads to a Streamlit report: 2,660 matches, 77,278 player appearances,
 > 98.6% of starters matched to ratings, a 99-column feature table, nine models benchmarked against the closing line, and
-> predictions for fixtures that have not been played. 505 tests, none needing network or
+> predictions for fixtures that have not been played. 536 tests, none needing network or
 > data. It is deployed, and a scheduled job predicts each round before kickoff and commits
 > it — see **Stage three** at the end of this file.
 >
@@ -920,6 +920,22 @@ Training on the played matches as well is worth 0.2087 → 0.2033 walk-forward o
 matches, more than twice the squad-quality channel, and it commits *more* rather than
 hedging. The first attempt to measure it on this season's 70 matches said the opposite,
 which is the small-sample caveat the report shows readers turned back on ourselves.
+
+## Phase 20 — The betting tracker *(done)*
+
+Whether the model can beat the market with real money on it is a sharper question than RPS,
+so every prediction now carries a simulated 10 zł: one bet on the outcome it makes most
+likely and one on its leading scoreline, on every fixture, with Poland's 12% stake tax
+deducted. The report shows both balances per round and in total, and the scheduled job
+writes the same table to each run's summary.
+
+The backtest answers the headline: over 2,280 matches, -16.4% on home/draw/away and -37.9%
+on the exact score. **The prices are the open item.** It was meant to use a Polish
+bookmaker. OddsPortal holds STS's prices, but its robots.txt disallows every archived
+season and its terms forbid copying without written permission, so it was not collected. No
+API found offers correct-score prices for a Polish book. Bet365's real close stands in for
+home/draw/away, and exact-score prices are estimated. `src/betting/prices.py` is the one
+module to change if a permitted source turns up.
 
 ## What is left
 
