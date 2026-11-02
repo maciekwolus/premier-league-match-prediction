@@ -43,6 +43,10 @@ data/**
 !data/processed/player_map.parquet
 !data/processed/fifa_players.parquet
 
+# ...and except the betting backtest, which the deployed report reads. It is rebuildable
+# but takes 228 model fits, which the page cannot do on a visitor's request. 90 KB.
+!data/final/betting_backtest.parquet
+
 # Python
 __pycache__/
 *.py[cod]

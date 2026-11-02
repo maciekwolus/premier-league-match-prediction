@@ -21,9 +21,9 @@ downloads to a Streamlit report. **Stage two (Phases 11–15) made it survive a 
 season**: predictions archived per gameweek and never rewritten, a browsable history
 scored against reality, suspensions derived from cards already on disk, squads for a
 season whose ratings edition does not exist yet, and the skills. **Stage three (Phases
-17–19) put it online and left it running**: CI, a public Streamlit deployment, a daily
-job that predicts each round before kickoff and commits it, and ingestion of the season
-as it is played. All three are complete and 505 tests cover them. Phase 16 is planned and
+17–20) put it online and left it running**: CI, a public Streamlit deployment, a daily
+job that predicts each round before kickoff and commits it, ingestion of the season as it
+is played, and a simulated betting record. All three are complete and 536 tests cover them. Phase 16 is planned and
 deliberately optional. There is no Phase 10 — the numbering skips it so stages one and two
 stay visually distinct.
 
@@ -66,7 +66,8 @@ What exists in `data/processed/` after a full build:
 | `fpl_fixtures.parquet` | 380 | the upcoming season's schedule with *official* gameweek numbers |
 
 And in `data/final/`: `features.parquet` — 2,660 rows, 99 columns, one per match and
-nothing post-kickoff — plus `rounds/<season>/gwNN.json`, the prediction archive.
+nothing post-kickoff — plus `rounds/<season>/gwNN.json`, the prediction archive, and
+`betting_backtest.parquet`, the deployed model's pick and price for 2,280 matches.
 
 ## Commands
 
@@ -97,6 +98,8 @@ Rebuild the match data (downloads are cached; `--force` re-fetches):
 .venv/Scripts/python.exe -m src.evaluate.compare --fast   # skips AutoGluon, seconds
 .venv/Scripts/python.exe -m src.predict.gameweek          # next round
 .venv/Scripts/python.exe -m src.predict.gameweek --replay # last known round, as a check
+.venv/Scripts/python.exe -m src.betting.tracker           # the betting balances
+.venv/Scripts/python.exe -m src.betting.backtest          # rebuild them, 228 fits, minutes
 .venv/Scripts/python.exe -m streamlit run app.py          # the report
 ```
 
@@ -135,6 +138,12 @@ is *untracked*, so `git diff` does not see it** and a `git diff --quiet` guard w
 "nothing to commit" every week forever; and **the job needs the derived parquets in the
 repo**, since FIFA ratings cannot be downloaded without a Kaggle account and re-scraping
 Understat weekly would be 2,660 requests at a small free site.
+
+**Bets settle themselves, so the job only reports them.** The report works the betting
+balance out on read from the archive and `matches.parquet`, the way it does the scorecard,
+so the results refresh is what settles a round and there is no ledger to fall out of step.
+The job's last step writes `src.betting.tracker` to the run summary, and it runs even when
+the refresh failed, because the balance as of the last good results is what you want then.
 
 **The round is committed before results are fetched, and the order is load-bearing.**
 A prediction comes from the FPL schedule and owes football-data nothing, but the two once
@@ -336,6 +345,45 @@ show our RPS beside a permanent blank, which is the one comparison the page exis
 `actual_results` therefore reads `odds_close_avg_*` from `matches.parquet` and
 `attach_results` fills them in **only for played fixtures, and never over odds the
 prediction already recorded** — what we actually saw beats what the line closed at.
+
+**The betting tracker prices the same picks the scorecard grades, and they are not Polish
+prices.** `src/betting/` puts a simulated 10 zł on every fixture, once on the most likely
+outcome and once on the leading scoreline, and `results.predicted_outcome` and
+`predicted_score` are shared with `verdict` so the money and the hit counts cannot describe
+different picks. The aim was STS, and **do not collect it from OddsPortal**: its archive
+does hold STS's 1X2 and correct-score closes, and its `/h2h/` links dodge the year patterns,
+but robots.txt disallows `*-2024*` back to `*-1998*` for every crawler and its terms forbid
+copying without written permission. Those year-free links serve the same archive, so they
+are a way round the rule rather than a way of following it. Home/draw/away therefore uses
+Bet365's real close, and exact-score prices are estimated, because no permitted source
+records them at all: `prices.market_matrix` solves the closing line for each side's
+expected goals and adds `CORRECT_SCORE_OVERROUND`. That margin rests on two hand-read
+tables, so the page reports the result across `OVERROUND_RANGE`. Across 2,749 matches the
+matrix expects 1-1 306.7 times against 309 actual, though it over-expects 0-0 (199 against
+156) and under-expects 2-2 (123 against 160). **Every balance on the page has to say all of
+this** — a tracker that showed a profit without saying what it rests on would be the most
+misleading thing on the site, so `betting_bar` carries the note and contradicts any positive
+balance with the backtest.
+
+**The 12% tax is what stands between a coupon and its stake.** A 10 zł Polish coupon buys
+8.80 zł of bet, so a winner pays 8.80 times the price. The headline balance has it deducted
+and the untaxed figure sits beside it, for promotions where the bookmaker absorbs the tax.
+It is worth more than the model is: across the backtest home/draw/away is -16.4% with the
+tax and -5.0% without. Replays never count, since nobody could have placed that bet, and a
+postponed fixture is staked once, through `once_per_fixture`.
+
+**The betting backtest has to train the way live does, or it scores a model nobody can
+run.** `backtest.walk_forward` refits before every round, 228 fits, and strips the season
+in progress down to `MATCH_COLUMNS`, as `training_history` does. Leaving the real squad
+columns on those rows printed 0.2025, better than the deployed 0.2033 and for a reason that
+cannot exist live. **The printed RPS is the check that it is the deployed model**, so read
+it after any rerun. One flattery remains and cannot be removed: a historical squad rating
+comes from the XI that started, where a live round guesses it.
+
+**Sanity-check a mean, not only the tests.** 536 tests passed with an average exact-score
+price of 100.55, which was the model naming 10-0 for Leeds v Fulham in round 2 of 2020/21:
+two promoted clubs with one match each, 10.27 expected goals. Nothing published is affected,
+the next highest round-2 peak is 3.56, and the bet lost, but no test would have shown it.
 
 **Per-team features are computed on a team-match table**, two rows per fixture rather
 than one. `features/form.py` builds it, and `features/build.py` pivots it back to one row

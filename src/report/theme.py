@@ -451,5 +451,32 @@ h1 {{
    each - left at 25% the last one wraps onto a row of its own and reads as an
    afterthought rather than the point. */
 .pl-scorecard .pl-stat {{ flex-basis: 20%; border-right-color: {ACCENT_2}; }}
+
+/* ------------------------------------------------------------ betting tracker */
+
+.pl-betting .pl-stat {{ flex-basis: 25%; }}
+.pl-gain {{ color: {UP}; }}
+.pl-loss {{ color: {DOWN}; }}
+.pl-money-key {{
+  margin: 1.1rem 0 0.45rem; color: {ACCENT_2}; letter-spacing: 0.1em;
+  font-family: ui-monospace, monospace; font-size: 0.72rem;
+}}
+/* A table scrolls inside its own box: at phone width eight columns will not fit, and the
+   page must not pick up a sideways scroll from one panel. */
+.pl-money-scroll {{ overflow-x: auto; }}
+.pl-money {{
+  width: 100%; border-collapse: collapse;
+  font-family: ui-monospace, monospace; font-size: 0.74rem; white-space: nowrap;
+}}
+.pl-money th {{
+  color: {MUTED}; font-weight: 400; letter-spacing: 0.06em; text-align: right;
+  padding: 0.3rem 0.6rem; border-bottom: 2px solid {MUTED};
+}}
+.pl-money td {{
+  color: {INK}; text-align: right; padding: 0.28rem 0.6rem;
+  border-bottom: 1px solid rgba(244,241,232,0.10);
+}}
+.pl-money th:first-child, .pl-money td:first-child {{ text-align: left; }}
+.pl-money tr.pl-money-total td {{ border-top: 2px solid {ACCENT_2}; font-weight: 700; }}
 </style>
 """
